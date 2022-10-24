@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link
+			href="https://fonts.googleapis.com/css2?family=Lato:wght@300;700&display=swap"
+			rel="stylesheet"
+		/>
+		<link rel="stylesheet" href="./public/css/styles.css" />
+		<title>CYu@Trivia</title>
+	</head>
+	<body>
+		<div class="navbar">
+			<div class="navbar-content">
+				<div class="logo-image">
+					<img src="./public/img/CYuLogo.png" />
+				</div>
+				<div class="menu-content" id="menu-bar">
+					<ul>
+						<li class="navlink">
+							<a>Play</a>
+						</li>
+						<li class="navlink" data-target="about">
+							<a>About</a>
+						</li>
+						<li class="navlink" data-target="samples">
+							<a>Samples</a>
+						</li>
+						<li class="navlink" data-target="contact">
+							<a>Contact</a>
+						</li>
+					</ul>
+				</div>
+			</div>
+		</div>
+		<div class="main-content">
+			<div class="banner">
+				<img src="./public/img/bar.jpg" />
+				<div
+					class="banner-text"
+					id="banner-1"
+					data-order="1"
+					style="left: 8%; top: 30%"
+				>
+					Looking for fun?
+				</div>
+				<div
+					class="banner-text"
+					id="banner-2"
+					data-order="2"
+					style="right: 10%; top: 60%"
+				>
+					CYu@Trivia
+				</div>
+				<div class="banner-text banner-logo" id="banner-3" data-order="3">
+					<img src="./public/img/CYuLogo.png" />
+				</div>
+			</div>
+			<div class="body-section" name="about">
+				<div class="section-title">About</div>
+				<div id="about" class="section-content">
+					Lorem ipsum dolor sit amet consectetur adipisicing elit. Eius,
+					incidunt aperiam consequatur enim dignissimos eaque blanditiis
+					inventore quaerat itaque, pariatur non aspernatur ipsam quidem
+					voluptates, expedita voluptate repellendus delectus animi!
+				</div>
+			</div>
+		</div>
+		<footer>
+			<p>&copy; 2022 by Chuck Yu</p>
+		</footer>
+	</body>
+	<script src="./public/js/index.js"></script>
+</html>
