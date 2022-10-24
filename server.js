@@ -6,10 +6,6 @@ const rateLimit = require('express-rate-limit');
 dotenv.config({ path: './config.env' });
 const port = process.env.PORT || 3000;
 
-app.listen(port, () => {
-	console.log(`Application started on port ${port}`);
-});
-
 app.use(express.static(__dirname));
 app.use(express.json());
 
@@ -53,3 +49,10 @@ app.post('/contact', async (req, res) => {
 		message: 'message sent.',
 	});
 });
+
+const server = app.listen(port, () => {
+	console.log(`Application started on port ${port}`);
+});
+
+const http = require('http').Server(app);
+const socketManager = require('./utils/socketManager')(http, server);

@@ -5,9 +5,10 @@ const getElementArray = (selector) => {
 	return Array.from(document.querySelectorAll(selector), (x) => x);
 };
 
+let socket = io();
+
 document.addEventListener('DOMContentLoaded', () => {
 	//set the margin top for the main content
-
 	const flyers = getElementArray('.banner-text').sort((a, b) => {
 		return (
 			parseInt(a.getAttribute('data-order')) -
@@ -20,9 +21,10 @@ document.addEventListener('DOMContentLoaded', () => {
 		setTimeout(() => {
 			f.classList.add('fade-in');
 			f.style.opacity = 1;
-			console.log(t);
 		}, t);
 	});
+
+	socket.emit('request-questions', null);
 });
 
 if (contactForm) {
@@ -72,3 +74,7 @@ function handleSubmit(e) {
 		req.send(JSON.stringify(body));
 	}
 }
+
+socket.on('questions', (data) => {
+	console.log(data);
+});
