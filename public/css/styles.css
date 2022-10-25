@@ -28,13 +28,16 @@ a:visited {
 	color: yellow;
 }
 
-.navbar {
+.top-navbar {
 	overflow: hidden;
 	top: 0;
+	position: fixed;
+	z-index: 10;
 	height: var(--header-ht-m);
 	width: 100%;
 	color: yellow;
 	font-size: 2vh;
+	background-image: linear-gradient(to right, #010204, #014488);
 }
 
 .title-div {
@@ -194,11 +197,81 @@ a:visited {
 	border-radius: 50%;
 }
 
+.slideshow-container {
+	width: 100%;
+	border: 1px solid white;
+	background-color: #1b212c;
+	position: relative;
+	color: white;
+}
+
+.slideshow-container .emphasis {
+	color: yellow;
+	font-weight: bold;
+}
+
+.carousel-inner {
+	width: 100%;
+	height: 100%;
+}
+
+.carousel-item {
+	width: 100%;
+	height: 100%;
+	position: relative;
+}
+
+.carousel-item > .slide-contents {
+	width: 100%;
+	height: 100%;
+	padding: 5% 8% 10% 12%;
+	display: flex;
+	flex-direction: column;
+}
+
+.slide-contents > div {
+	padding: 0 3%;
+}
+
+.slide-contents > .slide-header {
+	flex: 2;
+}
+
+.slide-contents > .slide-body {
+	flex: 6;
+}
+
+.slide-contents .slide-footer {
+	flex: 1;
+	cursor: pointer;
+}
+
+.fill-container {
+	width: 100%;
+}
+
+.flair-div {
+	position: absolute;
+	left: 0%;
+	top: 8%;
+	width: 12%;
+	height: 15%;
+}
+
+.d1 {
+	clip-path: polygon(0 3.2%, 0 41.6%, 38.4% 80%, 77.6% 80%);
+	background-color: #0145ac;
+}
+.d2 {
+	clip-path: polygon(22.4% 22.4%, 61.6% 22.4%, 100% 60.8%, 100% 100%);
+	background-color: #82c7a5;
+}
+
 @media (pointer: fine) {
 	body {
 		font-size: 3vh;
 	}
-	.navbar {
+	.top-navbar {
 		height: var(--header-ht-d);
 	}
 
@@ -216,6 +289,10 @@ a:visited {
 
 	.menu-content > ul > li {
 		font-size: 3vh;
+	}
+
+	.slideshow-container {
+		max-width: min(600px, 100%);
 	}
 
 	@media (min-width: 1024px) {
