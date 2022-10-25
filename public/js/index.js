@@ -1,11 +1,20 @@
 const navbar = document.querySelector('.navbar');
 const contactForm = document.getElementById('contact-form');
-const questionCarousel = document.getElementById('question-carousel-inner');
-const questionIndicators = document.querySelector(
-	'#question-carousel > .carousel-indicators'
-);
+
 const bsQuestionCarousel = new bootstrap.Carousel(
 	document.getElementById('question-carousel'),
+	{
+		interval: false,
+	}
+);
+const bsPictureCarousel = new bootstrap.Carousel(
+	document.getElementById('picture-carousel'),
+	{
+		interval: false,
+	}
+);
+const bsWildcardCarousel = new bootstrap.Carousel(
+	document.getElementById('wildcard-carousel'),
 	{
 		interval: false,
 	}
@@ -17,18 +26,24 @@ const getElementArray = (item, selector) => {
 
 let socket = io();
 let questions;
+let pictures;
+let wildcard;
 
 const revealAnswer = (e) => {
-	const q = parseInt(e.target.getAttribute('data-question'));
-	if (isNaN(q)) return;
-
-	if (q < 0 || questions.length <= q) return;
-
-	e.target.innerHTML = questions[q].answer;
+	if (e.target.getAttribute('data-answer')) {
+		e.target.innerHTML = e.target.getAttribute('data-answer');
+	}
 };
 
 let maxHeight;
-const createSlide = (data) => {
+
+const createSlide = (slideshow, data) => {
+	const carousel = document.querySelector(`${slideshow} > .carousel-inner`);
+	const indicators = document.querySelector(
+		`${slideshow} > .carousel-indicators`
+	);
+
+	if (!carousel) return;
 	//slide
 	const item = document.createElement('div');
 	item.classList.add('carousel-item');
@@ -49,83 +64,39 @@ const createSlide = (data) => {
 		const element = document.createElement('div');
 		element.classList.add(`slide-${el}`);
 		element.classList.add('slide-content-wrapper');
-		element.setAttribute('id', `${el}-${data.question}`);
+		// element.setAttribute('id', `${el}-${data.question}`);
 		contents.appendChild(element);
 		const inner = document.createElement('div');
 		inner.classList.add('fill-container');
 		element.appendChild(inner);
 		return inner;
 	});
-	questionCarousel.appendChild(item);
+	carousel.appendChild(item);
 	footer.classList.add('emphasis');
 	footer.setAttribute('data-question', data.question - 1);
+	footer.setAttribute('data-answer', data.answer);
 	footer.addEventListener('click', revealAnswer);
 	footer.innerHTML = 'Click to reveal answer';
+
 	//indicator
-	const ind = document.createElement('button');
-	ind.setAttribute('type', 'button');
-	ind.setAttribute('data-bs-target', '#question-carousel');
-	ind.setAttribute('data-bs-slide-to', data.question - 1);
-	questionCarousel
-		.querySelector('.carousel-item.active')
-		?.classList.remove('active');
-	const currentButton = questionIndicators.querySelector('button.active');
-	if (currentButton) {
-		currentButton.classList.remove('active');
-		currentButton.setAttribute('aria-current', '');
-	}
+	if (indicators) {
+		const ind = document.createElement('button');
+		ind.setAttribute('type', 'button');
+		ind.setAttribute('data-bs-target', slideshow);
+		ind.setAttribute('data-bs-slide-to', data.question - 1);
+		carousel.querySelector('.carousel-item.active')?.classList.remove('active');
+		const currentButton = indicators.querySelector('button.active');
+		if (currentButton) {
+			currentButton.classList.remove('active');
+			currentButton.setAttribute('aria-current', '');
+		}
 
-	item.classList.add('active');
-	ind.setAttribute('aria-current', true);
-	ind.classList.add('active');
+		item.classList.add('active');
+		ind.setAttribute('aria-current', true);
+		ind.classList.add('active');
 
-	ind.setAttribute('aria-label', `Slide ${data.question}`);
-	questionIndicators.appendChild(ind);
-
-	if (!maxHeight)
-		maxHeight = getElementArray(contents, 'div.slide-content-wrapper').reduce(
-			(prev, curr) => {
-				return prev + curr.offsetHeight;
-			},
-			0
-		);
-
-	header.innerHTML = `<p>Question ${data.question}<br>${data.value} points</p>`;
-
-	let i = 0;
-	while (data.text.indexOf('**') >= 0) {
-		i++;
-		data.text = data.text.replace(
-			'**',
-			i % 2 === 0 ? '</span>' : '<span class="emphasis">'
-		);
-	}
-	body.innerHTML = data.text;
-
-	let height = getElementArray(contents, 'div.fill-container').reduce(
-		(prev, curr) => {
-			return prev + curr.offsetHeight;
-		},
-		0
-	);
-
-	const s = window.getComputedStyle(body, null).getPropertyValue('font-size');
-	let iter = 0;
-	let fontSize = parseFloat(
-		window.getComputedStyle(body, null).getPropertyValue('font-size')
-	);
-	while (height > maxHeight && fontSize >= 6) {
-		iter++;
-		fontSize = fontSize - 1;
-		header.style.fontSize = `${fontSize}px`;
-		body.style.fontSize = `${fontSize}px`;
-		footer.style.fontSize = `${fontSize}px`;
-		height = getElementArray(contents, 'div.fill-container').reduce(
-			(prev, curr) => {
-				return prev + curr.offsetHeight;
-			},
-			0
-		);
+		ind.setAttribute('aria-label', `Slide ${data.question}`);
+		indicators.appendChild(ind);
 	}
 
 	return item;
@@ -200,7 +171,10 @@ function handleSubmit(e) {
 }
 
 socket.on('questions', (data) => {
-	questions = data;
+	questions = data.questions;
+	pictures = data.pictures;
+	wildcard = data.wildcard;
+
 	const items = getElementArray(
 		document,
 		'#question-carousel-inner > .carousel-item'
@@ -214,10 +188,105 @@ socket.on('questions', (data) => {
 	inds.forEach((e) => e.remove());
 
 	questions.forEach((q, i) => {
-		createSlide({
+		const newSlide = createSlide(`#question-carousel`, {
 			...q,
 			question: i + 1,
 		});
+		const contents = newSlide.querySelector('.slide-contents');
+
+		if (!maxHeight)
+			maxHeight = getElementArray(contents, 'div.slide-content-wrapper').reduce(
+				(prev, curr) => {
+					return prev + curr.offsetHeight;
+				},
+				0
+			);
+
+		const [header, body, footer] = [
+			newSlide.querySelector(`.slide-header > .fill-container`),
+			newSlide.querySelector(`.slide-body > .fill-container`),
+			newSlide.querySelector(`.slide-footer > .fill-container`),
+		];
+
+		header.innerHTML = `<p>Question ${i + 1}<br>${q.value} points</p>`;
+
+		let j = 0;
+		while (q.text.indexOf('**') >= 0) {
+			j++;
+			q.text = q.text.replace(
+				'**',
+				j % 2 === 0 ? '</span>' : '<span class="emphasis">'
+			);
+		}
+		body.innerHTML = q.text;
+
+		let height = getElementArray(contents, 'div.fill-container').reduce(
+			(prev, curr) => {
+				return prev + curr.offsetHeight;
+			},
+			0
+		);
+
+		let fontSize = parseFloat(
+			window.getComputedStyle(body, null).getPropertyValue('font-size')
+		);
+		while (height > maxHeight && fontSize >= 6) {
+			fontSize = fontSize - 1;
+			header.style.fontSize = `${fontSize}px`;
+			body.style.fontSize = `${fontSize}px`;
+			footer.style.fontSize = `${fontSize}px`;
+			height = getElementArray(contents, 'div.fill-container').reduce(
+				(prev, curr) => {
+					return prev + curr.offsetHeight;
+				},
+				0
+			);
+		}
 	});
 	bsQuestionCarousel.to(0);
+
+	pictures.answers.forEach((p, i) => {
+		const newSlide = createSlide('#picture-carousel', {
+			answer: p,
+			question: i + 1,
+		});
+
+		const [header, body] = [
+			newSlide.querySelector(`.slide-header > .fill-container`),
+			newSlide.querySelector(`.slide-body > .fill-container`),
+		];
+
+		header.innerHTML = `<p>${pictures.title}<br>Picture ${i + 1}</p>`;
+
+		const img = document.createElement('img');
+		img.setAttribute('src', `/public/img/picture_round/${i + 1}.png`);
+		body.appendChild(img);
+
+		const ratio = img.offsetWidth / img.offsetHeight;
+		const bodyRatio = body.offsetWidth / body.offsetHeight;
+		body.style.height = '100%';
+
+		if (ratio > bodyRatio) {
+			img.style.width = '80%';
+		} else {
+			img.style.height = '80%';
+		}
+	});
+	bsPictureCarousel.to(0);
+
+	wildcard.questions.forEach((w, i) => {
+		const newSlide = createSlide('#wildcard-carousel', {
+			answer: w.answer,
+			question: i + 1,
+		});
+
+		const [header, body] = [
+			newSlide.querySelector(`.slide-header > .fill-container`),
+			newSlide.querySelector(`.slide-body > .fill-container`),
+		];
+
+		header.innerHTML = `<p>${wildcard.title}<br>Question ${i + 1}</p>`;
+		body.innerHTML = w.text;
+	});
+	bsWildcardCarousel.to(0);
 });

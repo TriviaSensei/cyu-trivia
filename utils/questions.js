@@ -1,4 +1,4 @@
-module.exports = [
+exports.questions = [
 	{
 		value: 2,
 		text: '"Computer", "Amazon", and "Echo" were the original alternative "wake words" that could replace **what default word**?',
@@ -40,3 +40,65 @@ module.exports = [
 		answer: 'DOULA',
 	},
 ];
+
+exports.pictures = {
+	title: 'Name the Girl Scout Cookie',
+	answers: [
+		'Do-si-dos/Peanut Butter Sandwiches',
+		'Toast-Yays',
+		'Toffee-tastics',
+		'Trefoils/Shortbreads',
+		"S'Mores",
+		'Samoas/Caramel-deLites',
+		'Savannah Smiles',
+		'Lemonades',
+		'Thin Mints',
+		'Tagalongs/Peanut Butter Patties',
+	],
+};
+
+exports.wildcard = {
+	title: 'Estimate in the requested units, within 10%',
+	questions: [
+		{
+			text: 'The circumference of an NBA basketball (inches)',
+			answer: '29.5 (acc. 26.55 - 32.45)',
+		},
+		{
+			text: 'The diameter of a golf hole (inches)',
+			answer: '4.25 (3.825 - 4.675)',
+		},
+		{
+			text: 'The maximum allowed weight of a curling stone (pounds)',
+			answer: '44 (39.6 - 48.4)',
+		},
+		{
+			text: 'The number of double stiches on an MLB baseball',
+			answer: '108 (97.2 - 118.8)',
+		},
+		{
+			text: 'The distance between the uprights on an NFL goal post (feet)',
+			answer: '18.5 (16.65 - 20.35)',
+		},
+		{
+			text: 'The width of a soccer goal, according to FIFA (feet)',
+			answer: '24 (21.6 - 26.4)',
+		},
+		{
+			text: 'The length of a bowling lane, from foul line to the head pin (feet)',
+			answer: '60 (54 - 66)',
+		},
+		{
+			text: 'The regulation height of the bullseye (from the floor) on a dartboard (inches)',
+			answer: '68 (61.2 - 74.8)',
+		},
+		{
+			text: 'The distance between the front edges of the boards in a game of cornhole/bags (feet)',
+			answer: '27 (24.3 - 29.7)',
+		},
+		{
+			text: 'The distance between the two sets of wickets in cricket (feet)',
+			answer: '66 (59.4 - 72.6)',
+		},
+	],
+};

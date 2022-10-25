@@ -39,6 +39,9 @@
 						<li class="navlink" data-target="about">
 							<a>About</a>
 						</li>
+						<li class="navlink" data-target="trivia">
+							<a>Services</a>
+						</li>
 						<li class="navlink" data-target="samples">
 							<a>Samples</a>
 						</li>
@@ -76,97 +79,192 @@
 				<div class="section-title">About</div>
 				<div id="about" class="section-content">
 					<p>
-						Lorem ipsum dolor sit amet consectetur adipisicing elit. Laboriosam
-						amet molestias ab illo sit maiores nisi quo sunt obcaecati aliquid,
-						officiis assumenda animi. Necessitatibus aut repellat doloribus,
-						quidem blanditiis voluptatum.
-					</p>
-					<p>
-						Lorem ipsum dolor sit amet consectetur adipisicing elit. Sequi nobis
-						laboriosam commodi consequuntur perferendis possimus architecto
-						animi aut veritatis voluptate, dolorum velit pariatur nihil laborum,
-						nisi nulla! Suscipit, laborum quod.
-					</p>
-					<p>
-						Lorem ipsum dolor, sit amet consectetur adipisicing elit. Aperiam,
-						suscipit facilis esse ad quidem ipsam voluptates, tenetur
-						voluptatum, minima debitis mollitia facere laborum eos incidunt
-						eveniet praesentium tempora tempore inventore.
+						My name is Chuck Yu, and I want to give you a challenging,
+						accessible, diverse, and, most of all, fun trivia experience. My own
+						journey with trivia started in high school and college quiz bowl.
+						From there, I've played in various bars with many groups of friends,
+						hosted for a company for several years, appeared on Jeopardy!, and
+						played in various online formats both before and during the Covid-19
+						pandemic. With me, you are getting a writer who touches on diverse
+						topics from art to literature to the NFL to television to world
+						history, and an experienced, engaging, and entertaining host who
+						knows what it takes to make your trivia night fun and successful.
 					</p>
 				</div>
 				<div class="section-content-media">
 					<img src="./public/img/chuck.jpg" />
 				</div>
 			</div>
+			<div class="body-section" name="services">
+				<div class="section-title">Services</div>
+				<div class="grid-display">
+					<div class="service-tile">
+						<div class="icon-container">
+							<img src="/public/img/gear.svg" />
+						</div>
+						<div class="service-desc">
+							I will customize games for your group, your venue, and your
+							preferences. The length of your game, the types of rounds, and the
+							subject matter are all customizable. I can even write entire
+							rounds based on a theme if you wish!
+						</div>
+					</div>
+					<div class="service-tile">
+						<div class="icon-container">
+							<img src="/public/img/beer.svg" />
+						</div>
+						<div class="service-desc">
+							You will get a variety of content. I have my own interests, but I
+							make a point to branch out and learn and write about everything
+							from grandfather clocks to TikTok. Whether it happened last week
+							or 3000 years ago, it's fair game in my games. There will be
+							something for everyone, and everyone will be able to contribute to
+							their team's score!
+						</div>
+					</div>
+					<div class="service-tile">
+						<div class="icon-container">
+							<img src="/public/img/money.svg" />
+						</div>
+						<div class="service-desc">
+							I am affordable to book for your party, your corporate group, or
+							any other gathering. Own a bar and want to make this a regular
+							thing? Great! Ask me about package deals!
+						</div>
+					</div>
+				</div>
+			</div>
 			<div class="body-section" name="samples">
 				<div class="section-title">Samples</div>
 				<div id="samples" class="section-content">
-					<div class="slideshow-container ratio" style="--bs-aspect-ratio: 80%">
-						<div
-							id="question-carousel"
-							class="carousel slide"
-							data-bs-ride="carousel"
-							data-bs-interval="false"
-						>
-							<div class="carousel-indicators">
-								<button
-									type="button"
-									data-bs-target="#question-carousel"
-									data-bs-slide-to="0"
-									class="active"
-									aria-current="true"
-									aria-label="Slide 1"
-								></button>
-								<button
-									type="button"
-									data-bs-target="#question-carousel"
-									data-bs-slide-to="1"
-									aria-label="Slide 2"
-								></button>
-								<button
-									type="button"
-									data-bs-target="#question-carousel"
-									data-bs-slide-to="2"
-									aria-label="Slide 3"
-								></button>
-							</div>
-							<div class="carousel-inner" id="question-carousel-inner">
-								<div class="carousel-item active">
-									<div class="flair-div d1"></div>
-									<div class="flair-div d2"></div>
-									<div class="slide-contents">
-										<div class="slide-header"></div>
-										<div class="slide-body"></div>
-										<div class="slide-footer"></div>
-									</div>
+					<div class="grid-display">
+						<div>
+							General knowledge - increasing difficulty and point value.
+							<div
+								class="slideshow-container ratio"
+								style="--bs-aspect-ratio: 80%"
+							>
+								<div
+									id="question-carousel"
+									class="carousel slide"
+									data-bs-ride="carousel"
+									data-bs-interval="false"
+								>
+									<div class="carousel-indicators"></div>
+									<div
+										class="carousel-inner"
+										id="question-carousel-inner"
+									></div>
+									<button
+										class="carousel-control-prev"
+										type="button"
+										data-bs-target="#question-carousel"
+										data-bs-slide="prev"
+									>
+										<span
+											class="carousel-control-prev-icon"
+											aria-hidden="true"
+										></span>
+										<span class="visually-hidden">Previous</span>
+									</button>
+									<button
+										class="carousel-control-next"
+										type="button"
+										data-bs-target="#question-carousel"
+										data-bs-slide="next"
+									>
+										<span
+											class="carousel-control-next-icon"
+											aria-hidden="true"
+										></span>
+										<span class="visually-hidden">Next</span>
+									</button>
 								</div>
-								<div class="carousel-item">placeholder 2</div>
-								<div class="carousel-item">placeholder 3</div>
 							</div>
-							<button
-								class="carousel-control-prev"
-								type="button"
-								data-bs-target="#question-carousel"
-								data-bs-slide="prev"
+						</div>
+						<div>
+							Picture round - give an answer for each image-based question.
+							<div
+								class="slideshow-container ratio"
+								style="--bs-aspect-ratio: 80%"
 							>
-								<span
-									class="carousel-control-prev-icon"
-									aria-hidden="true"
-								></span>
-								<span class="visually-hidden">Previous</span>
-							</button>
-							<button
-								class="carousel-control-next"
-								type="button"
-								data-bs-target="#question-carousel"
-								data-bs-slide="next"
+								<div
+									id="picture-carousel"
+									class="carousel slide"
+									data-bs-ride="carousel"
+									data-bs-interval="false"
+								>
+									<div class="carousel-indicators"></div>
+									<div class="carousel-inner" id="picture-carousel-inner"></div>
+									<button
+										class="carousel-control-prev"
+										type="button"
+										data-bs-target="#picture-carousel"
+										data-bs-slide="prev"
+									>
+										<span
+											class="carousel-control-prev-icon"
+											aria-hidden="true"
+										></span>
+										<span class="visually-hidden">Previous</span>
+									</button>
+									<button
+										class="carousel-control-next"
+										type="button"
+										data-bs-target="#picture-carousel"
+										data-bs-slide="next"
+									>
+										<span
+											class="carousel-control-next-icon"
+											aria-hidden="true"
+										></span>
+										<span class="visually-hidden">Next</span>
+									</button>
+								</div>
+							</div>
+						</div>
+						<div>
+							Wildcard - a quick, usually themed round with a random format
+							<div
+								class="slideshow-container ratio"
+								style="--bs-aspect-ratio: 80%"
 							>
-								<span
-									class="carousel-control-next-icon"
-									aria-hidden="true"
-								></span>
-								<span class="visually-hidden">Next</span>
-							</button>
+								<div
+									id="wildcard-carousel"
+									class="carousel slide"
+									data-bs-ride="carousel"
+									data-bs-interval="false"
+								>
+									<div class="carousel-indicators"></div>
+
+									<div class="carousel-inner" id="picture-carousel-inner"></div>
+
+									<button
+										class="carousel-control-prev"
+										type="button"
+										data-bs-target="#wildcard-carousel"
+										data-bs-slide="prev"
+									>
+										<span
+											class="carousel-control-prev-icon"
+											aria-hidden="true"
+										></span>
+										<span class="visually-hidden">Previous</span>
+									</button>
+									<button
+										class="carousel-control-next"
+										type="button"
+										data-bs-target="#wildcard-carousel"
+										data-bs-slide="next"
+									>
+										<span
+											class="carousel-control-next-icon"
+											aria-hidden="true"
+										></span>
+										<span class="visually-hidden">Next</span>
+									</button>
+								</div>
+							</div>
 						</div>
 					</div>
 				</div>

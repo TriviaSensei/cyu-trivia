@@ -1,4 +1,4 @@
-const questions = require('./questions');
+const { questions, pictures, wildcard } = require('./questions');
 
 const socket = (http, server) => {
 	const io = require('socket.io')(http, {
@@ -12,7 +12,7 @@ const socket = (http, server) => {
 		console.log(`A user has connected from ${socket.handshake.address}`);
 
 		socket.on('request-questions', (data) => {
-			io.to(socket.id).emit('questions', questions);
+			io.to(socket.id).emit('questions', { questions, pictures, wildcard });
 		});
 	});
 };
