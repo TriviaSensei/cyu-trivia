@@ -33,13 +33,14 @@
 				</div>
 				<div class="menu-content" id="menu-bar">
 					<ul>
-						<li class="navlink">
-							<a>Play</a>
+						<li class="navlink" id="play-now">
+							<a href="/play" target="_blank">Play</a>
+							<div class="live-now invisible-div">LIVE NOW!</div>
 						</li>
 						<li class="navlink" data-target="about">
 							<a>About</a>
 						</li>
-						<li class="navlink" data-target="trivia">
+						<li class="navlink" data-target="services">
 							<a>Services</a>
 						</li>
 						<li class="navlink" data-target="samples">
@@ -84,10 +85,11 @@
 						journey with trivia started in high school and college quiz bowl.
 						From there, I've played in various bars with many groups of friends,
 						hosted for a company for several years, appeared on Jeopardy!, and
-						played in various online formats both before and during the Covid-19
-						pandemic. With me, you are getting a writer who touches on diverse
-						topics from art to literature to the NFL to television to world
-						history, and an experienced, engaging, and entertaining host who
+						wrote, hosted, and played in various online and in-person formats
+						both before and during the Covid-19 pandemic. With me, you are
+						getting a writer who touches on diverse topics from ballet to the
+						Harlem Renaissance to the NFL to 90s Nickelodeon to the Roman
+						Empire, and an experienced, engaging, and entertaining host who
 						knows what it takes to make your trivia night fun and successful.
 					</p>
 				</div>
@@ -127,9 +129,10 @@
 							<img src="/public/img/money.svg" />
 						</div>
 						<div class="service-desc">
-							I am affordable to book for your party, your corporate group, or
-							any other gathering. Own a bar and want to make this a regular
-							thing? Great! Ask me about package deals!
+							I charge by the length of game and the attendance. I am affordable
+							to book for your party, your corporate group, or any other
+							gathering. Do you run an establishment and want to make this a
+							regular thing? Great! Ask me about package deals!
 						</div>
 					</div>
 				</div>
@@ -149,6 +152,7 @@
 									class="carousel slide"
 									data-bs-ride="carousel"
 									data-bs-interval="false"
+									data-bs-touch="false"
 								>
 									<div class="carousel-indicators"></div>
 									<div
@@ -193,6 +197,7 @@
 									class="carousel slide"
 									data-bs-ride="carousel"
 									data-bs-interval="false"
+									data-bs-touch="false"
 								>
 									<div class="carousel-indicators"></div>
 									<div class="carousel-inner" id="picture-carousel-inner"></div>
@@ -234,6 +239,7 @@
 									class="carousel slide"
 									data-bs-ride="carousel"
 									data-bs-interval="false"
+									data-bs-touch="false"
 								>
 									<div class="carousel-indicators"></div>
 
@@ -266,6 +272,60 @@
 								</div>
 							</div>
 						</div>
+					</div>
+				</div>
+			</div>
+			<div id="contact" class="body-section" name="contact">
+				<div class="section-title">Contact</div>
+				<div class="contact-container">
+					<div class="background-div" style="display: none">
+						Thanks for your message! I will reply to you as soon as possible!
+					</div>
+					<div id="form-container">
+						<form id="contact-form">
+							<div class="mb-3">
+								<label for="name" class="form-label">Your name:</label>
+								<input
+									type="text"
+									class="form-control"
+									id="name"
+									placeholder="Your name"
+									required
+								/>
+							</div>
+							<div class="mb-3">
+								<label for="email" class="form-label">E-mail address</label>
+								<input
+									type="email"
+									class="form-control"
+									id="email"
+									placeholder="name@example.com"
+									required
+								/>
+							</div>
+							<div class="mb-3">
+								<label for="subject" class="form-label">Subject</label>
+								<input
+									type="subject"
+									class="form-control"
+									id="subject"
+									placeholder="Subject"
+									required
+								/>
+							</div>
+							<div class="mb-3">
+								<label for="message" class="form-label">Your message</label>
+								<textarea
+									class="form-control"
+									id="message"
+									required
+									rows="6"
+								></textarea>
+							</div>
+							<div style="width: 100%; display: flex">
+								<button class="send-button">Send</button>
+							</div>
+						</form>
 					</div>
 				</div>
 			</div>

@@ -14,6 +14,14 @@ const socket = (http, server) => {
 		socket.on('request-questions', (data) => {
 			io.to(socket.id).emit('questions', { questions, pictures, wildcard });
 		});
+
+		setTimeout(() => {
+			io.to(socket.id).emit('set-live', { live: true });
+		}, 2000);
+
+		setTimeout(() => {
+			io.to(socket.id).emit('set-live', { live: false });
+		}, 20000);
 	});
 };
 

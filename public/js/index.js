@@ -1,5 +1,6 @@
-const navbar = document.querySelector('.navbar');
+const navbar = document.querySelector('.top-navbar');
 const contactForm = document.getElementById('contact-form');
+const liveNow = document.querySelector('.live-now');
 
 const bsQuestionCarousel = new bootstrap.Carousel(
 	document.getElementById('question-carousel'),
@@ -28,9 +29,41 @@ let socket = io();
 let questions;
 let pictures;
 let wildcard;
+let currentFooter;
+let liveInterval;
+
+const blinkLive = () => {
+	liveNow.classList.toggle('invisible-div');
+};
+
+const scrollToSection = (e) => {
+	const name = e.target.closest('.navlink')?.getAttribute('data-target');
+	if (!name) return;
+
+	const r = document.querySelector(`.body-section[name="${name}"]`);
+	if (!r || !navbar) return;
+	const rect = r.getBoundingClientRect();
+	window.scrollTo({
+		top: Math.max(0, window.scrollY + rect.top - navbar.offsetHeight - 20),
+	});
+};
 
 const revealAnswer = (e) => {
+	if (e.type === 'touchend' || e.type === 'mouseup') {
+		if (!currentFooter) return;
+		currentFooter.innerHTML = 'Hold to reveal answer';
+		currentFooter = undefined;
+		return;
+	}
+
+	if (
+		!e.target.closest('.slide-footer') ||
+		!e.target.getAttribute('data-answer')
+	)
+		return;
+
 	if (e.target.getAttribute('data-answer')) {
+		currentFooter = e.target;
 		e.target.innerHTML = e.target.getAttribute('data-answer');
 	}
 };
@@ -75,8 +108,11 @@ const createSlide = (slideshow, data) => {
 	footer.classList.add('emphasis');
 	footer.setAttribute('data-question', data.question - 1);
 	footer.setAttribute('data-answer', data.answer);
-	footer.addEventListener('click', revealAnswer);
-	footer.innerHTML = 'Click to reveal answer';
+	document.addEventListener('mousedown', revealAnswer);
+	document.addEventListener('touchstart', revealAnswer);
+	document.addEventListener('mouseup', revealAnswer);
+	document.addEventListener('touchend', revealAnswer);
+	footer.innerHTML = 'Hold to reveal answer';
 
 	//indicator
 	if (indicators) {
@@ -120,6 +156,13 @@ document.addEventListener('DOMContentLoaded', () => {
 	});
 
 	socket.emit('request-questions', null);
+
+	const links = getElementArray(document, '.navlink');
+	links.forEach((l) => {
+		if (l.getAttribute('data-target')) {
+			l.addEventListener('click', scrollToSection);
+		}
+	});
 });
 
 if (contactForm) {
@@ -289,4 +332,17 @@ socket.on('questions', (data) => {
 		body.innerHTML = w.text;
 	});
 	bsWildcardCarousel.to(0);
+});
+
+socket.on('set-live', (data) => {
+	console.log(data);
+
+	if (liveInterval) {
+		clearInterval(liveInterval);
+	}
+	liveNow.classList.add('invisible-div');
+
+	if (data.live) {
+		liveInterval = setInterval(blinkLive, 1000);
+	}
 });
