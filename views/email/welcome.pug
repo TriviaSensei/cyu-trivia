@@ -1,0 +1,16 @@
+extends _baseEmail
+
+block content
+    p Hello, #{name},
+    p Welcome to the CYu@Trivia family! We are excited to have you on board as a host, and can't wait to see you in action. Please, as soon as possible, activate your account by clicking the link below and setting your password when prompted to do so.
+    table.btn.btn-primary(role='presentation', border='0', cellpadding='0', cellspacing='0')
+        tbody
+            tr
+                td(align='left')
+                    table(role='presentation', border='0', cellpadding='0', cellspacing='0')
+                        tbody
+                            tr
+                                td
+                                    a(href=`${url}`, target='_blank') Click to activate your account
+    p Feel free to contact me with any bug reports, suggestions, or anything else.
+    p - Chuck Yu, Developer

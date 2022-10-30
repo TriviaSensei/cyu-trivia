@@ -74,7 +74,7 @@ a:visited {
 	margin: auto 20px;
 }
 
-.logo-image > img {
+.logo-image img {
 	height: 100%;
 }
 
@@ -102,6 +102,7 @@ a:visited {
 	display: flex;
 	flex-direction: column;
 	align-items: center;
+	height: 100%;
 	margin-top: var(--header-ht-m);
 }
 
@@ -337,14 +338,14 @@ a:visited {
 	position: relative;
 }
 
-.contact-container input,
-.contact-container textarea {
+.form-container input,
+.form-container textarea {
 	background-color: #444444;
 	color: white;
 }
 
-.contact-container input:focus,
-.contact-container textarea:focus {
+.form-container input:focus,
+.form-container textarea:focus {
 	background-color: #444444;
 	color: white;
 }
@@ -403,6 +404,10 @@ a:visited {
 
 footer {
 	text-align: center;
+}
+
+.cenetered {
+	margin: auto;
 }
 
 .invisible-div {

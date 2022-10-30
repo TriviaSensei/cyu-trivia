@@ -1,0 +1,21 @@
+extends _base
+
+block styles 
+    link(rel="stylesheet" href="/css/messages.css")
+
+block content 
+    #game-message.message.invisible-div
+    .top-navbar
+        .navbar-content
+            .logo-image
+                a(href="/") 
+                    img(src="/img/CYuLogo.png")
+    .main-content
+        #join-div.centered.mb-3
+            form#login-form
+                label.form-label(for="name") Your name:
+                input.form-control#name(type="text" placeholder="Your name" required)            
+                label.form-label(for="join-code") Join code:
+                input.form-control#code(type="text" placeholder="Join code" required)            
+                div(style="width: 100%; display: flex; margin-top: 3vh")
+                    button(type='submit').join-button Join

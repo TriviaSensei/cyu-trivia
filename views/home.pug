@@ -1,0 +1,107 @@
+extends _base
+
+block styles
+	link(rel="stylesheet" href="/css/styles.css")
+
+block navbar_content
+	li.navlink#play-now
+		a(href="/play" target="_blank") Play
+		.live-now.invisible-div LIVE NOW!		
+	li.navlink(data-target="about")
+		a About
+	li.navlink(data-target="services")
+		a Services
+	li.navlink(data-target="samples")
+		a Samples
+	li.navlink(data-target="contact")
+		a Contact
+		
+block content
+	.banner
+		img(src="/img/bar.jpg")
+		.banner-text#banner-1(data-order="1" style="left: 8%; top: 30%") Looking for fun?
+		.banner-text#banner-2(data-order="2" style="right: 10%; top: 60%") CYu@Trivia
+		.banner-text.banner-logo#banner-3(data-order="3")
+			img(src="/img/CYuLogo.png")
+	.body-section(name="about")
+		.section-title About
+		#about.section-content
+			p My name is Chuck Yu, and I want to give you a challenging, accessible, diverse, and, most of all, fun trivia experience. My own journey with trivia started in high school and college quiz bowl. From there, I've played in various bars with many groups of friends, hosted for a company for several years, appeared on Jeopardy!, and wrote, hosted, and played in various online and in-person formats both before and during the Covid-19 pandemic. With me, you are getting a writer who touches on diverse topics from ballet to the Harlem Renaissance to the NFL to 90s Nickelodeon to the Roman Empire, and an experienced, engaging, and entertaining host who knows what it takes to make your trivia night fun and successful.				
+		.section-content-media
+			img(src="/img/chuck.jpg")
+	.body-section(name="services")
+		.section-title Services
+		.grid-display
+			.service-tile
+				.icon-container
+					img(src="/img/gear.svg")
+				.service-desc I will customize games for your group, your venue, and your preferences. The length of your game, the types of rounds, and the subject matter are all customizable. I can even write entire rounds based on a theme if you wish!
+			.service-tile
+				.icon-container
+					img(src="/img/beer.svg")
+				.service-desc You will get a variety of content. I have my own interests, but I make a point to branch out and learn and write about everything from grandfather clocks to TikTok. Whether it happened last week or 3000 years ago, it's fair game in my games. There will be something for everyone, and everyone will be able to contribute to their team's score!
+			.service-tile
+				.icon-container
+					img(src="/img/money.svg")
+				.service-desc I charge by the length of game and the attendance. I am affordable to book for your party, your corporate group, or any other gathering. Do you run an establishment and want to make this a regular thing? Great! Ask me about package deals!
+	.body-section(name="samples")
+		.section-title Samples
+		#samples.section-content
+			.grid-display 
+				div General knowledge - increasing difficulty and point value.
+					.slideshow-container.ratio(style="--bs-aspect-ratio: 80%")
+						#question-carousel.carousel.slide(data-bs-ride="carousel" data-bs-interval="false" data-bs-touch="false")
+							.carousel-indicators
+							.carousel-inner#question-carousel-inner
+							button.carousel-control-prev(type="button" data-bs-target="#question-carousel" data-bs-slide="prev")
+								span.carousel-control-prev-icon(aria-hidden="true")
+								span.visually-hidden Previous
+							button.carousel-control-next(type="button" data-bs-target="#question-carousel" data-bs-slide="next")
+								span.carousel-control-next-icon(aria-hidden="true")
+								span.visually-hidden Next
+				div Picture round - give an answer for each image-based question.
+					.slideshow-container.ratio(style="--bs-aspect-ratio: 80%")
+						#picture-carousel.carousel.slide(data-bs-ride="carousel" data-bs-interval="false" data-bs-touch="false")
+							.carousel-indicators
+							.carousel-inner#picture-carousel-inner
+							button.carousel-control-prev(type="button" data-bs-target="#picture-carousel" data-bs-slide="prev")
+								span.carousel-control-prev-icon(aria-hidden="true")
+								span.visually-hidden Previous
+							button.carousel-control-next(type="button" data-bs-target="#picture-carousel" data-bs-slide="next")
+								span.carousel-control-next-icon(aria-hidden="true")
+								span.visually-hidden Next
+				div Wildcard - a quick, usually themed round with a random format
+					.slideshow-container.ratio(style="--bs-aspect-ratio: 80%")
+						#wildcard-carousel.carousel.slide(data-bs-ride="carousel" data-bs-interval="false" data-bs-touch="false")
+							.carousel-indicators
+							.carousel-inner#wildcard-carousel-inner
+							button.carousel-control-prev(type="button" data-bs-target="#wildcard-carousel" data-bs-slide="prev")
+								span.carousel-control-prev-icon(aria-hidden="true")
+								span.visually-hidden Previous
+							button.carousel-control-next(type="button" data-bs-target="#wildcard-carousel" data-bs-slide="next")
+								span.carousel-control-next-icon(aria-hidden="true")
+								span.visually-hidden Next
+	#contact.body-section(name="contact")
+		.section-title Contact
+		.contact-container.form-container
+			.background-div(style="display: none") Thanks for your message! I will reply to you as soon as possible!
+			#form-container
+				form#contact-form
+					.mb-3
+						label.form-label(for="name") Your name:
+						input.form-control#name(type="text" placeholder="Your name" required)
+					.mb-3
+						label.form-label(for="email") E-mail address
+						input.form-control#email(type="email" placeholder="name@example.com" required)
+					.mb-3
+						label.form-label(for="subject") Subject
+						input.form-control#subject(type="subject" placeholder="Subject" required)
+					.mb-3
+						label.form-label(for="message") Your message
+						textarea.form-control#message(required rows="6")
+					.mb-3(style="width: 100%; display: flex")
+						button.send-button Send		
+	include _footer
+	script(src="/socket.io/socket.io.js")
+	script(src="/js/index.js")
+

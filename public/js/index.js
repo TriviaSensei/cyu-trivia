@@ -302,7 +302,7 @@ socket.on('questions', (data) => {
 		header.innerHTML = `<p>${pictures.title}<br>Picture ${i + 1}</p>`;
 
 		const img = document.createElement('img');
-		img.setAttribute('src', `/public/img/picture_round/${i + 1}.png`);
+		img.setAttribute('src', `/img/picture_round/${i + 1}.png`);
 		body.appendChild(img);
 
 		const ratio = img.offsetWidth / img.offsetHeight;

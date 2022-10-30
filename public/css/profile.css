@@ -1,0 +1,19 @@
+.main-content {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
+
+@media (pointer: fine) and (min-width: 800px) {
+	.main-content {
+		flex-direction: row;
+		align-items: flex-start;
+	}
+
+	.form-container {
+		margin: 50px auto;
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+	}
+}
