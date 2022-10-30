@@ -3,7 +3,7 @@ import { handleRequest } from './utils/requestHandler.js';
 
 const profileForm = document.getElementById('profile-form');
 const pwForm = document.getElementById('password-form');
-const [fname, lname, displayName, email] = [
+const [fname, lname, displayName, email, currentPW, pw, pwConfirm] = [
 	'fname',
 	'lname',
 	'displayName',

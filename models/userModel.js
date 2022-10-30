@@ -53,6 +53,8 @@ const userSchema = new mongoose.Schema({
 		enum: ['host', 'admin'],
 		default: 'host',
 	},
+	activationToken: String,
+	activationTokenExpires: Date,
 });
 
 userSchema.pre('save', async function (next) {

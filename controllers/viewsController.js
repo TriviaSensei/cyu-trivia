@@ -67,3 +67,19 @@ exports.getProfile = catchAsync(async (req, res, next) => {
 		user: res.locals.user,
 	});
 });
+
+exports.getActivation = catchAsync(async (req, res, next) => {
+	// 3) render template using tour data from (1)
+	// this will look in the /views (set in app.js) folder for 'overview.pug' (pug engine also specified in app.js)
+	if (res.locals.user) {
+		res.status(200).render('profile', {
+			title: 'Profile',
+			user: res.locals.user,
+		});
+	} else {
+		res.status(200).render('activate', {
+			title: 'Activate',
+			token: req.params.token,
+		});
+	}
+});

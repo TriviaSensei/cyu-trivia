@@ -1,0 +1,18 @@
+extends _base
+
+block styles 
+    link(rel="stylesheet" href="/css/messages.css")
+
+block content 
+    #game-message.message.invisible-div
+    #activate-div.centered.mb-3
+        form#activate-form
+            input#activation-token(type='hidden' value=`${token}`)
+            label.form-label(for="password") Password:
+            input.form-control#password(type="password" placeholder="Password" required)            
+            label.form-label(for="password") Confirm Password:
+            input.form-control#passwordConfirm(type="password" placeholder="Confirm Password" required)            
+            div(style="width: 100%; display: flex; margin-top: 3vh")
+                button.join-button Activate
+
+    script(src="/js/activate.js" type="module")

@@ -5,7 +5,6 @@ const User = require('../models/userModel');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
 const Email = require('../utils/email');
-const slugify = require('slugify');
 
 //activation token times out in 1 week
 const activationTimeout = 1000 * 60 * 60 * 24 * 7;
@@ -105,25 +104,11 @@ exports.signup = catchAsync(async (req, res, next) => {
 		);
 	}
 
-	let slug = slugify(`${req.body.fName} ${req.body.lName}`);
-	let userCheck;
-	let i = 1;
-	let userExists = true;
-	while (userExists) {
-		userCheck = await User.find({ slug });
-		i++;
-		if (userCheck.length > 0) {
-			slug = slugify(`${req.body.fname} ${req.body.lname} ${i}`);
-		} else {
-			userExists = false;
-		}
-	}
 	const aToken = crypto.randomBytes(32).toString('hex');
 	activationToken = crypto.createHash('sha256').update(aToken).digest('hex');
 	const newUser = await User.create({
 		firstName: req.body.fname,
 		lastName: req.body.lname,
-		slug,
 		active: false,
 		email: req.body.email,
 		displayName: req.body.displayName,
@@ -191,14 +176,13 @@ exports.signup = catchAsync(async (req, res, next) => {
 
 exports.login = catchAsync(async (req, res, next) => {
 	const { email, password } = req.body;
-
 	//check if email and password exists
 	if (!email || !password) {
 		return next(new AppError('Please provide email and password.', 400));
 	}
 
 	//check if user exists and password is correct
-	const user = await User.findOne({ emailLC: email.toLowerCase() }).select(
+	const user = await User.findOne({ email: email.toLowerCase() }).select(
 		'+password'
 	);
 
@@ -209,7 +193,12 @@ exports.login = catchAsync(async (req, res, next) => {
 			message: 'Incorrect username or password',
 		});
 	} else if (!user.active) {
-		return next(new AppError('User is not active', 401));
+		return next(
+			new AppError(
+				'User is not active. Please check the e-mail associated with your account and activate your account.',
+				401
+			)
+		);
 	}
 
 	//if so, send the token back to the client
@@ -328,7 +317,10 @@ exports.restrictTo = (...roles) => {
 	return (req, res, next) => {
 		//roles is an array (e.g. ['admin','user'])
 		//access is granted if the logged-in user has a role in the roles array
-		if (!roles.includes(req.user.role)) {
+		// console.log('------');
+		// console.log(res.locals.user);
+		// console.log('------');
+		if (!roles.includes(res.locals.user.role)) {
 			return next(
 				new AppError(
 					'You do not have the necessary permission to perform this action',
@@ -447,5 +439,26 @@ exports.updatePassword = catchAsync(async (req, res, next) => {
 	await user.save();
 
 	//log the user back in (send a new JWT) with the new password
+	createAndSendToken(user, 200, req, res);
+});
+
+exports.activateAccount = catchAsync(async (req, res, next) => {
+	const user = await User.findOne({
+		activationToken: req.body.activationToken,
+	});
+	if (!user) {
+		return next(new AppError('Invalid activation token.', 404));
+	}
+
+	user.password = req.body.password;
+	user.passwordConfirm = req.body.passwordConfirm;
+
+	if (req.body.password !== req.body.passwordConfirm) {
+		return next(new AppError('Passwords do not match.', 400));
+	}
+
+	user.active = true;
+	await user.save();
+
 	createAndSendToken(user, 200, req, res);
 });

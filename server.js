@@ -18,7 +18,9 @@ mongoose
 	});
 
 const server = app.listen(port, () => {
-	console.log(`Application started on port ${port}`);
+	console.log(
+		`Application started on port ${port}, running in ${process.env.NODE_ENV}`
+	);
 });
 
 const http = require('http').Server(app);

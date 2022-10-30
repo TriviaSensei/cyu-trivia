@@ -11,4 +11,5 @@ router.get('/', viewsController.getHomepage);
 router.get('/play', viewsController.play);
 router.get('/login', viewsController.getLogin);
 router.get('/profile', viewsController.getProfile);
+router.get('/activate/:token', viewsController.getActivation);
 module.exports = router;
