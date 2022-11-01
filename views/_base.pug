@@ -11,12 +11,18 @@ html
         link(href="/css/styles.css" rel="stylesheet")
         block styles
     body 
+        block modals
         .top-navbar
             .navbar-content
-                .logo-image
-                    img(src="/img/CYuLogo.png")
+                .left-side
+                    .logo-image
+                        img(src="/img/CYuLogo.png")
+                    - if (user)
+                        .name-div
+                            p= `Hello, ${user.displayName} (${user.role})`
                 .menu-content#menu-bar
                     ul
                         block navbar_content
         .main-content
+            #game-message.message.invisible-div
             block content 

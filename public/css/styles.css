@@ -8,6 +8,8 @@
 	--sub-section-color: #e4e4e4;
 	--header-ht-m: 7vh;
 	--header-ht-d: 10vh;
+	--gradient-left: #010204;
+	--gradient-right: #014488;
 }
 
 html,
@@ -15,7 +17,11 @@ body {
 	margin: 0px;
 	padding: 0px;
 	color: yellow;
-	background-image: linear-gradient(to right, #010204, #014488);
+	background-image: linear-gradient(
+		to right,
+		var(--gradient-left),
+		var(--gradient-right)
+	);
 	overflow-x: hidden;
 	font-family: 'Lato', sans-serif;
 	font-size: 2vh;
@@ -26,6 +32,29 @@ body {
 	-moz-user-select: none; /* Old versions of Firefox */
 	-ms-user-select: none; /* Internet Explorer/Edge */
 	user-select: none;
+	height: 100%;
+	max-height: 100%;
+}
+
+#game-message {
+	z-index: 2000;
+}
+
+.message {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	pointer-events: none;
+	width: fit-content;
+	border-radius: 5px;
+	border: 1px solid black;
+	background-color: white;
+	padding: 10px;
+	opacity: 1;
+	transition: opacity 0.25s ease-in-out;
+	-moz-transition: opacity 0.25s ease-in-out;
+	-webkit-transition: opacity 0.25s ease-in-out;
 }
 
 a,
@@ -69,6 +98,19 @@ a:visited {
 	position: relative;
 }
 
+.left-side {
+	display: flex;
+	flex-direction: row;
+}
+
+.name-div {
+	display: flex;
+}
+
+.name-div > p {
+	margin: auto;
+}
+
 .logo-image {
 	height: 80%;
 	margin: auto 20px;
@@ -102,8 +144,19 @@ a:visited {
 	display: flex;
 	flex-direction: column;
 	align-items: center;
-	height: 100%;
+	height: calc(100% - var(--header-ht-m));
+	max-height: calc(100% - var(--header-ht-m));
 	margin-top: var(--header-ht-m);
+}
+
+.modal {
+	max-height: 90% !important;
+	color: yellow;
+}
+
+.modal-content {
+	border: 2px solid yellow;
+	background-color: var(--color-3);
 }
 
 .banner {
@@ -367,6 +420,8 @@ a:visited {
 
 	.main-content {
 		margin-top: var(--header-ht-d);
+		height: calc(100% - var(--header-ht-d));
+		max-height: calc(100% - var(--header-ht-d));
 	}
 
 	.banner-text {

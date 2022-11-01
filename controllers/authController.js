@@ -92,7 +92,7 @@ exports.localOnly = (req, res, next) => {
 exports.signup = catchAsync(async (req, res, next) => {
 	//do not await User.create(req.body) so that the user cannot put whatever they want into the body.
 	//Only take the necessary fields.
-	const url = `${req.protocol}://${req.get('host')}/confirm`;
+	const url = `${req.protocol}://${req.get('host')}/activate`;
 
 	const playerExists = await User.findOne({ email: req.body.email });
 	if (playerExists) {
@@ -106,6 +106,7 @@ exports.signup = catchAsync(async (req, res, next) => {
 
 	const aToken = crypto.randomBytes(32).toString('hex');
 	activationToken = crypto.createHash('sha256').update(aToken).digest('hex');
+
 	const newUser = await User.create({
 		firstName: req.body.fname,
 		lastName: req.body.lname,
@@ -119,7 +120,7 @@ exports.signup = catchAsync(async (req, res, next) => {
 		passwordChangedAt: req.body.passwordChangedAt
 			? req.body.passwordChangedAt
 			: null,
-		role: 'host',
+		role: req.body.role,
 	});
 	const emailRes = await new Email(
 		newUser,
@@ -211,22 +212,20 @@ exports.logout = (req, res) => {
 		httpOnly: true,
 	});
 	res.status(200).json({ status: 'success' });
+	console.log('logged out');
 };
 
 exports.protect = catchAsync(async (req, res, next) => {
 	// get the token and check if it exists
 	let token;
 
-	if (
-		req.headers.authorization &&
-		req.headers.authorization.startsWith('Bearer')
-	) {
+	if (req.headers.authorization?.startsWith('Bearer')) {
 		token = req.headers.authorization.split(' ')[1];
 	} else if (req.cookies.jwt) {
 		token = req.cookies.jwt;
 	} else if (
-		req.body.headers.authorization &&
-		req.body.headers.authorization.startsWith('Bearer')
+		req.body.headers?.authorization &&
+		req.body.headers?.authorization?.startsWith('Bearer')
 	) {
 		token = req.body.headers.authorization.split(' ')[1];
 	}

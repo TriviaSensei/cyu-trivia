@@ -1,35 +1,37 @@
 extends _base
 
 block styles 
-    link(rel="stylesheet" href="/css/messages.css")
     link(rel="stylesheet" href="/css/profile.css")
 
 block navbar_content
     li.navlink
         a(href="/host") Host
-    li.navlink
+    li.navlink(style="background-color: #0000ff;")
         a Profile
-    - if (user.role === 'admin')
+    - if (user.role === 'admin' || user.role === 'owner')
         li.navlink
             a(href="/admin") Admin
     li.navlink()
         a#logout Logout
 
 block content
-    #game-message.message.invisible-div
     input(type="hidden" id="redirect" value=`${redirect || '/console'}`)
     #profile-div.form-container.centered.mb-5
         h2 
             strong User Information
         form#profile-form
             label.form-label(for="fname") First Name:
-            input.form-control#fname(type="text" placeholder="First Name" value=`${user.firstName}` required)            
+            .input-group.mb-3
+                input.form-control#fname(type="text" placeholder="First Name" value=`${user.firstName}` required)            
             label.form-label(for="lname") Last Name:
-            input.form-control#lname(type="text" placeholder="Last Name" value=`${user.lastName}` required)
+            .input-group.mb-3
+                input.form-control#lname(type="text" placeholder="Last Name" value=`${user.lastName}` required)
             label.form-label(for="displayName") Display Name:
-            input.form-control#displayName(type="text" placeholder="Display Name" value=`${user.displayName}` required)
+            .input-group.mb-3
+                input.form-control#displayName(type="text" placeholder="Display Name" value=`${user.displayName}` required)
             label.form-label(for="email") E-Mail:
-            input.form-control#email(type="text" placeholder="E-Mail" value=`${user.email}` required)                       
+            .input-group.mb-3
+                input.form-control#email(type="text" placeholder="E-Mail" value=`${user.email}` required)                       
             div(style="width: 100%; display: flex; margin-top: 3vh")
                 button(type='submit') Update Information
     #password-div.form-container.centered.mb-5
@@ -37,11 +39,14 @@ block content
             strong Change Password 
         form#password-form
             label.form-label(for="currentPW") Current Password:
-            input.form-control#currentPW(type="password" placeholder="********" required) 
+            .input-group.mb-3
+                input.form-control#currentPW(type="password" placeholder="********" required) 
             label.form-label(for="pw") New Password:
-            input.form-control#pw(type="password" placeholder="********" required) 
+            .input-group.mb-3
+                input.form-control#pw(type="password" placeholder="********" required) 
             label.form-label(for="pwConfirm") Confirm New Password:
-            input.form-control#pwConfirm(type="password" placeholder="********" required)
+            .input-group.mb-3
+                input.form-control#pwConfirm(type="password" placeholder="********" required)
             div(style="width: 100%; display: flex; margin-top: 3vh")
                 button(type='submit') Change Password
 

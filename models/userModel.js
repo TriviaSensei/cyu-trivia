@@ -18,7 +18,6 @@ const userSchema = new mongoose.Schema({
 	displayName: {
 		type: String,
 		trim: true,
-		unique: true,
 	},
 	email: {
 		type: String,
@@ -50,7 +49,7 @@ const userSchema = new mongoose.Schema({
 	passwordChangedAt: Date,
 	role: {
 		type: String,
-		enum: ['host', 'admin'],
+		enum: ['host', 'admin', 'owner'],
 		default: 'host',
 	},
 	activationToken: String,

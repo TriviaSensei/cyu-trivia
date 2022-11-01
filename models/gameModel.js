@@ -24,6 +24,7 @@ const gameSchema = new mongoose.Schema({
 			message: 'Watch your language.',
 		},
 	},
+	date: Date,
 	joinCode: {
 		type: String,
 	},

@@ -1,0 +1,54 @@
+#admin-console {
+	margin-top: 3vh;
+	width: min(100%, 800px);
+	height: 100%;
+	box-sizing: border-box;
+	display: flex;
+	flex-direction: column;
+}
+
+.nav-link {
+	color: yellow;
+}
+
+.nav-link.active {
+	background-color: #ccc !important;
+}
+
+.tab-pane.active {
+	width: 100%;
+	height: 100%;
+}
+.tab-wrapper {
+	display: flex;
+	width: 100%;
+	height: 100%;
+}
+
+.tab-inner {
+	flex: 1;
+	display: flex;
+	margin: 2vh;
+}
+
+.control-panel {
+	display: flex;
+	flex-direction: column;
+	flex: 1;
+}
+
+.control-panel > .button-container {
+	width: 100%;
+	padding: 2vh;
+}
+
+.button-container > button {
+	width: 100%;
+	border-radius: 10px;
+	padding: 10px;
+	background-color: #ccc;
+}
+
+.button-container > button:hover {
+	background-color: #fff;
+}

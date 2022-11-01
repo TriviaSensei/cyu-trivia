@@ -19,12 +19,13 @@ router.patch('/updateMe', userController.updateMe);
 
 router.post(
 	'/signup',
-	// (req, res, next) => {
-	// 	console.log('hi');
-	// 	console.log(res.locals.user);
-	// 	next();
-	// },
-	authController.restrictTo('admin'),
+	authController.restrictTo('owner'),
 	authController.signup
 );
+router.delete(
+	'/delete/:id',
+	authController.restrictTo('owner'),
+	userController.deleteUser
+);
+
 module.exports = router;

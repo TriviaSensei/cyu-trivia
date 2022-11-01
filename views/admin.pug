@@ -1,0 +1,35 @@
+extends _base
+
+block styles 
+    link(rel="stylesheet" href="/css/admin.css")
+
+block navbar_content
+    li.navlink
+        a(href="/host") Host
+    li.navlink
+        a(href="/profile") Profile
+    - if (user.role === 'admin' || user.role === 'owner')
+        li.navlink(style="background-color:#0000ff")
+            a Admin
+    li.navlink
+        a#logout Logout
+
+block modals 
+    include admin/modals/createUser
+    include admin/modals/userCreated
+    include admin/modals/browseUsers
+
+block content 
+    #admin-console
+        ul.nav.nav-tabs.nav-fill#admin-tabs(role="tablist")
+            li.nav-item(role="presentation")
+                button.nav-link.active#user-tab(data-bs-toggle="tab" data-bs-target="#users" type="button" role="tab" aria-controls="users" aria-selected="true") Users
+            li.nav-item(role="presentation")
+                button.nav-link#game-tab(data-bs-toggle="tab" data-bs-target="#games" type="button" role="tab" aria-controls="games" aria-selected="false") Games
+        .tab-content#admin-tabs-content 
+            .tab-pane.fade.show.active#users(role="tabpanel" aria-labelledby="user-tab")  
+                include admin/users
+            .tab-pane.fade#games(role="tabpanel" aria-labelledby="game-tab")
+                include admin/games
+    script(src='/js/login.js' type="module")
+    script(Src='/js/admin.js' type="module")

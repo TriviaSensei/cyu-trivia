@@ -1,0 +1,32 @@
+.modal.fade#create-user-modal(tabindex="-1" aria-labelledby="create-user-label" aria-hidden="true")
+    .modal-dialog.modal-dialog-centered
+        .modal-content#create-user-modal-content
+            .modal-header
+                h5.modal-title#create-user-label Create New User
+                button.btn-close(type="button" data-bs-dismiss="modal" aria-label="Close")
+            .modal-body
+                form#new-user-modal-form
+                    label.form-label(for="fname") First Name:
+                    .input-group.mb-3
+                        input.form-control#fname(type="text" placeholder="First Name" required)            
+                    label.form-label(for="lname") Last Name:
+                    .input-group.mb-3
+                        input.form-control#lname(type="text" placeholder="Last Name" required)
+                    label.form-label(for="displayName") Display Name:
+                    .input-group.mb-3
+                        input.form-control#displayName(type="text" placeholder="Display Name" required)
+                    label.form-label(for="email") E-Mail:
+                    .input-group.mb-3
+                        input.form-control#email(type="text" placeholder="E-Mail" required)
+                    .form-label Role: 
+                    .input-group.mb-3
+                        .form-check.form-check-inline
+                            label.form-check-label(for="host-role-radio") Host
+                            input.form-check-input#host-role-radio(type="radio" name="role" value="host" checked)
+                        .form-check.form-check-inline
+                            label.form-check-label(for="admin-role-radio") Admin
+                            input.form-check-input#admin-role-radio(type="radio" name="role" value="admin")
+
+            .modal-footer
+                button.btn.btn-secondary(type="button" data-bs-dismiss="modal") Close
+                button.btn.btn-primary(type="submit" form="new-user-modal-form") Add

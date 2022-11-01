@@ -5,6 +5,26 @@ const APIFeatures = require('../utils/apiFeatures');
 //this will delete one of any document, depending on what gets passed to it.
 exports.deleteOne = (Model) =>
 	catchAsync(async (req, res, next) => {
+		const arr = req.originalUrl.trim().split('/');
+		const loc = arr.length > 3 ? arr[3] : '';
+
+		if (loc === 'users') {
+			const userToDelete = await Model.findById(req.params.id);
+			if (!userToDelete) {
+				return res.status(404).json({
+					status: 'fail',
+					message: 'User not found.',
+				});
+			} else {
+				if (userToDelete.role === 'owner') {
+					return res.status(400).json({
+						status: 'fail',
+						message: 'Cannot delete owner.',
+					});
+				}
+			}
+		}
+
 		const doc = await Model.findByIdAndDelete(req.params.id);
 
 		if (!doc) {
