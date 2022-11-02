@@ -18,11 +18,11 @@ let action = undefined;
 
 const loadUsers = (e) => {
 	loadingDiv?.classList.remove('invisible-div');
+	userListContainer.innerHTML = '';
 	const handler = (res) => {
 		console.log(res);
 		if (res.status === 'success') {
 			loadingDiv?.classList.add('invisible-div');
-			userListContainer.innerHTML = '';
 			const userTable = document.createElement('table');
 			const tableHeader = document.createElement('tr');
 			userTable.appendChild(tableHeader);
