@@ -1,0 +1,11 @@
+.modal.fade#edit-user-modal(tabindex="-1" aria-labelledby="edit-user-label" aria-hidden="true")
+    .modal-dialog.modal-dialog-centered
+        .modal-content#edit-user-modal-content
+            .modal-header
+                h5.modal-title#edit-user-label Browse/Edit Users
+                button.btn-close(type="button" data-bs-dismiss="modal" aria-label="Close")
+            .modal-body
+                p#loading-div Loading users...
+                #user-table-container
+            .modal-footer
+                button.btn.btn-secondary(type="button" data-bs-dismiss="modal") Close

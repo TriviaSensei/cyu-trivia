@@ -6,6 +6,7 @@
                 button.btn-close(type="button" data-bs-dismiss="modal" aria-label="Close")
             .modal-body
                 form#new-user-modal-form
+                    input#edit-user-id(type='hidden' value='')
                     label.form-label(for="fname") First Name:
                     .input-group.mb-3
                         input.form-control#fname(type="text" placeholder="First Name" required)            
@@ -28,5 +29,5 @@
                             input.form-check-input#admin-role-radio(type="radio" name="role" value="admin")
 
             .modal-footer
-                button.btn.btn-secondary(type="button" data-bs-dismiss="modal") Close
-                button.btn.btn-primary(type="submit" form="new-user-modal-form") Add
+                button.btn.btn-secondary#cancel-create(type="button" data-bs-dismiss="modal") Cancel
+                button.btn.btn-primary#confirm-create(type="submit" form="new-user-modal-form") Add

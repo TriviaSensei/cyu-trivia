@@ -44,16 +44,25 @@ const userSchema = new mongoose.Schema({
 			message: 'Passwords do not match',
 		},
 	},
-	passwordResetToken: String,
-	passwordResetExpires: Date,
-	passwordChangedAt: Date,
+	passwordResetToken: {
+		type: String,
+		select: false,
+	},
+	passwordResetExpires: { type: Date, select: false },
+	passwordChangedAt: { type: Date, select: false },
 	role: {
 		type: String,
 		enum: ['host', 'admin', 'owner'],
 		default: 'host',
 	},
-	activationToken: String,
-	activationTokenExpires: Date,
+	activationToken: {
+		type: String,
+		select: false,
+	},
+	activationTokenExpires: {
+		type: Date,
+		select: false,
+	},
 });
 
 userSchema.pre('save', async function (next) {

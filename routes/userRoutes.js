@@ -22,6 +22,16 @@ router.post(
 	authController.restrictTo('owner'),
 	authController.signup
 );
+router.get(
+	'/getAll',
+	authController.restrictTo('owner'),
+	userController.getAllUsers
+);
+router.patch(
+	'/editUser/:id',
+	authController.restrictTo('owner'),
+	userController.updateUser
+);
 router.delete(
 	'/delete/:id',
 	authController.restrictTo('owner'),

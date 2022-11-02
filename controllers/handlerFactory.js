@@ -47,24 +47,20 @@ exports.updateOne = (Model) =>
 
 		// console.log(req.body);
 		// console.log(req.params.id);
-
-		let toReturn = null;
-
-		if (loc === 'questions') {
-			const q = await Model.findById(req.params.id);
-
-			if (!q) {
-				return next(new AppError('Question not found.', 404));
-			} else if (q.owner.toString() !== res.locals.user._id.toString()) {
-				return next(new AppError('Question not found.', 404));
+		if (loc === 'users') {
+			const user = await Model.findById(req.params.id);
+			if (!user) {
+				return res.status(404).json({
+					status: 'fail',
+					message: 'User not found.',
+				});
 			}
-
-			for (const [key, value] of Object.entries(req.body)) {
-				if (!['answer', 'text', 'category'].includes(key)) {
-					delete req.body[key];
-				}
+			if (user.role === 'owner') {
+				req.body.role = 'owner';
 			}
 		}
+
+		let toReturn = null;
 
 		const doc = await Model.findByIdAndUpdate(req.params.id, req.body, {
 			new: true,
@@ -73,63 +69,7 @@ exports.updateOne = (Model) =>
 		if (!doc) {
 			return next(new AppError('No document found with that ID.', 404));
 		}
-		if (loc === 'rounds' && doc.type === 'std') {
-			try {
-				const values = doc.questions.map((q) => {
-					return q.value;
-				});
-				let questionList = await Promise.all(
-					doc.questions.map(async (q) => {
-						const qq = await Question.findById(q._id);
-						return qq;
-					})
-				);
-				questionList = questionList.map((q, i) => {
-					return {
-						_id: q._id,
-						results: q.results,
-						category: q.category,
-						text: q.text,
-						answer: q.answer,
-						owner: q.owner,
-						value: values[i],
-					};
-				});
-				doc.questions = questionList;
-			} catch (err) {
-				console.log(err);
-				return next(new AppError(err.message));
-			}
-		} else if (loc === 'games') {
-			try {
-				const rounds = await Promise.all(
-					doc.rounds.map(async (r) => {
-						const toReturn = await Round.findById(r);
-						return toReturn;
-					})
-				);
 
-				for (var i = 0; i < rounds.length; i++) {
-					if (rounds[i].type === 'std') {
-						const questions = await Promise.all(
-							rounds[i].questions.map(async (q) => {
-								const toReturn = await Question.findById(q._id);
-								return toReturn;
-							})
-						);
-						rounds[i].questions = questions;
-					}
-				}
-
-				toReturn = {
-					...doc._doc,
-					rounds,
-				};
-			} catch (err) {
-				console.log(err);
-				return next(new AppError(err.message));
-			}
-		}
 		res.status(200).json({
 			status: 'success',
 			data: toReturn || doc,
@@ -179,9 +119,13 @@ exports.getAll = (Model, popOptions) =>
 		let filter = {};
 		const arr = req.originalUrl.trim().split('/');
 		const loc = arr.length > 3 ? arr[3] : '';
-		if (loc === 'games' || loc === 'rounds' || loc === 'questions') {
-			filter = { owner: req.user._id };
+
+		let sortOrder = null;
+		if (loc === 'users') {
+			sortOrder = { lastName: 1 };
 		}
+		console.log(req.query);
+
 		let features;
 		if (popOptions) {
 			features = new APIFeatures(
@@ -199,7 +143,7 @@ exports.getAll = (Model, popOptions) =>
 				.limitFields()
 				.paginate();
 		}
-		const doc = await features.query;
+		let doc = await features.query;
 		// const tours = await Tour.find().where('duration').equals(5).where('difficulty').equals('easy');
 
 		res.status(200).json({

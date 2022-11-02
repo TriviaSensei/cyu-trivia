@@ -52,3 +52,46 @@
 .button-container > button:hover {
 	background-color: #fff;
 }
+
+#user-table-container {
+	width: 100%;
+}
+
+#user-table-container table,
+#user-table-container tr {
+	width: 100%;
+	padding: 5px;
+}
+
+#user-table-container td {
+	padding: 5px;
+}
+
+th {
+	text-align: center;
+}
+
+#user-table-container td:not(:nth-child(1)) {
+	text-align: center;
+}
+
+#user-table-container td:last-child {
+	display: flex;
+}
+
+tr:not(:first-child):hover {
+	background-color: var(--color-2a);
+}
+
+td button {
+	margin: auto;
+	border-radius: 5px;
+}
+
+td button:hover {
+	background-color: yellow;
+}
+
+#create-user-modal {
+	z-index: 100000;
+}

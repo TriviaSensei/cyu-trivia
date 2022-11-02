@@ -451,6 +451,8 @@ exports.activateAccount = catchAsync(async (req, res, next) => {
 
 	user.password = req.body.password;
 	user.passwordConfirm = req.body.passwordConfirm;
+	user.activationToken = '';
+	user.activationTokenExpires = null;
 
 	if (req.body.password !== req.body.passwordConfirm) {
 		return next(new AppError('Passwords do not match.', 400));

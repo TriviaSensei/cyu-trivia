@@ -95,6 +95,25 @@ exports.getUser = catchAsync(async (req, res, next) => {
 });
 
 //standard routes
-exports.getAllUsers = factory.getAll(User);
+exports.getAllUsers = catchAsync(async (req, res, next) => {
+	let users = await User.find().sort({
+		active: 1,
+		lastName: 1,
+		firstName: 1,
+	});
+
+	if (!users) {
+		return res.status(404).json({
+			status: 'fail',
+			message: 'Users not found',
+		});
+	}
+
+	res.status(200).json({
+		status: 'success',
+		data: users,
+	});
+});
+
 exports.updateUser = factory.updateOne(User);
 exports.deleteUser = factory.deleteOne(User);
