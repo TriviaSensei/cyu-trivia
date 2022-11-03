@@ -231,27 +231,30 @@ exports.protect = catchAsync(async (req, res, next) => {
 	}
 
 	if (!token) {
-		return next(
-			new AppError('You are not logged in. Please log in for access.', 401)
-		);
+		// return next(
+		// 	new AppError('You are not logged in. Please log in for access.', 401)
+		// );
+		return res.redirect('/login');
 	}
 	// validate the token
 	const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
 	// check if the user exists
 	const currentUser = await User.findById(decoded.id);
 	if (!currentUser) {
-		return next(
-			new AppError('The user belonging to this token no longer exists.', 401)
-		);
+		// return next(
+		// 	new AppError('The user belonging to this token no longer exists.', 401)
+		// );
+		return res.redirect('/login');
 	}
 	// check if the user changed password after the token was issued
 	if (currentUser.changedPasswordAfter(decoded.iat)) {
-		return next(
-			new AppError(
-				'The password has changed since the token was created. Please log in again.',
-				401
-			)
-		);
+		// return next(
+		// 	new AppError(
+		// 		'The password has changed since the token was created. Please log in again.',
+		// 		401
+		// 	)
+		// );
+		return res.redirect('/login');
 	}
 	//we've passed the gauntlet. Grant access to the protected route.
 	req.user = currentUser;
@@ -319,6 +322,10 @@ exports.restrictTo = (...roles) => {
 		// console.log('------');
 		// console.log(res.locals.user);
 		// console.log('------');
+		if (!res.locals.user) {
+			return res.redirect('/login');
+		}
+
 		if (!roles.includes(res.locals.user.role)) {
 			return next(
 				new AppError(

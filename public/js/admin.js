@@ -107,7 +107,7 @@ const setAction = (e) => {
 		}
 	}
 	document.getElementById('confirm-create').innerHTML =
-		action === 'add' ? 'Add' : 'Edit';
+		action === 'create' ? 'Create' : 'Edit';
 };
 
 if (createUserButton) {

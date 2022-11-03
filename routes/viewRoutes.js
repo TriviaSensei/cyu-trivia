@@ -14,6 +14,7 @@ router.get('/profile', viewsController.getProfile);
 router.get('/activate/:token', viewsController.getActivation);
 router.get(
 	'/admin',
+	authController.protect,
 	authController.restrictTo('admin', 'owner'),
 	viewsController.getAdmin
 );

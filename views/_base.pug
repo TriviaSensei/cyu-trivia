@@ -11,7 +11,17 @@ html
         title CYu@Trivia | #{title}
         link(href="/css/styles.css" rel="stylesheet")
         block styles
-    body 
+    body
+        #game-message.message.invisible-div
+        //- .menu-content.menu-content-mobile(style="display: none;")
+        //-     .navlink
+        //-         a(href="/host") Host
+        //-     .navlink 
+        //-         a(href="/profile") Profile
+        //-     .navlink 
+        //-         a(href="/admin") Admin
+        //-     .navlink 
+        //-         a#logout-drop Logout
         block modals
         .top-navbar
             .navbar-content
@@ -20,10 +30,11 @@ html
                         img(src="/img/CYuLogo.png")
                     - if (user && title !== "Home")
                         .name-div
-                            p= `Hello, ${user.displayName} (${user.role})`
+                            p= `Hello, ${user.displayName}`
                 .menu-content#menu-bar
                     ul
                         block navbar_content
+                button.menu-button
+                    img(src="/img/menu.svg")
         .main-content
-            #game-message.message.invisible-div
             block content 

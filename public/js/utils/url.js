@@ -1,1 +1,1 @@
-export const srvr = 'http://localhost:3000';
+export const srvr = 'http://chucks_laptop:3000';
