@@ -200,6 +200,13 @@ exports.login = catchAsync(async (req, res, next) => {
 				401
 			)
 		);
+	} else if (user.deleteUserAfter) {
+		return next(
+			new AppError(
+				'Cannot log in at this time - please contact your administrator.',
+				403
+			)
+		);
 	}
 
 	//if so, send the token back to the client
@@ -241,21 +248,24 @@ exports.protect = catchAsync(async (req, res, next) => {
 	// check if the user exists
 	const currentUser = await User.findById(decoded.id);
 	if (!currentUser) {
-		// return next(
-		// 	new AppError('The user belonging to this token no longer exists.', 401)
-		// );
-		return res.redirect('/login');
+		return next(
+			new AppError('The user belonging to this token no longer exists.', 401)
+		);
 	}
 	// check if the user changed password after the token was issued
 	if (currentUser.changedPasswordAfter(decoded.iat)) {
-		// return next(
-		// 	new AppError(
-		// 		'The password has changed since the token was created. Please log in again.',
-		// 		401
-		// 	)
-		// );
-		return res.redirect('/login');
+		return next(
+			new AppError(
+				'The password has changed since the token was created. Please log in again.',
+				401
+			)
+		);
 	}
+
+	if (currentUser.deleteUserAfter) {
+		return next(new AppError('User is unable to log in.', 401));
+	}
+
 	//we've passed the gauntlet. Grant access to the protected route.
 	req.user = currentUser;
 	res.locals.user = currentUser;
@@ -294,6 +304,11 @@ exports.isLoggedIn = catchAsync(async (req, res, next) => {
 	if (currentUser.changedPasswordAfter(decoded.iat)) {
 		return next();
 	}
+
+	if (currentUser.deleteUserAfter) {
+		return next();
+	}
+
 	//we've passed the gauntlet. There is a logged in user.
 	res.locals.user = currentUser;
 	// console.log('logged in user:');
