@@ -50,7 +50,7 @@ exports.updateOne = (Model) =>
 		if (loc === 'users') {
 			const user = await Model.findById(req.params.id);
 			if (!user) {
-				return res.status(404).json({
+				return res.status(200).json({
 					status: 'fail',
 					message: 'User not found.',
 				});

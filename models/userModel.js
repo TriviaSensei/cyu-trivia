@@ -63,6 +63,9 @@ const userSchema = new mongoose.Schema({
 		type: Date,
 		select: false,
 	},
+	deleteUserAfter: {
+		type: Date,
+	},
 });
 
 userSchema.pre('save', async function (next) {

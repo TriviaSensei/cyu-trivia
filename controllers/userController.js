@@ -1,10 +1,10 @@
 const User = require('../models/userModel');
 const slugify = require('slugify');
-const APIFeatures = require('../utils/apiFeatures');
 const factory = require('./handlerFactory');
 const catchAsync = require('../utils/catchAsync');
-const mongoose = require('mongoose');
 const AppError = require('../utils/appError');
+//wait 5 minutes before deleting a user
+const deleteTimeout = 5 * 60 * 1000;
 
 const filterObj = (obj, ...allowedFields) => {
 	const newObj = {};
@@ -115,5 +115,57 @@ exports.getAllUsers = catchAsync(async (req, res, next) => {
 	});
 });
 
+exports.deleteUser = catchAsync(async (req, res, next) => {
+	const userToDelete = await User.findById(req.params.id);
+	//make sure user is found
+	if (!userToDelete) {
+		return res.status(404).json({
+			status: 'fail',
+			message: 'User not found.',
+		});
+		//and is not the owner
+	} else {
+		if (userToDelete.role === 'owner') {
+			return res.status(400).json({
+				status: 'fail',
+				message: 'Cannot delete owner.',
+			});
+		}
+	}
+	let action;
+	if (!userToDelete.deleteUserAfter) {
+		userToDelete.deleteUserAfter = Date.now() + deleteTimeout;
+		setTimeout(
+			async (id) => {
+				const u = await User.findById(id);
+				if (!u.deleteUserAfter) {
+					console.log(`Did not delete user ${id}`);
+					return;
+				} else if (u.deleteUserAfter > new Date()) {
+					console.log(`Not yet time to delete user ${id}`);
+					return;
+				} else {
+					console.log(`Deleting user ${id}`);
+					await u.delete();
+				}
+			},
+			deleteTimeout + 10,
+			req.params.id
+		);
+
+		action = 'delete';
+	} else {
+		userToDelete.deleteUserAfter = null;
+		action = 'restore';
+	}
+
+	const data = await userToDelete.save({ validateBeforeSave: false });
+
+	res.status(200).json({
+		status: 'success',
+		action,
+		data,
+	});
+});
+
 exports.updateUser = factory.updateOne(User);
-exports.deleteUser = factory.deleteOne(User);

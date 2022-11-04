@@ -32,7 +32,7 @@ router.patch(
 	authController.restrictTo('owner'),
 	userController.updateUser
 );
-router.delete(
+router.patch(
 	'/delete/:id',
 	authController.restrictTo('owner'),
 	userController.deleteUser

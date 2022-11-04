@@ -5,14 +5,22 @@ block styles
 
 block navbar_content
     li.navlink
-        a(href="/host") Host
-    li.navlink(style="background-color: #0000ff;")
-        a Profile
+        a(href="/host")
+            .navlink-inner
+                p Host
+    li.navlink(style="background-color:#0000ff")
+        a
+            .navlink-inner
+                p Profile
     - if (user.role === 'admin' || user.role === 'owner')
         li.navlink
-            a(href="/admin") Admin
-    li.navlink()
-        a#logout Logout
+            a(href="/admin") 
+                .navlink-inner
+                    p Admin
+    li.navlink
+        a#logout
+            .navlink-inner
+                p Logout
 
 block content
     input(type="hidden" id="redirect" value=`${redirect || '/console'}`)
@@ -50,5 +58,7 @@ block content
             div(style="width: 100%; display: flex; margin-top: 3vh")
                 button(type='submit') Change Password
 
+block scripts
     script(src='/js/login.js' type="module")
     script(src="/js/profile.js" type="module")
+    script(src="/js/utils/menu.js" type="module")

@@ -1,4 +1,4 @@
-import { srvr } from './url.js';
+const srvr = location.origin;
 
 export const handleRequest = (
 	requestStr,
@@ -6,14 +6,12 @@ export const handleRequest = (
 	requestBody,
 	responseHandler
 ) => {
-	console.log(requestStr);
 	const req = new XMLHttpRequest();
 	// console.log(requestBody);
 	if (req.readyState === 0 || req.readyState === 4) {
 		req.open(requestType.toUpperCase(), `${srvr}${requestStr}`, true);
 		req.onreadystatechange = () => {
 			if (req.readyState == 4) {
-				console.log(`status: ${req.status}`);
 				if (req.status !== 204) {
 					const res = JSON.parse(req.response);
 					responseHandler(res);

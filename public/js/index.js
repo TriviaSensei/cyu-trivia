@@ -1,6 +1,9 @@
 const navbar = document.querySelector('.top-navbar');
 const contactForm = document.getElementById('contact-form');
 const liveNow = document.querySelector('.live-now');
+const contentDiv = document.querySelector('.main-content');
+const menu = document.querySelector('.menu-button');
+const menuContent = document.querySelector('.menu-content-mobile');
 
 const bsQuestionCarousel = new bootstrap.Carousel(
 	document.getElementById('question-carousel'),
@@ -43,9 +46,13 @@ const scrollToSection = (e) => {
 	const r = document.querySelector(`.body-section[name="${name}"]`);
 	if (!r || !navbar) return;
 	const rect = r.getBoundingClientRect();
-	window.scrollTo({
-		top: Math.max(0, window.scrollY + rect.top - navbar.offsetHeight - 20),
+	const scrollTo = contentDiv.scrollTop + rect.top - navbar.offsetHeight - 20;
+	contentDiv.scrollTo({
+		top: Math.max(0, scrollTo),
 	});
+	if (menuShowing) {
+		toggleMenu();
+	}
 };
 
 const revealAnswer = (e) => {
@@ -138,6 +145,26 @@ const createSlide = (slideshow, data) => {
 	return item;
 };
 
+let menuShowing = false;
+let menuTimeout = undefined;
+const toggleMenu = (e) => {
+	if (menuTimeout) clearTimeout(menuTimeout);
+
+	if (!menu) return;
+
+	menuShowing = !menuShowing;
+
+	if (menuShowing) {
+		menuContent.style.display = 'block';
+		menuContent.style.top = `${navbar.offsetHeight}px`;
+	} else {
+		menuContent.style.top = `-${menuContent.offsetHeight}px`;
+		menuTimeout = setTimeout(() => {
+			menuContent.style.display = 'none';
+		}, 200);
+	}
+};
+
 document.addEventListener('DOMContentLoaded', () => {
 	//set the margin top for the main content
 	const flyers = getElementArray(document, '.banner-text').sort((a, b) => {
@@ -163,6 +190,12 @@ document.addEventListener('DOMContentLoaded', () => {
 			l.addEventListener('click', scrollToSection);
 		}
 	});
+
+	if (menu) {
+		menu.addEventListener('click', toggleMenu);
+		menuContent.style.top = `-${menuContent.offsetHeight}px`;
+		menuContent.style.display = 'none';
+	}
 });
 
 if (contactForm) {

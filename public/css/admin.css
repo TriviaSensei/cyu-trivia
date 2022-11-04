@@ -88,10 +88,29 @@ td button {
 	border-radius: 5px;
 }
 
-td button:hover {
+td button:not([disabled]):hover {
 	background-color: yellow;
 }
 
 #create-user-modal {
 	z-index: 100000;
+}
+
+#user-table-container {
+	max-height: 400px;
+	overflow-y: scroll;
+}
+
+.edit-button {
+	opacity: unset;
+	background: white url('/img/edit.svg') center/1em auto no-repeat;
+}
+
+.delete-button {
+	opacity: unset;
+	background: white url('/img/delete.svg') center/1em auto no-repeat;
+}
+
+.restore-button {
+	background: white url('/img/restore.svg') center/1em auto no-repeat;
 }

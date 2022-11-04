@@ -141,12 +141,16 @@ a:visited {
 }
 
 .main-content {
+	position: absolute;
+	width: 100%;
 	display: flex;
 	flex-direction: column;
 	align-items: center;
 	height: calc(100% - var(--header-ht-m));
 	max-height: calc(100% - var(--header-ht-m));
-	margin-top: var(--header-ht-m);
+	top: var(--header-ht-m);
+	overflow-y: scroll;
+	overflow-x: hidden;
 }
 
 .modal {
@@ -196,12 +200,44 @@ a:visited {
 }
 .menu-content-mobile {
 	position: fixed;
+	text-align: right;
+	right: 0;
+	z-index: 9;
+	font-size: 3vh;
 	background-color: var(--color-3);
 	-webkit-transition: top 0.2s ease-out;
 	-moz-transition: top 0.2s ease-out;
 	-ms-transition: top 0.2s ease-out;
 	-o-transition: top 0.2s ease-out;
 	transition: top 0.2s ease-out;
+}
+
+.menu-content-mobile a {
+	text-decoration: none;
+}
+
+.navlink {
+	cursor: pointer;
+}
+
+.navlink > a {
+	width: 100%;
+	height: 100%;
+	display: flex;
+}
+
+.navlink-inner {
+	padding: 15px;
+}
+.navlink-inner,
+.navlink-inner > p {
+	margin: auto;
+	display: flex;
+}
+
+.menu-content-mobile .navlink {
+	border: 1px solid yellow;
+	padding: 10px;
 }
 
 .menu-content > ul {
@@ -212,7 +248,6 @@ a:visited {
 .menu-content > ul > li {
 	display: inline-flex;
 	flex: 1;
-	padding: 0 15px;
 }
 
 .menu-content > ul > li > a {
@@ -443,7 +478,7 @@ a:visited {
 	}
 
 	.main-content {
-		margin-top: var(--header-ht-d);
+		top: var(--header-ht-d);
 		height: calc(100% - var(--header-ht-d));
 		max-height: calc(100% - var(--header-ht-d));
 	}
@@ -488,6 +523,10 @@ a:visited {
 		display: flex;
 	}
 
+	.menu-content-mobile {
+		display: none !important;
+	}
+
 	.menu-button {
 		display: none;
 	}
@@ -503,4 +542,8 @@ footer {
 
 .invisible-div {
 	display: none;
+}
+
+.btn-close {
+	background: transparent url('/img/close.svg') center/1em auto no-repeat;
 }

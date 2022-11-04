@@ -5,31 +5,52 @@ block styles
 
 block navbar_content
     li.navlink
-        a(href="/host") Host
+        a(href="/host")
+            .navlink-inner
+                p Host
     li.navlink
-        a(href="/profile") Profile
+        a(href="/profile") 
+            .navlink-inner
+                p Profile
     - if (user.role === 'admin' || user.role === 'owner')
         li.navlink(style="background-color:#0000ff")
-            a Admin
+            a
+                .navlink-inner
+                    p Admin
     li.navlink
-        a#logout Logout
+        a#logout
+            .navlink-inner
+                p Logout
 
 block modals 
     include admin/modals/createUser
     include admin/modals/userCreated
     include admin/modals/browseUsers
+    include admin/modals/confirmDeleteUser
 
 block content 
     #admin-console
         ul.nav.nav-tabs.nav-fill#admin-tabs(role="tablist")
-            li.nav-item(role="presentation")
-                button.nav-link.active#user-tab(data-bs-toggle="tab" data-bs-target="#users" type="button" role="tab" aria-controls="users" aria-selected="true") Users
-            li.nav-item(role="presentation")
-                button.nav-link#game-tab(data-bs-toggle="tab" data-bs-target="#games" type="button" role="tab" aria-controls="games" aria-selected="false") Games
+            -if (user.role === 'owner')
+                li.nav-item(role="presentation")
+                    button.nav-link.active#user-tab(data-bs-toggle="tab" data-bs-target="#users" type="button" role="tab" aria-controls="users" aria-selected="true") Users
+                li.nav-item(role="presentation")
+                    button.nav-link#game-tab(data-bs-toggle="tab" data-bs-target="#games" type="button" role="tab" aria-controls="games" aria-selected="false") Games
+            -else
+                li.nav-item(role="presentation")
+                    button.nav-link.active#game-tab(data-bs-toggle="tab" data-bs-target="#games" type="button" role="tab" aria-controls="games" aria-selected="true") Games                
         .tab-content#admin-tabs-content 
-            .tab-pane.fade.show.active#users(role="tabpanel" aria-labelledby="user-tab")  
-                include admin/users
-            .tab-pane.fade#games(role="tabpanel" aria-labelledby="game-tab")
-                include admin/games
+            -if (user.role === 'owner')
+                .tab-pane.fade.show.active#users(role="tabpanel" aria-labelledby="user-tab")  
+                    include admin/users
+                .tab-pane.fade#games(role="tabpanel" aria-labelledby="game-tab")
+                    include admin/games
+            -else
+                .tab-pane.fade.show.active#games(role="tabpanel" aria-labelledby="game-tab")
+                    include admin/games
+
+
+block scripts
     script(src='/js/login.js' type="module")
-    script(Src='/js/admin.js' type="module")
+    script(src='/js/admin.js' type="module")
+    script(src="/js/utils/menu.js" type="module")

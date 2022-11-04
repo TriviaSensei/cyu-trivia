@@ -15,7 +15,19 @@ block navbar_content
 		a Samples
 	li.navlink(data-target="contact")
 		a Contact
-		
+
+block mobilemenu 
+	.navlink
+		a(href="/play") Play
+	.navlink(data-target="about")
+		a About
+	.navlink(data-target="services")
+		a Services
+	.navlink(data-target="samples")
+		a Samples
+	.navlink(data-target="contact")
+		a Contact
+
 block content
 	.banner
 		img(src="/img/bar.jpg")
@@ -102,6 +114,8 @@ block content
 					.mb-3(style="width: 100%; display: flex")
 						button.send-button Send		
 	include _footer
+
+block scripts
 	script(src="/socket.io/socket.io.js")
 	script(src="/js/index.js")
 

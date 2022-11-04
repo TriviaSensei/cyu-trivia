@@ -13,28 +13,35 @@ html
         block styles
     body
         #game-message.message.invisible-div
-        //- .menu-content.menu-content-mobile(style="display: none;")
-        //-     .navlink
-        //-         a(href="/host") Host
-        //-     .navlink 
-        //-         a(href="/profile") Profile
-        //-     .navlink 
-        //-         a(href="/admin") Admin
-        //-     .navlink 
-        //-         a#logout-drop Logout
+        .menu-content-mobile
+            block mobilemenu
+                .navlink
+                    a(href="/host") Host
+                .navlink 
+                    a(href="/profile") Profile
+                .navlink 
+                    a(href="/admin") Admin
+                .navlink#logout-drop
+                    a Logout
         block modals
         .top-navbar
             .navbar-content
                 .left-side
                     .logo-image
-                        img(src="/img/CYuLogo.png")
+                        -if (title !== "Home")
+                            a(href="/") 
+                                img(src="/img/CYuLogo.png")
+                        -else
+                            img(src="/img/CYuLogo.png")
                     - if (user && title !== "Home")
                         .name-div
                             p= `Hello, ${user.displayName}`
                 .menu-content#menu-bar
                     ul
                         block navbar_content
-                button.menu-button
-                    img(src="/img/menu.svg")
+                block menubutton
+                    button.menu-button
+                        img(src="/img/menu.svg")
         .main-content
             block content 
+    block scripts

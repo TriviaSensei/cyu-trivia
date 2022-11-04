@@ -7,7 +7,11 @@ const createUserModal = new bootstrap.Modal(
 const userCreatedModal = new bootstrap.Modal(
 	document.getElementById('user-created-modal')
 );
+const confirmDeleteModal = new bootstrap.Modal(
+	document.getElementById('delete-user-modal')
+);
 
+const confirmDeleteButton = document.getElementById('confirm-delete-user');
 const createUserForm = document.querySelector('#new-user-modal-form');
 const browseUsers = document.getElementById('browse-users');
 const userListContainer = document.getElementById('user-table-container');
@@ -15,12 +19,54 @@ const loadingDiv = document.getElementById('loading-div');
 const createUserButton = document.getElementById('create-new-user');
 
 let action = undefined;
+let uid = undefined;
+
+const setUID = (e) => {
+	const button = e.target.closest('button');
+	if (!button) return;
+	uid = button.getAttribute('data-id');
+	const action = button.getAttribute('data-action');
+	if (action === 'delete') {
+		confirmDeleteModal.show();
+	} else if (action === 'restore') {
+		deleteUser(null);
+	}
+};
+
+const deleteUser = (e) => {
+	if (!uid) return;
+	const handler = (res) => {
+		if (res.status === 'success') {
+			const button = document.querySelector(`.delete-button[data-id="${uid}"]`);
+
+			if (res.action === 'delete') {
+				showMessage(
+					'info',
+					'User marked for deletion and will be removed from the database in 5 minutes.',
+					2000
+				);
+				button.classList.add('restore-button');
+				button.setAttribute('data-action', 'restore');
+			} else if (res.action === 'restore') {
+				showMessage('info', 'User successfully restored.', 1000);
+				button.classList.remove('restore-button');
+				button.setAttribute('data-action', 'delete');
+			}
+
+			uid = undefined;
+			action = undefined;
+		} else {
+			showMessage('error', res.message, 1000);
+		}
+	};
+	handleRequest(`/api/v1/users/delete/${uid}`, 'PATCH', null, handler);
+};
+confirmDeleteButton.addEventListener('click', deleteUser);
 
 const loadUsers = (e) => {
 	loadingDiv?.classList.remove('invisible-div');
 	userListContainer.innerHTML = '';
 	const handler = (res) => {
-		console.log(res);
 		if (res.status === 'success') {
 			loadingDiv?.classList.add('invisible-div');
 			const userTable = document.createElement('table');
@@ -47,7 +93,6 @@ const loadUsers = (e) => {
 				const actionCell = document.createElement('td');
 				actionCell.classList.add('action-cell');
 				const editButton = document.createElement('button');
-				editButton.innerHTML = '✏️';
 				editButton.setAttribute('alt', 'Edit User');
 				editButton.setAttribute('data-id', u._id);
 				editButton.setAttribute('data-fname', u.firstName);
@@ -58,9 +103,21 @@ const loadUsers = (e) => {
 				editButton.setAttribute('data-bs-toggle', 'modal');
 				editButton.setAttribute('data-bs-target', '#create-user-modal');
 				editButton.addEventListener('click', setAction);
+				editButton.classList.add('btn-close', 'edit-button');
 				const deleteButton = document.createElement('button');
-				deleteButton.innerHTML = '❌';
-				deleteButton.setAttribute('alt', 'Delete User');
+				deleteButton.classList.add('btn-close');
+				deleteButton.classList.add('delete-button');
+				deleteButton.setAttribute(
+					'alt',
+					u.deleteUserAfter ? 'Restore User' : 'Delete User'
+				);
+				deleteButton.setAttribute(
+					'data-action',
+					u.deleteUserAfter ? 'restore' : 'delete'
+				);
+				deleteButton.setAttribute('data-id', u.role === 'owner' ? '' : u._id);
+				deleteButton.addEventListener('click', setUID);
+				if (u.role === 'owner') deleteButton.setAttribute('disabled', true);
 				actionCell.appendChild(editButton);
 				actionCell.appendChild(deleteButton);
 				row.appendChild(actionCell);

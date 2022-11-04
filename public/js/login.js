@@ -1,7 +1,7 @@
 import { showMessage, hideMessage } from './utils/messages.js';
 import { handleRequest } from './utils/requestHandler.js';
-import { srvr } from './utils/url.js';
 
+const srvr = location.origin;
 const loginForm = document.getElementById('login-form');
 const email = document.getElementById('email');
 const pw = document.getElementById('password');
@@ -35,6 +35,7 @@ if (loginForm) {
 
 if (logout) {
 	logout.addEventListener('click', (e) => {
+		console.log('logging out');
 		const handler = (res) => {
 			if (res.status === 'success') {
 				showMessage('info', 'Successfully logged out', 1000);
