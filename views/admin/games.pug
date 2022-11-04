@@ -1,1 +1,95 @@
-p Games Tab
+.tab-wrapper 
+    .tab-inner
+        .dropdown  
+            button.btn.btn-warning.dropdown-toggle#menu-button(type="button" data-bs-toggle="dropdown" aria-expanded="false") Menu
+            ul.dropdown-menu(aria-labelledby="menu-button")
+                li 
+                    a.dropdown-item#menu-new New 
+                li 
+                    a.dropdown-item#menu-open Open 
+                li 
+                    a.dropdown-item#menu-save Save 
+                li 
+                    a.dropdown-item#menu-close Close 
+                li 
+                    a.dropdown-item#menu-pop Auto-populate
+        .game-container
+            ul.nav.nav-tabs.nav-fill#round-tabs(role="tablist")
+                p Round
+                li.nav-item(role="presentation")
+                    button.nav-link.active#round-tab-1(data-bs-toggle="tab" data-bs-target="#r1" type="button" role="tab" aria-controls="users" aria-selected="true")  1
+                li.nav-item(role="presentation")
+                    button.nav-link#round-tab-2(data-bs-toggle="tab" data-bs-target="#r2" type="button" role="tab" aria-controls="games" aria-selected="false") 2
+                li.nav-item(role="presentation")
+                    button.nav-link#round-tab-3(data-bs-toggle="tab" data-bs-target="#r3" type="button" role="tab" aria-controls="games" aria-selected="false")  3
+                li.nav-item(role="presentation")
+                    button.nav-link#round-tab-4(data-bs-toggle="tab" data-bs-target="#r4" type="button" role="tab" aria-controls="games" aria-selected="false")  4
+                li.nav-item(role="presentation")
+                    button.nav-link#round-tab-5(data-bs-toggle="tab" data-bs-target="#r5" type="button" role="tab" aria-controls="games" aria-selected="false")  5
+                li.nav-item(role="presentation")
+                    button.nav-link#round-tab-6(data-bs-toggle="tab" data-bs-target="#r6" type="button" role="tab" aria-controls="games" aria-selected="false")  6
+                li.nav-item(role="presentation")
+                    button.nav-link#round-tab-7(data-bs-toggle="tab" data-bs-target="#r7" type="button" role="tab" aria-controls="games" aria-selected="false")  7
+                
+            .tab-content#round-tab-content
+                .tab-pane.fade.show.active#r1(role="tabpanel" aria-labelledby="round-tab-1")
+                    p Round #1
+                .tab-pane.fade#r2(role="tabpanel" aria-labelledby="round-tab-2")
+                    p Round #2
+                .tab-pane.fade#r3(role="tabpanel" aria-labelledby="round-tab-3")
+                    p Round #3
+                .tab-pane.fade#r4(role="tabpanel" aria-labelledby="round-tab-4")
+                    p Round #4
+                .tab-pane.fade#r5(role="tabpanel" aria-labelledby="round-tab-5")
+                    p Round #5
+                .tab-pane.fade#r6(role="tabpanel" aria-labelledby="round-tab-6")
+                    p Round #6
+                .tab-pane.fade#r7(role="tabpanel" aria-labelledby="round-tab-7")
+                    p Round #7
+        //- .accordion#round-accordion
+        //-     .accordion-item
+        //-         h2.accordion-header#heading-1
+        //-         button.accordion-button(type="button" data-bs-toggle="collapse" data-bs-target="#collapse-1" aria-expanded="true" aria-controls="collapse-1") Round 1 - General
+        //-         div#collapse-1.accordion-collapse.collapse.show( aria-labelledby="heading-1" data-bs-parent="#round-accordion")
+        //-             .accordion-body
+        //-                 p Round #1
+        //-     .accordion-item
+        //-         h2.accordion-header#heading-2
+        //-         button.accordion-button.collapsed(type="button" data-bs-toggle="collapse" data-bs-target="#collapse-2" aria-expanded="false" aria-controls="collapse-2") Round 2 - Picture
+        //-         div#collapse-2.accordion-collapse.collapse(aria-labelledby="heading-2" data-bs-parent="#round-accordion")
+        //-             .accordion-body
+        //-                 p Round #2
+        //-     .accordion-item
+        //-         h2.accordion-header#heading-3
+        //-         button.accordion-button.collapsed(type="button" data-bs-toggle="collapse" data-bs-target="#collapse-3" aria-expanded="false" aria-controls="collapse-3") Round 3 - General
+        //-         div#collapse-3.accordion-collapse.collapse(aria-labelledby="heading-3" data-bs-parent="#round-accordion")
+        //-             .accordion-body
+        //-                 p Round #3
+        //-     .accordion-item
+        //-         h2.accordion-header#heading-4
+        //-         button.accordion-button.collapsed(type="button" data-bs-toggle="collapse" data-bs-target="#collapse-4" aria-expanded="false" aria-controls="collapse-4") Round 4 - Halftime
+        //-         div#collapse-4.accordion-collapse.collapse(aria-labelledby="heading-4" data-bs-parent="#round-accordion")
+        //-             .accordion-body
+        //-                 p Round #4
+        //-     .accordion-item
+        //-         h2.accordion-header#heading-5
+        //-         button.accordion-button.collapsed(type="button" data-bs-toggle="collapse" data-bs-target="#collapse-5" aria-expanded="false" aria-controls="collapse-5") Round 5 - General
+        //-         div#collapse-5.accordion-collapse.collapse(aria-labelledby="heading-5" data-bs-parent="#round-accordion")
+        //-             .accordion-body
+        //-                 p Round #5
+        //-     .accordion-item
+        //-         h2.accordion-header#heading-6
+        //-         button.accordion-button.collapsed(type="button" data-bs-toggle="collapse" data-bs-target="#collapse-6" aria-expanded="false" aria-controls="collapse-6") Round 6 - Music
+        //-         div#collapse-6.accordion-collapse.collapse(aria-labelledby="heading-6" data-bs-parent="#round-accordion")
+        //-             .accordion-body
+        //-                 p Round #6
+        //-     .accordion-item
+        //-         h2.accordion-header#heading-7
+        //-         button.accordion-button.collapsed(type="button" data-bs-toggle="collapse" data-bs-target="#collapse-7" aria-expanded="false" aria-controls="collapse-7") Round 7 - General
+        //-         div#collapse-7.accordion-collapse.collapse(aria-labelledby="heading-7" data-bs-parent="#round-accordion")
+        //-             .accordion-body
+        //-                 p Round #7
+                
+                
+            
+            

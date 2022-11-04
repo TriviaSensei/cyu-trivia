@@ -216,6 +216,11 @@ a:visited {
 	text-decoration: none;
 }
 
+li.navlink {
+	display: flex;
+	padding: 10px;
+}
+
 .navlink {
 	cursor: pointer;
 }
@@ -224,6 +229,10 @@ a:visited {
 	width: 100%;
 	height: 100%;
 	display: flex;
+}
+
+.navlink > a > div {
+	margin: auto;
 }
 
 .navlink-inner {

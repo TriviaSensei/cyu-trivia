@@ -28,6 +28,7 @@
 .tab-inner {
 	flex: 1;
 	display: flex;
+	flex-direction: column;
 	margin: 2vh;
 }
 
@@ -113,4 +114,44 @@ td button:not([disabled]):hover {
 
 .restore-button {
 	background: white url('/img/restore.svg') center/1em auto no-repeat;
+}
+
+.tab-content {
+	flex: 1;
+}
+
+.dropdown {
+	margin-bottom: 10px;
+}
+
+.nav > p {
+	padding: 10px;
+	margin: auto;
+	font-size: 2vh;
+}
+
+.game-container {
+	display: flex;
+	flex-direction: column;
+}
+
+@media (pointer: fine) and (min-width: 768px) {
+	.game-container {
+		flex-direction: row;
+	}
+
+	#round-tabs {
+		display: flex;
+		width: 15%;
+		flex-direction: column;
+	}
+
+	#round-tabs .nav-tabs {
+		border-bottom: unset;
+		border-right: 1px solid #dee2e6;
+	}
+
+	.game-container .nav-tabs .nav-link {
+		border-radius: 0.25rem 0 0 0.25rem;
+	}
 }
