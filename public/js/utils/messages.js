@@ -15,7 +15,13 @@ export const msgTimeout = {
 	value: null,
 };
 
-export const showMessage = (type, msg, duration) => {
+export const showMessage = (type, msg, ...time) => {
+	let duration;
+	if (time.length > 0) {
+		duration = Math.max(1, time[0]);
+	} else {
+		duration = 1000;
+	}
 	clearTimeout(msgTimeout.value);
 	hideMessage();
 	let color;

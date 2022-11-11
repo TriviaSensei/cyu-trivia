@@ -9,12 +9,11 @@ router.use(authController.protect);
 
 router.route('/:id').get(gameController.getGame);
 
-router.use((req, res, next) => {
-	console.log('hi');
-	console.log(res.locals.user);
-	next();
-});
-router.use(authController.restrictTo('admin'));
+router.use(authController.restrictTo('admin', 'owner'));
+
+router
+	.route('/picture')
+	.post(gameController.uploadImages, gameController.uploadToImgur);
 
 router
 	.route('/:id')

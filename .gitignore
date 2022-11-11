@@ -3,3 +3,4 @@ node_modules/
 img/*.pxz
 views/*.html
 sandbox*
+gameformat.txt

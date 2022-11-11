@@ -1,0 +1,16 @@
+.modal.fade#image-link-modal(tabindex="-1" aria-labelledby="image-link-label" aria-hidden="true")
+    .modal-dialog.modal-dialog-centered
+        .modal-content#image-link-content
+            .modal-header
+                h5.modal-title#image-link-label Add image from URL
+            .modal-body
+                .question-body
+                    .question-label Link: 
+                    input#image-link(type="text")
+                .question-body 
+                    .question-label Preview: 
+                    .question-container 
+                        img#image-preview
+            .modal-footer
+                button.btn.btn-primary#confirm-add-image(type="button" data-bs-dismiss="modal") Add
+                button.btn.btn-secondary(type="button" data-bs-dismiss="modal") Cancel

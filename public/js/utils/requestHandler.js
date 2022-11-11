@@ -4,12 +4,15 @@ export const handleRequest = (
 	requestStr,
 	requestType,
 	requestBody,
-	responseHandler
+	responseHandler,
+	...external
 ) => {
+	const str =
+		external.length > 0 && external[0] ? requestStr : `${srvr}${requestStr}`;
 	const req = new XMLHttpRequest();
 	// console.log(requestBody);
 	if (req.readyState === 0 || req.readyState === 4) {
-		req.open(requestType.toUpperCase(), `${srvr}${requestStr}`, true);
+		req.open(requestType.toUpperCase(), str, true);
 		req.onreadystatechange = () => {
 			if (req.readyState == 4) {
 				if (req.status !== 204) {
@@ -37,11 +40,14 @@ export const handleMultiRequest = (
 	requestStr,
 	requestType,
 	formData,
-	responseHandler
+	responseHandler,
+	...external
 ) => {
+	const str =
+		external.length > 0 && external[0] ? requestStr : `${srvr}${requestStr}`;
 	const req = new XMLHttpRequest();
 	if (req.readyState === 0 || req.readyState === 4) {
-		req.open(requestType.toUpperCase(), `${srvr}${requestStr}`);
+		req.open(requestType.toUpperCase(), str);
 		req.onreadystatechange = () => {
 			if (req.readyState == 4) {
 				const res = JSON.parse(req.response);

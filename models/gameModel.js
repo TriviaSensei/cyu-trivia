@@ -25,9 +25,6 @@ const gameSchema = new mongoose.Schema({
 		},
 	},
 	date: Date,
-	joinCode: {
-		type: String,
-	},
 	rounds: [Object],
 });
 

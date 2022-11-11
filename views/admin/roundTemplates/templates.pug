@@ -1,0 +1,166 @@
+mixin generalRound(roundNo,questions,bonus)
+    .round-container(round=`${roundNo}`)
+        h5= `Round ${roundNo} - General` 
+        h6 Use **two asterisks** for #[span(style="font-weight:bold;") bold text]
+        .input-container
+            .input-label Description
+            textarea.round-desc(rows="4" columns="40" round=`${roundNo}`)
+        hr
+        - var i = 1
+        while i <= questions
+            .question-container(id=`question-container-${roundNo}-${i}`)
+                .question-label= `Question ${i}:`
+                textarea.question-text(rows="3" columns="40" round=`${roundNo}` question=`${i}`)
+                .question-container-bottom
+                    .input-container
+                        .input-label= `Answer:`
+                        input.question-answer(type='text' round=`${roundNo}` question=`${i}`)
+                    .input-container
+                        .question-label= `Point Value:`
+                        input.question-value(type="number" round=`${roundNo}` question=`${i}` min='1')
+                .control-button-container
+                    div
+                        button.move-question(direction="up" round=`${roundNo}` question=`${i}` ) Up
+                        button.move-question(direction="down" round=`${roundNo}` question=`${i}`) Down 
+                        button.clear-question(round=`${roundNo}` question=`${i}`) Clear
+            hr
+            - ++i
+        - if (bonus)
+            .question-container(id=`question-container-${roundNo}-${i}`)
+                .question-label= `Round ${roundNo} bonus question:`
+                textarea.question-text(rows="3" columns="40" round=`${roundNo}` question=`${questions+1}`)
+                .question-container-bottom
+                    .input-container
+                        .input-label= `Answer:`
+                        input.question-answer(type='text' round=`${roundNo}` question=`${questions+1}`)
+                    .input-container
+                        .input-label= `Max Wager:`
+                        input.question-value(type="number" round=`${roundNo}` question=`${questions+1}` min='1')
+
+mixin pictureRound(roundNo)
+    .round-container(round=`${roundNo}`)
+        h5= `Round ${roundNo} - Pictures`
+        h6 Use **two asterisks** for #[span(style="font-weight:bold;") bold text]
+        .input-container
+            .input-label Description
+            textarea.round-desc(rows="2" columns="40" round=`${roundNo}`)
+        .input-container
+            .input-label Points per correct 
+            input.points-per-correct(type="number" round=`${roundNo}` min="1")
+        #picture-round-questions
+            //- - var i = 1
+            //- while i <= 10
+                //- .question-container(round=`${roundNo}` question=`${i}`)
+                //-     .picture-question-container
+                //-         .question-container.picture-container
+                //-             .question-label= `Picture ${i}`
+                //-             img(src='/img/money.svg')
+                //-         .question-container.picture-answer 
+                //-             .question-label Answer 
+                //-             input.picture-answer(round=`${roundNo}` question=`${i}`)
+                //-         .question-container.picture-actions
+                //-             .question-label Actions
+                //-             .control-button-container
+                //-                 div
+                //-                     button.move-question(direction="up" round=`${roundNo}` question=`${i}` ) Up
+                //-                     button.move-question(direction="down" round=`${roundNo}` question=`${i}` ) Down
+                //-                     button.delete-question(round=`${roundNo}` question=`${i}` ) Delete
+                //- - ++i
+        .input-container#image-upload-container
+            .question-container-bottom
+                form#image-upload-form
+                    label.image-upload-label(for="image-upload") Upload Pictures
+                    input.image-upload#image-upload(type="file" accept="image/*" multiple)
+                label.image-upload-label(for="image-link" data-bs-toggle="modal" data-bs-target="#image-link-modal") Add from URL
+                button.image-upload#image-link(data-bs-toggle='modal' data-bs-target="#image-link-modal")
+
+mixin wildcard(roundNo)
+    .round-container(round=`${roundNo}`)
+        h5= `Round ${roundNo} - Wildcard`
+        h6 Use **two asterisks** for #[span(style="font-weight:bold;") bold text]
+        .input-container
+            .input-label Description
+            textarea.round-desc(rows="2" columns="40" round=`${roundNo}`)
+            .input-label Round Format
+            .input-group.mb-3
+                .form-check.form-check-inline
+                    label.form-check-label(for="wc-list") List
+                    input.form-check-input#wc-list(type="radio" name="wc-format" value="list" checked)
+                .form-check.form-check-inline
+                    label.form-check-label(for="wc-match") Matching
+                    input.form-check-input#wc-match(type="radio" name="wc-format" value="matching")
+                .form-check.form-check-inline
+                    label.form-check-label(for="wc-questions") Questions
+                    input.form-check-input#wc-questions(type="radio" name="wc-format" value="questions")
+        .input-container
+            .input-label Points per correct 
+            input.points-per-correct(type="number" round=`${roundNo}` min="1")
+        .input-container.wc-settings#list-settings
+            .input-label Possible Answers (one per line)
+            textarea#wc-list-answers(rows="10" columns="40" round=`${roundNo}`)
+            .input-label Answer count (no more than number of possible answers)
+            input#wc-list-count(type="number" round=`${roundNo}` min='1')
+        .input-container.wc-settings.invisible-div#matching-settings 
+            .matching-answer-container
+                .input-label Matching pairs:
+                p.no-pairs (None)
+            .question-container-bottom
+                .input-container
+                    .input-label Prompt
+                    input#matching-prompt(type='text' round=`${roundNo}`)
+                .input-container
+                    .input-label Answer
+                    input#matching-answer(type='text' round=`${roundNo}`)
+                div.ms-3
+                    .input-label Add
+                    button#add-matching-answer.btn-close.add-button
+            .input-label Extra answer bank
+            textarea#wc-matching-bank(rows="5" columns="40" round=`${roundNo}`)
+        .input-container.wc-settings.invisible-div#questions-settings 
+            - var i = 1
+            while i <= 10
+                .question-container(round=`${roundNo}` question=`${i}`)
+                    .question-label= `Question ${i}:`
+                    textarea.question-text(rows="3" columns="40" round=`${roundNo}` question=`${i}`)
+                    .question-container-bottom
+                        .input-container
+                            .input-label= `Answer:`
+                            input.question-answer(type='text' round=`${roundNo}` question=`${i}`)
+                    .control-button-container
+                        div
+                            button.move-question(direction="up" round=`${roundNo}` question=`${i}` ) Up
+                            button.move-question(direction="down" round=`${roundNo}` question=`${i}`) Down 
+                            button.clear-question(round=`${roundNo}` question=`${i}`) Clear
+                hr
+                - ++i
+        
+
+
+mixin audioRound(roundNo)
+    .round-container
+        h5= `Round ${roundNo} - Audio`
+        h6 Use **two asterisks** for #[span(style="font-weight:bold;") bold text]
+        .input-container(round=`${roundNo}`)
+            .input-label Description
+            textarea.round-desc(rows="2" columns="40" round=`${roundNo}`)
+            .input-label Video Link 
+            input.video-link(type='text' round=`${roundNo}`)
+            #video-preview-container.question-container.invisible-div
+                .input-label Preview: 
+                iframe#video-preview(width="320" height="240" src="")
+            .input-label Answers (each on new line; do not include theme)
+            textarea.round-answers(rows="10" columns="40" round=`${roundNo}`)
+            .question-container-bottom
+                .input-container
+                    .input-label Points per correct
+                    input.points-per-correct(type='number' round=`${roundNo}` min='1')
+            .question-container-bottom
+                .input-container
+                    .question-label Theme (optional)
+                    input.bonus-answer(type='text' round=`${roundNo}`)
+                .input-container
+                    .question-label Theme points
+                    input.bonus-value(type='number' round=`${roundNo}`)
+       
+        
+            

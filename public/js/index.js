@@ -5,6 +5,8 @@ const contentDiv = document.querySelector('.main-content');
 const menu = document.querySelector('.menu-button');
 const menuContent = document.querySelector('.menu-content-mobile');
 
+import { getElementArray } from './utils/getElementArray.js';
+
 const bsQuestionCarousel = new bootstrap.Carousel(
 	document.getElementById('question-carousel'),
 	{
@@ -23,10 +25,6 @@ const bsWildcardCarousel = new bootstrap.Carousel(
 		interval: false,
 	}
 );
-
-const getElementArray = (item, selector) => {
-	return Array.from(item.querySelectorAll(selector), (x) => x);
-};
 
 let socket = io();
 let questions;
