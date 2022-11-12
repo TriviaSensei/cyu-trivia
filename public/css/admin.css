@@ -185,6 +185,27 @@ td button:not([disabled]):hover {
 	opacity: 0.5;
 }
 
+#round-tabs > .nav-item {
+	position: relative;
+}
+
+.warning-circle {
+	position: absolute;
+	z-index: 100;
+	top: 25%;
+	left: 85%;
+	background-color: yellow;
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	transform: translate(-50%, -50%);
+	border: none;
+}
+
+.warning {
+	border: 5px solid red;
+}
+
 #round-tab-content {
 	overflow-y: scroll;
 }
@@ -200,6 +221,7 @@ td button:not([disabled]):hover {
 	margin-top: 0.5rem;
 	white-space: nowrap;
 	overflow: hidden;
+	font-weight: bold;
 }
 
 .question-container > iframe {
@@ -211,10 +233,6 @@ td button:not([disabled]):hover {
 .input-container input,
 .input-container textarea {
 	background-color: #ccc;
-	font-weight: bold;
-}
-
-.question-container .question-label {
 	font-weight: bold;
 }
 
@@ -331,6 +349,11 @@ td button:not([disabled]):hover {
 	#round-tabs.nav-tabs {
 		border-bottom: unset;
 		border-right: 1px solid #dee2e6;
+	}
+
+	.warning-circle {
+		top: 25%;
+		left: 20%;
 	}
 
 	.game-container .nav-tabs .nav-link {

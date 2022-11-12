@@ -26,6 +26,7 @@ const gameSchema = new mongoose.Schema({
 	},
 	date: Date,
 	rounds: [Object],
+	ready: Boolean,
 });
 
 const Games = mongoose.model('Games', gameSchema, 'games');

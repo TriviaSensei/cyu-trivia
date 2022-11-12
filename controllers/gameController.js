@@ -19,11 +19,6 @@ const upload = multer({
 	limits: { fileSize: 1024 * 1024 },
 });
 
-exports.test = (req, res, next) => {
-	console.log('testing');
-	next();
-};
-
 exports.uploadImages = upload.fields([{ name: 'pictures', maxCount: 1 }]);
 
 exports.uploadToImgur = catchAsync(async (req, res, next) => {
@@ -60,8 +55,6 @@ exports.uploadToImgur = catchAsync(async (req, res, next) => {
 	) {
 		return next(new AppError('Something went wrong', code));
 	}
-
-	console.log(responses);
 
 	res.status(200).json({
 		status: 'success',

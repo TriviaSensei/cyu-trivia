@@ -30,7 +30,7 @@ include roundTemplates/templates
                 button.btn.btn-warning.dropdown-toggle#action-button(type="button" data-bs-toggle="dropdown" aria-expanded="false") Actions
                 ul.dropdown-menu(aria-labelledby="action-button")
                     li 
-                        a.dropdown-item#action-pop 
+                        a.dropdown-item#action-pop
                             .menu-item 
                                 div Auto-populate points
                                 div Ctrl+F
@@ -42,10 +42,12 @@ include roundTemplates/templates
         .game-container
             ul.nav.nav-tabs.nav-fill#round-tabs(role="tablist")
                 li.nav-item(role="presentation")
+                    .warning-circle(id=`warning-0`)
                     button.nav-link.active#round-tab-0(data-bs-toggle="tab" data-bs-target=`#r0` type="button" role="tab" aria-controls="games" aria-selected=`true`) Info
                 - var i = 1
                 while i <= 7
                     li.nav-item(role="presentation")
+                        .warning-circle(id=`warning-${i}`)
                         button.nav-link(data-bs-toggle="tab" data-bs-target=`#r${i}` type="button" role="tab" aria-controls="games" aria-selected=`false` round=`${i}`)= i
                     - ++i 
             .tab-content#round-tab-content

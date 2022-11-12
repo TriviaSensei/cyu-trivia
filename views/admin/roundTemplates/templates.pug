@@ -4,20 +4,20 @@ mixin generalRound(roundNo,questions,bonus)
         h6 Use **two asterisks** for #[span(style="font-weight:bold;") bold text]
         .input-container
             .input-label Description
-            textarea.round-desc(rows="4" columns="40" round=`${roundNo}`)
+            textarea.round-desc.warning(rows="4" columns="40" round=`${roundNo}`)
         hr
         - var i = 1
         while i <= questions
             .question-container(id=`question-container-${roundNo}-${i}`)
                 .question-label= `Question ${i}:`
-                textarea.question-text(rows="3" columns="40" round=`${roundNo}` question=`${i}`)
+                textarea.warning.question-text(rows="3" columns="40" round=`${roundNo}` question=`${i}`)
                 .question-container-bottom
                     .input-container
                         .input-label= `Answer:`
-                        input.question-answer(type='text' round=`${roundNo}` question=`${i}`)
+                        input.warning.question-answer(type='text' round=`${roundNo}` question=`${i}`)
                     .input-container
                         .question-label= `Point Value:`
-                        input.question-value(type="number" round=`${roundNo}` question=`${i}` min='1')
+                        input.warning.question-value(type="number" round=`${roundNo}` question=`${i}` min='1')
                 .control-button-container
                     div
                         button.move-question(direction="up" round=`${roundNo}` question=`${i}` ) Up
@@ -28,14 +28,14 @@ mixin generalRound(roundNo,questions,bonus)
         - if (bonus)
             .question-container(id=`question-container-${roundNo}-${i}`)
                 .question-label= `Round ${roundNo} bonus question:`
-                textarea.question-text(rows="3" columns="40" round=`${roundNo}` question=`${questions+1}`)
+                textarea.warning.question-text(rows="3" columns="40" round=`${roundNo}` question=`${questions+1}`)
                 .question-container-bottom
                     .input-container
                         .input-label= `Answer:`
-                        input.question-answer(type='text' round=`${roundNo}` question=`${questions+1}`)
+                        input.warning.question-answer(type='text' round=`${roundNo}` question=`${questions+1}`)
                     .input-container
                         .input-label= `Max Wager:`
-                        input.question-value(type="number" round=`${roundNo}` question=`${questions+1}` min='1')
+                        input.warning.question-value(type="number" round=`${roundNo}` question=`${questions+1}` min='1')
 
 mixin pictureRound(roundNo)
     .round-container(round=`${roundNo}`)
@@ -43,10 +43,10 @@ mixin pictureRound(roundNo)
         h6 Use **two asterisks** for #[span(style="font-weight:bold;") bold text]
         .input-container
             .input-label Description
-            textarea.round-desc(rows="2" columns="40" round=`${roundNo}`)
+            textarea.warning.round-desc(rows="2" columns="40" round=`${roundNo}`)
         .input-container
             .input-label Points per correct 
-            input.points-per-correct(type="number" round=`${roundNo}` min="1")
+            input.warning.points-per-correct(type="number" round=`${roundNo}` min="1")
         #picture-round-questions
             //- - var i = 1
             //- while i <= 10
@@ -80,7 +80,7 @@ mixin wildcard(roundNo)
         h6 Use **two asterisks** for #[span(style="font-weight:bold;") bold text]
         .input-container
             .input-label Description
-            textarea.round-desc(rows="2" columns="40" round=`${roundNo}`)
+            textarea.warning.round-desc(rows="2" columns="40" round=`${roundNo}`)
             .input-label Round Format
             .input-group.mb-3
                 .form-check.form-check-inline
@@ -94,14 +94,14 @@ mixin wildcard(roundNo)
                     input.form-check-input#wc-questions(type="radio" name="wc-format" value="questions")
         .input-container
             .input-label Points per correct 
-            input.points-per-correct(type="number" round=`${roundNo}` min="1")
+            input.warning.points-per-correct(type="number" round=`${roundNo}` min="1")
         .input-container.wc-settings#list-settings
             .input-label Possible Answers (one per line)
-            textarea#wc-list-answers(rows="10" columns="40" round=`${roundNo}`)
+            textarea.warning#wc-list-answers(rows="10" columns="40" round=`${roundNo}`)
             .input-label Answer count (no more than number of possible answers)
-            input#wc-list-count(type="number" round=`${roundNo}` min='1')
+            input.warning#wc-list-count(type="number" round=`${roundNo}` min='1')
         .input-container.wc-settings.invisible-div#matching-settings 
-            .matching-answer-container
+            .matching-answer-container.warning
                 .input-label Matching pairs:
                 p.no-pairs (None)
             .question-container-bottom
@@ -121,11 +121,11 @@ mixin wildcard(roundNo)
             while i <= 10
                 .question-container(round=`${roundNo}` question=`${i}`)
                     .question-label= `Question ${i}:`
-                    textarea.question-text(rows="3" columns="40" round=`${roundNo}` question=`${i}`)
+                    textarea.warning.question-text(rows="3" columns="40" round=`${roundNo}` question=`${i}`)
                     .question-container-bottom
                         .input-container
                             .input-label= `Answer:`
-                            input.question-answer(type='text' round=`${roundNo}` question=`${i}`)
+                            input.warning.question-answer(type='text' round=`${roundNo}` question=`${i}`)
                     .control-button-container
                         div
                             button.move-question(direction="up" round=`${roundNo}` question=`${i}` ) Up
@@ -142,25 +142,25 @@ mixin audioRound(roundNo)
         h6 Use **two asterisks** for #[span(style="font-weight:bold;") bold text]
         .input-container(round=`${roundNo}`)
             .input-label Description
-            textarea.round-desc(rows="2" columns="40" round=`${roundNo}`)
+            textarea.warning.round-desc(rows="2" columns="40" round=`${roundNo}`)
             .input-label Video Link 
-            input.video-link(type='text' round=`${roundNo}`)
+            input.warning.video-link(type='text' round=`${roundNo}`)
             #video-preview-container.question-container.invisible-div
                 .input-label Preview: 
                 iframe#video-preview(width="320" height="240" src="")
             .input-label Answers (each on new line; do not include theme)
-            textarea.round-answers(rows="10" columns="40" round=`${roundNo}`)
+            textarea.warning.round-answers(rows="10" columns="40" round=`${roundNo}`)
             .question-container-bottom
                 .input-container
                     .input-label Points per correct
-                    input.points-per-correct(type='number' round=`${roundNo}` min='1')
+                    input.warning.points-per-correct(type='number' round=`${roundNo}` min='1')
             .question-container-bottom
                 .input-container
                     .question-label Theme (optional)
-                    input.bonus-answer(type='text' round=`${roundNo}`)
+                    input.bonus-answer#audio-theme(type='text' round=`${roundNo}`)
                 .input-container
                     .question-label Theme points
-                    input.bonus-value(type='number' round=`${roundNo}`)
+                    input.bonus-value#audio-bonus-value(type='number' round=`${roundNo}`)
        
         
             

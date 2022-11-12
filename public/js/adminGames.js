@@ -16,6 +16,13 @@ const matchingPrompt = document.getElementById('matching-prompt');
 const matchingAnswer = document.getElementById('matching-answer');
 const videoLink = document.querySelector('.video-link');
 const videoPreview = document.getElementById('video-preview');
+const gameDate = document.getElementById('game-date');
+const wcListAnswers = document.getElementById('wc-list-answers');
+const wcListCount = document.getElementById('wc-list-count');
+const audioTheme = document.getElementById('audio-theme');
+const audioBonusValue = document.getElementById('audio-bonus-value');
+
+gameDate.setAttribute('min', new Date().toISOString().split('T')[0]);
 
 let loadedGame = {
 	...blankGame,
@@ -162,7 +169,7 @@ const createPictureBody = (file) => {
 	con1.setAttribute('question', q);
 
 	const con2 = document.createElement('input');
-	con2.classList.add('picture-answer');
+	con2.classList.add('picture-answer', 'warning');
 	con2.setAttribute('round', picRound);
 	con2.setAttribute('question', q);
 
@@ -277,6 +284,10 @@ const deleteMatchingAnswer = (e) => {
 			.querySelector('.no-pairs')
 			.classList.remove('invisible-div');
 	}
+
+	if (document.querySelectorAll('.matching-answer-row').length <= 2) {
+		matchingContainer.classList.add('warning');
+	}
 };
 
 const handleAddMatchingAnswer = (e) => {
@@ -302,9 +313,15 @@ const handleAddMatchingAnswer = (e) => {
 	matchingAnswer.value = '';
 	matchingPrompt.value = '';
 	matchingPrompt.focus();
+
+	if (document.querySelectorAll('.matching-answer-row').length > 2) {
+		matchingContainer.classList.remove('warning');
+	}
 };
 
 const autoPopulatePoints = (e) => {
+	showMessage('info', 'Auto-populating default settings...', 500);
+
 	//GK round values
 	for (var i = 1; i <= 7; i += 2) {
 		const items = getElementArray(document, `.question-value[round="${i}"]`);
@@ -313,22 +330,30 @@ const autoPopulatePoints = (e) => {
 			if (!qNo) return;
 			el.value = Math.floor((qNo + 1) / 2) * 2;
 			if (i === 7 && qNo === 9) el.value = 20;
+			handleInputChange({ target: el });
 		});
 
 		const desc = document.querySelector(`.round-desc[round="${i}"]`);
 		desc.value = `General knowledge\n8 questions\n2, 2, 4, 4, 6, 6, 8, 8 points\nBonus: wager 0-${
 			i === 7 ? 20 : 10
 		} points`;
+		handleInputChange({ target: desc });
 	}
 
 	//points per correct on all even rounds
 	const ppc = getElementArray(document, '.points-per-correct');
 	ppc.forEach((el) => {
 		el.value = 4;
+		handleInputChange({ target: el });
 	});
 	//audio bonus
 	const bv = document.querySelector('.bonus-value');
 	bv.value = 5;
+	handleInputChange({ target: bv });
+
+	//list answer count
+	wcListCount.value = 10;
+	handleInputChange({ target: wcListCount });
 
 	//pic description
 	const desc2 = document.querySelector(`.round-desc[round="2"]`);
@@ -341,6 +366,10 @@ const autoPopulatePoints = (e) => {
 	//audio description
 	const desc6 = document.querySelector(`.round-desc[round="6"]`);
 	desc6.value = `Audio round\nName the title (2 points) and artist (2 points) for each clip.\nFor a 5-point bonus, give the theme that ties all of the titie/artists together.`;
+
+	handleInputChange({ target: desc2 });
+	handleInputChange({ target: desc4 });
+	handleInputChange({ target: desc6 });
 };
 
 const handleKeys = (e) => {
@@ -353,7 +382,6 @@ const handleKeys = (e) => {
 			showMessage('info', 'Saving game...');
 		} else if (e.key.toUpperCase() === 'F') {
 			e.preventDefault();
-			showMessage('info', 'Auto-populating default settings...');
 			autoPopulatePoints();
 		} else if (e.key.toUpperCase() === 'Q') {
 			e.preventDefault();
@@ -366,11 +394,11 @@ const handleKeys = (e) => {
 		e.key.toUpperCase() === 'RETURN' ||
 		e.key.toUpperCase() === 'ENTER'
 	) {
-		e.preventDefault();
 		if (
 			document.activeElement === matchingAnswer ||
 			document.activeElement === matchingPrompt
 		) {
+			e.preventDefault();
 			handleAddMatchingAnswer(null);
 		}
 	}
@@ -413,6 +441,74 @@ videoLink.addEventListener('change', (e) => {
 			showMessage('error', result.message, 1000);
 		}
 	}
+});
+
+//menu listeners
+const [fileNew, fileOpen, fileSave, fileClose, actionPop, actionAssign] = [
+	'file-new',
+	'file-open',
+	'file-save',
+	'file-close',
+	'action-pop',
+	'action-assign',
+].map((a) => {
+	return document.getElementById(a);
+});
+
+//auto-populate default points
+actionPop.addEventListener('click', autoPopulatePoints);
+
+const inputs = document.querySelectorAll(
+	'.input-container input:not([type="radio"]), .input-container textarea, .question-container input:not([type="radio"]), .question-container textarea'
+);
+
+const handleInputChange = (e) => {
+	//inputs that we don't care about if they change
+	if (
+		['matching-prompt', 'matching-answer', 'wc-matching-bank'].includes(
+			e.target.id
+		)
+	)
+		return;
+
+	//inputs to be treated specially
+	//list count greater than number of possible answers
+	if (e.target === wcListAnswers || e.target === wcListCount) {
+		//answer count needs a value that is at no more than the number of answers listed
+		if (
+			parseInt(wcListCount.value) >
+			wcListAnswers.value.split('\n').filter((v) => {
+				return v.trim().length > 0;
+			}).length
+		) {
+			wcListAnswers.classList.add('warning');
+			wcListCount.classList.add('warning');
+		} else if (!wcListCount.value) {
+			wcListCount.classList.add('warning');
+		} else {
+			wcListCount.classList.remove('warning');
+			wcListAnswers.classList.remove('warning');
+		}
+	} else if (e.target === audioTheme || e.target === audioBonusValue) {
+		//if there is an audio theme, it must be given a value
+		if (audioTheme.value && !audioBonusValue.value) {
+			audioTheme.classList.add('warning');
+			audioBonusValue.classList.add('warning');
+		} else {
+			audioTheme.classList.remove('warning');
+			audioBonusValue.classList.remove('warning');
+		}
+	} else {
+		if (e.target.value) {
+			e.target.classList.remove('warning');
+		} else {
+			e.target.classList.add('warning');
+		}
+	}
+};
+console.log(inputs);
+inputs.forEach((i) => {
+	i.addEventListener('change', handleInputChange);
 });
 
 document.addEventListener('keydown', handleKeys);
