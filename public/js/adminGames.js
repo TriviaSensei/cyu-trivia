@@ -505,6 +505,16 @@ const handleInputChange = (e) => {
 			e.target.classList.add('warning');
 		}
 	}
+
+	const pane = e.target.closest('.tab-pane');
+	const warnings = pane.querySelectorAll('.warning');
+
+	const id = pane.getAttribute('id');
+	const button = document.querySelector(`.nav-link[data-bs-target="#${id}"]`);
+	const wc = button.closest('.nav-item').querySelector('.warning-circle');
+
+	if (warnings.length > 0) wc.classList.remove('invisible-div');
+	else wc.classList.add('invisible-div');
 };
 console.log(inputs);
 inputs.forEach((i) => {
