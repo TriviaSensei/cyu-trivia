@@ -11,6 +11,7 @@
 	"license": "ISC",
 	"dependencies": {
 		"@sendgrid/mail": "^7.7.0",
+		"aws-sdk": "^2.1254.0",
 		"bad-words": "^3.0.4",
 		"bcryptjs": "^2.4.3",
 		"cookie-parser": "^1.4.6",
@@ -30,6 +31,7 @@
 		"slugify": "^1.6.5",
 		"socket.io": "^4.5.3",
 		"util": "^0.12.5",
+		"uuid": "^9.0.0",
 		"validator": "^13.7.0"
 	},
 	"devDependencies": {

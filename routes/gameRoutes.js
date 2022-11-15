@@ -13,12 +13,12 @@ router.use(authController.restrictTo('admin', 'owner'));
 
 router
 	.route('/picture')
-	.post(gameController.uploadImages, gameController.uploadToImgur);
+	.post(gameController.uploadImages, gameController.AWSUpload);
 
 router
 	.route('/:id')
-	.post(gameController.createGame)
 	.patch(gameController.updateGame)
 	.delete(gameController.deleteGame);
 
+router.post('/', gameController.createGame);
 module.exports = router;

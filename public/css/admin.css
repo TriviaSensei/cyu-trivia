@@ -6,7 +6,7 @@ body,
 
 #admin-console {
 	margin-top: 3vh;
-	width: min(100%, 800px);
+	width: min(100%, 1000px);
 	height: 100%;
 	box-sizing: border-box;
 	display: flex;
@@ -194,7 +194,7 @@ td button:not([disabled]):hover {
 	z-index: 100;
 	top: 25%;
 	left: 85%;
-	background-color: yellow;
+	background-color: orange;
 	width: 8px;
 	height: 8px;
 	border-radius: 50%;
@@ -210,14 +210,16 @@ td button:not([disabled]):hover {
 	overflow-y: scroll;
 }
 .question-container,
-.input-container {
+.input-container,
+.video-container {
 	display: flex;
 	flex-direction: column;
 	font-size: 2vh;
 }
 
 .question-label,
-.input-label {
+.input-label,
+.video-label {
 	margin-top: 0.5rem;
 	white-space: nowrap;
 	overflow: hidden;
@@ -231,7 +233,8 @@ td button:not([disabled]):hover {
 .question-container input,
 .question-container textarea,
 .input-container input,
-.input-container textarea {
+.input-container textarea,
+.video-container input {
 	background-color: #ccc;
 	font-weight: bold;
 }

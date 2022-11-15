@@ -2,9 +2,17 @@ const Game = require('../models/gameModel');
 const factory = require('../controllers/handlerFactory');
 const catchAsync = require('../utils/catchAsync');
 const multer = require('multer');
-
 const { ImgurClient } = require('imgur');
+const S3 = require('aws-sdk/clients/s3');
 const client = new ImgurClient({ clientId: process.env.IMGUR_CLIENT_ID });
+const { v4: uuidV4 } = require('uuid');
+const { resolve } = require('path');
+
+const s3 = new S3({
+	accessKeyId: process.env.AWS_KEY,
+	secretAccessKey: process.env.AWS_SECRET,
+});
+
 const multerStorage = multer.memoryStorage();
 const multerFilter = (req, file, cb) => {
 	if (file.mimetype.startsWith('image')) {
@@ -21,48 +29,68 @@ const upload = multer({
 
 exports.uploadImages = upload.fields([{ name: 'pictures', maxCount: 1 }]);
 
-exports.uploadToImgur = catchAsync(async (req, res, next) => {
-	if (!req.files || !req.files.pictures) {
-		if ((typeof req.body.questions).toLowerCase() === 'string') {
-			req.body.questions = JSON.parse(req.body.questions);
-			req.body.questions = req.body.questions.map((q) => {
-				return {
-					image: q.image,
-					answer: q.answer,
-				};
-			});
-		}
-		return next();
-	}
+exports.AWSUpload = catchAsync(async (req, res, next) => {
+	const fileExtension = req.files.pictures[0].mimetype.split('/')[1];
+	const filename = `${uuidV4()}.${fileExtension}`;
 
-	const responses = await Promise.all(
-		req.files.pictures.map((p, i) => {
-			return client.upload({
-				image: p.buffer,
-				title: p.originalname,
-			});
-		})
-	);
+	const params = {
+		Bucket: process.env.AWS_BUCKET,
+		Key: filename,
+		Body: req.files.pictures[0].buffer,
+	};
 
-	let code;
-	if (
-		responses.some((r) => {
-			if (!r.success) {
-				code = r.status;
-				return true;
-			}
-		})
-	) {
-		return next(new AppError('Something went wrong', code));
-	}
+	const data = await s3.upload(params).promise();
 
 	res.status(200).json({
 		status: 'success',
-		data: responses.map((r) => {
-			return r.data.link;
-		}),
+		data,
 	});
 });
+
+// exports.uploadToImgur = catchAsync(async (req, res, next) => {
+// 	if (!req.files || !req.files.pictures) {
+// 		if ((typeof req.body.questions).toLowerCase() === 'string') {
+// 			req.body.questions = JSON.parse(req.body.questions);
+// 			req.body.questions = req.body.questions.map((q) => {
+// 				return {
+// 					image: q.image,
+// 					answer: q.answer,
+// 				};
+// 			});
+// 		}
+// 		return next();
+// 	}
+
+// 	const responses = await Promise.all(
+// 		req.files.pictures.map((p, i) => {
+// 			console.log(p);
+
+// 			return client.upload({
+// 				image: p.buffer,
+// 				title: p.originalname,
+// 			});
+// 		})
+// 	);
+
+// 	let code;
+// 	if (
+// 		responses.some((r) => {
+// 			if (!r.success) {
+// 				code = r.status;
+// 				return true;
+// 			}
+// 		})
+// 	) {
+// 		return next(new AppError('Something went wrong', code));
+// 	}
+
+// 	res.status(200).json({
+// 		status: 'success',
+// 		data: responses.map((r) => {
+// 			return r.data.link;
+// 		}),
+// 	});
+// });
 
 exports.createGame = factory.createOne(Game);
 exports.getGame = factory.getOne(Game);

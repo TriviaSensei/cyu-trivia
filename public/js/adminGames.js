@@ -22,21 +22,22 @@ const wcListCount = document.getElementById('wc-list-count');
 const audioTheme = document.getElementById('audio-theme');
 const audioBonusValue = document.getElementById('audio-bonus-value');
 
+const postVideos = getElementArray(document, '.video-container > input');
+
+const rounds = ['std', 'pic', 'std', 'wc', 'std', 'audio', 'std'];
+const picRound =
+	rounds.findIndex((r) => {
+		return r === 'pic';
+	}) + 1;
+
 gameDate.setAttribute('min', new Date().toISOString().split('T')[0]);
 
-let loadedGame = {
-	...blankGame,
-};
+let loadedGame = undefined;
 
 const listeningForPaste = () => {
 	const activeTabs = getElementArray(document, '.nav-link.active');
 	let gamesActive = false;
 	let picActive = false;
-
-	const picRound =
-		loadedGame.rounds.findIndex((r) => {
-			return r.format === 'pic';
-		}) + 1;
 
 	if (!picRound) return false;
 
@@ -48,7 +49,7 @@ const listeningForPaste = () => {
 	return (
 		gamesActive &&
 		picActive &&
-		loadedGame.rounds[picRound - 1].questions.length < 10
+		document.querySelectorAll('.picture-question-container').length < 10
 	);
 };
 
@@ -80,6 +81,11 @@ const removePictureFromRound = (e) => {
 		elements.forEach((el) => {
 			el.setAttribute('question', i - 1);
 		});
+	}
+
+	//show warning if no pictures left
+	if (!document.querySelector('.picture-question-container')) {
+		document.querySelector('#image-upload-container').classList.add('warning');
 	}
 };
 
@@ -123,11 +129,8 @@ const movePicture = (e) => {
 };
 
 const createPictureBody = (file) => {
-	const picRound =
-		loadedGame.rounds.findIndex((r) => {
-			return r.format === 'pic';
-		}) + 1;
-	if (picRound === 0) return;
+	if (!picRound) return;
+
 	const q =
 		document.querySelectorAll('#picture-round-questions > .question-container')
 			.length + 1;
@@ -172,6 +175,7 @@ const createPictureBody = (file) => {
 	con2.classList.add('picture-answer', 'warning');
 	con2.setAttribute('round', picRound);
 	con2.setAttribute('question', q);
+	con2.addEventListener('change', handleInputChange);
 
 	const con3 = document.createElement('div');
 	con3.classList.add('control-button-container');
@@ -213,6 +217,8 @@ const createPictureBody = (file) => {
 	container.appendChild(c3);
 	c0.appendChild(container);
 	picContainer.appendChild(c0);
+
+	handleInputChange({ target: imageUpload });
 	return con1;
 };
 
@@ -232,13 +238,15 @@ const addPictureToRound = (file) => {
 		const handler = (res) => {
 			if (res.status === 'success') {
 				showMessage('info', 'Successfully uploaded image');
-				imgContainer.setAttribute('src', res.data[0]);
+				// imgContainer.setAttribute('src', res.data[0]);
+				imgContainer.setAttribute('src', res.data.Location);
 			} else {
 				showMessage('error', 'Something went wrong');
 			}
 		};
 
 		showMessage('info', 'Uploading...', 10000);
+		// handleMultiRequest('/api/v1/games/picture', 'POST', formData, handler);
 		handleMultiRequest('/api/v1/games/picture', 'POST', formData, handler);
 	}
 };
@@ -263,7 +271,8 @@ const handlePaste = (evt) => {
 
 const handleImageUpload = (e) => {
 	for (var i = 0; i < e.target.files.length; i++) {
-		addPictureToRound(e.target.files[i]);
+		if (document.querySelectorAll('.picture-question-container').length < 10)
+			addPictureToRound(e.target.files[i]);
 	}
 	e.target.value = '';
 };
@@ -287,11 +296,15 @@ const deleteMatchingAnswer = (e) => {
 
 	if (document.querySelectorAll('.matching-answer-row').length <= 2) {
 		matchingContainer.classList.add('warning');
+		handleInputChange({ target: wcListAnswers });
 	}
 };
 
 const handleAddMatchingAnswer = (e) => {
 	if (!(matchingAnswer.value && matchingPrompt.value)) return;
+
+	matchingPrompt.value = replaceBrackets(matchingPrompt.value);
+	matchingAnswer.value = replaceBrackets(matchingAnswer.value);
 
 	matchingContainer.querySelector('.no-pairs').classList.add('invisible-div');
 
@@ -316,6 +329,7 @@ const handleAddMatchingAnswer = (e) => {
 
 	if (document.querySelectorAll('.matching-answer-row').length > 2) {
 		matchingContainer.classList.remove('warning');
+		handleInputChange({ target: wcListAnswers });
 	}
 };
 
@@ -372,6 +386,196 @@ const autoPopulatePoints = (e) => {
 	handleInputChange({ target: desc6 });
 };
 
+const replaceBrackets = (str) => {
+	if (!str) return '';
+	let s = str;
+	while (s.indexOf('<') >= 0) {
+		s = s.replace('<', '&lt;');
+	}
+	while (s.indexOf('>') >= 0) {
+		s = s.replace('>', '&gt;');
+	}
+	return s;
+};
+
+const handleSave = () => {
+	const game = {
+		title: document.getElementById('game-title').value,
+		description: document.getElementById('game-desc').value,
+		date: Date.parse(document.getElementById('game-date').value),
+		rounds: [],
+	};
+
+	for (var i = 1; i <= rounds.length; i++) {
+		const format = rounds[i - 1];
+		let obj;
+
+		if (format === 'std') {
+			obj = {
+				description: replaceBrackets(
+					document.querySelector(`.round-desc[round="${i}"]`).value
+				),
+				questions: [],
+				video: document
+					.querySelector(`.video-preview[round="${i}"]`)
+					.getAttribute('src'),
+			};
+			let q = 1;
+			let qDiv = document.querySelector(
+				`.question-container[round="${i}"][question="${q}"]`
+			);
+			while (qDiv) {
+				obj.questions.push({
+					text: replaceBrackets(qDiv.querySelector('.question-text').value),
+					answer: replaceBrackets(qDiv.querySelector('.question-answer').value),
+					value: parseInt(qDiv.querySelector('.question-value').value),
+				});
+
+				q++;
+				qDiv = document.querySelector(
+					`.question-container[round="${i}"][question="${q}"]`
+				);
+			}
+		} else if (format === 'pic') {
+			obj = {
+				description: replaceBrackets(
+					document.querySelector(`.round-desc[round="${i}"]`).value
+				),
+				pointsPerCorrect: parseInt(
+					document.querySelector(`.points-per-correct[round="${i}"]`).value
+				),
+				questions: [],
+				video: document
+					.querySelector(`.video-preview[round="${i}"]`)
+					.getAttribute('src'),
+			};
+
+			let q = 1;
+			let qDiv = document.querySelector(
+				`.picture-question-container[round="${i}"][question="${q}"]`
+			);
+			while (qDiv) {
+				obj.questions.push({
+					link: replaceBrackets(
+						qDiv.querySelector('.picture-container > img').getAttribute('src')
+					),
+					answer: replaceBrackets(qDiv.querySelector('.picture-answer').value),
+				});
+
+				q++;
+				qDiv = document.querySelector(
+					`.question-container[round="${i}"][question="${q}"]`
+				);
+			}
+		} else if (format === 'wc') {
+			const roundFormat = document.querySelector(
+				`[name="wc-format"][checked]`
+			).value;
+			obj = {
+				description: replaceBrackets(
+					document.querySelector(`.round-desc[round="${i}"]`).value
+				),
+				pointsPerCorrect: parseInt(
+					document.querySelector(`.points-per-correct[round="${i}"]`).value
+				),
+				format: roundFormat,
+				answerList: document
+					.querySelector('#wc-list-answers')
+					.value.split('\n')
+					.map((a) => {
+						return replaceBrackets(a);
+					})
+					.filter((a) => {
+						return a.trim() !== '';
+					}),
+				answerCount: parseInt(document.querySelector('#wc-list-count').value),
+				matchingPairs: getElementArray(document, '.matching-answer-row').map(
+					(r) => {
+						return {
+							prompt: replaceBrackets(
+								r.querySelector('.matching-prompt-div > p').innerHTML
+							),
+							answer: replaceBrackets(
+								r.querySelector('.matching-answer-div > p').innerHTML
+							),
+						};
+					}
+				),
+				extraAnswers: replaceBrackets(
+					document.querySelector('#wc-matching-bank').value
+				)
+					.split('\n')
+					.filter((a) => {
+						return a.trim() !== '';
+					}),
+				questions: [],
+				video: document
+					.querySelector(`.video-preview[round="${i}"]`)
+					.getAttribute('src'),
+			};
+
+			let q = 1;
+			let qDiv = document.querySelector(
+				`.question-container[round="${i}"][question="${q}"]`
+			);
+			while (qDiv) {
+				obj.questions.push({
+					text: replaceBrackets(qDiv.querySelector('.question-text').value),
+					answer: replaceBrackets(qDiv.querySelector('.question-answer').value),
+				});
+
+				q++;
+				qDiv = document.querySelector(
+					`.question-container[round="${i}"][question="${q}"]`
+				);
+			}
+		} else if (format === 'audio') {
+			obj = {
+				description: replaceBrackets(
+					document.querySelector(`.round-desc[round="${i}"]`).value
+				),
+				pointsPerCorrect: parseInt(
+					document.querySelector(`.points-per-correct[round="${i}"]`).value
+				),
+				questions: document
+					.querySelector(`.round-answers[round="${i}"]`)
+					.value.split('\n')
+					.map((a) => {
+						return replaceBrackets(a);
+					})
+					.filter((a) => {
+						return a.trim() !== '';
+					}),
+				videoLink: document.querySelector(`#video-preview`).getAttribute('src'),
+				theme: document.querySelector('#audio-theme').value,
+				themePoints: parseInt(
+					document.querySelector('#audio-bonus-value').value
+				),
+				video: document
+					.querySelector(`.video-preview[round="${i}"]`)
+					.getAttribute('src'),
+			};
+		}
+
+		game.rounds.push(obj);
+	}
+
+	console.log(game);
+
+	const handler = (res) => {
+		if (res.status === 'success') {
+			showMessage('info', 'Successfully saved game.');
+			loadedGame = res.data._id;
+		} else {
+			showMessage('error', res.message, 2000);
+		}
+	};
+	const str = `/api/v1/games/${loadedGame || ''}`;
+	const type = loadedGame ? 'PATCH' : 'POST';
+
+	handleRequest(str, type, game, handler);
+};
+
 const handleKeys = (e) => {
 	if (e.ctrlKey) {
 		if (e.key.toUpperCase() === 'O') {
@@ -380,6 +584,7 @@ const handleKeys = (e) => {
 		} else if (e.key.toUpperCase() === 'S') {
 			e.preventDefault();
 			showMessage('info', 'Saving game...');
+			handleSave();
 		} else if (e.key.toUpperCase() === 'F') {
 			e.preventDefault();
 			autoPopulatePoints();
@@ -421,6 +626,7 @@ wcFormatRadio.forEach((r) => {
 			document
 				.getElementById(`${e.target.value}-settings`)
 				?.classList.remove('invisible-div');
+			handleInputChange({ target: wcListAnswers });
 		}
 	});
 });
@@ -453,6 +659,9 @@ const [fileNew, fileOpen, fileSave, fileClose, actionPop, actionAssign] = [
 	'action-assign',
 ].map((a) => {
 	return document.getElementById(a);
+});
+fileSave.addEventListener('click', (e) => {
+	handleSave();
 });
 
 //auto-populate default points
@@ -498,6 +707,12 @@ const handleInputChange = (e) => {
 			audioTheme.classList.remove('warning');
 			audioBonusValue.classList.remove('warning');
 		}
+	} else if (e.target === imageUpload) {
+		if (document.querySelector('#image-upload-container.warning')) {
+			document
+				.querySelector('#image-upload-container.warning')
+				.classList.remove('warning');
+		}
 	} else {
 		if (e.target.value) {
 			e.target.classList.remove('warning');
@@ -507,7 +722,14 @@ const handleInputChange = (e) => {
 	}
 
 	const pane = e.target.closest('.tab-pane');
-	const warnings = pane.querySelectorAll('.warning');
+	let warnings;
+	if (e.target === wcListAnswers || e.target === wcListCount) {
+		warnings = pane.querySelectorAll(
+			'.wc-settings:not(.invisible-div) .warning'
+		);
+	} else {
+		warnings = pane.querySelectorAll('.warning');
+	}
 
 	const id = pane.getAttribute('id');
 	const button = document.querySelector(`.nav-link[data-bs-target="#${id}"]`);
@@ -516,9 +738,29 @@ const handleInputChange = (e) => {
 	if (warnings.length > 0) wc.classList.remove('invisible-div');
 	else wc.classList.add('invisible-div');
 };
-console.log(inputs);
+
 inputs.forEach((i) => {
 	i.addEventListener('change', handleInputChange);
+});
+
+const handlePostVideo = (e) => {
+	const res = getEmbeddedLink(e.target.value);
+	const frame = document.querySelector(
+		`.video-container > iframe[round="${e.target.getAttribute('round')}"]`
+	);
+	if (res.status === 'success') {
+		frame.setAttribute('src', res.link);
+	} else if (res.message === 'No link given') {
+		frame.setAttribute('src', '');
+	} else {
+		showMessage('error', res.message);
+		e.target.value = '';
+		frame.setAttribute('src', '');
+	}
+};
+
+postVideos.forEach((v) => {
+	v.addEventListener('change', handlePostVideo);
 });
 
 document.addEventListener('keydown', handleKeys);

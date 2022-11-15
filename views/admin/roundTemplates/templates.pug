@@ -1,3 +1,11 @@
+mixin videoLink(roundNo)
+    .video-container
+        .input-label Post-round video
+        input(type="text" round=`${roundNo}`)
+        .input-label Preview: 
+        iframe.video-preview(width="320" height="240" src="" round=`${roundNo}`)
+
+
 mixin generalRound(roundNo,questions,bonus)
     .round-container(round=`${roundNo}`)
         h5= `Round ${roundNo} - General` 
@@ -8,7 +16,7 @@ mixin generalRound(roundNo,questions,bonus)
         hr
         - var i = 1
         while i <= questions
-            .question-container(id=`question-container-${roundNo}-${i}`)
+            .question-container(round=`${roundNo}` question=`${i}`)
                 .question-label= `Question ${i}:`
                 textarea.warning.question-text(rows="3" columns="40" round=`${roundNo}` question=`${i}`)
                 .question-container-bottom
@@ -26,7 +34,7 @@ mixin generalRound(roundNo,questions,bonus)
             hr
             - ++i
         - if (bonus)
-            .question-container(id=`question-container-${roundNo}-${i}`)
+            .question-container(round=`${roundNo}` question=`${i}`)
                 .question-label= `Round ${roundNo} bonus question:`
                 textarea.warning.question-text(rows="3" columns="40" round=`${roundNo}` question=`${questions+1}`)
                 .question-container-bottom
@@ -36,6 +44,8 @@ mixin generalRound(roundNo,questions,bonus)
                     .input-container
                         .input-label= `Max Wager:`
                         input.warning.question-value(type="number" round=`${roundNo}` question=`${questions+1}` min='1')
+        hr
+        +videoLink(roundNo)
 
 mixin pictureRound(roundNo)
     .round-container(round=`${roundNo}`)
@@ -66,13 +76,15 @@ mixin pictureRound(roundNo)
                 //-                     button.move-question(direction="down" round=`${roundNo}` question=`${i}` ) Down
                 //-                     button.delete-question(round=`${roundNo}` question=`${i}` ) Delete
                 //- - ++i
-        .input-container#image-upload-container
+        .input-container.warning#image-upload-container
             .question-container-bottom
                 form#image-upload-form
                     label.image-upload-label(for="image-upload") Upload Pictures
                     input.image-upload#image-upload(type="file" accept="image/*" multiple)
                 label.image-upload-label(for="image-link" data-bs-toggle="modal" data-bs-target="#image-link-modal") Add from URL
                 button.image-upload#image-link(data-bs-toggle='modal' data-bs-target="#image-link-modal")
+        hr
+        +videoLink(roundNo)
 
 mixin wildcard(roundNo)
     .round-container(round=`${roundNo}`)
@@ -133,6 +145,7 @@ mixin wildcard(roundNo)
                             button.clear-question(round=`${roundNo}` question=`${i}`) Clear
                 hr
                 - ++i
+        +videoLink(roundNo)
         
 
 
@@ -161,6 +174,7 @@ mixin audioRound(roundNo)
                 .input-container
                     .question-label Theme points
                     input.bonus-value#audio-bonus-value(type='number' round=`${roundNo}`)
+        +videoLink(roundNo)
        
         
             

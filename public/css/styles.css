@@ -472,9 +472,6 @@ li.navlink {
 }
 
 @media (pointer: fine) {
-	body {
-		font-size: 3vh;
-	}
 	.top-navbar {
 		height: var(--header-ht-d);
 	}
