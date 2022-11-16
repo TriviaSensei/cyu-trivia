@@ -228,7 +228,7 @@ td button:not([disabled]):hover {
 	border: 5px solid red;
 }
 
-#round-tab-content {
+.game-container .tab-pane {
 	overflow-y: scroll;
 }
 .question-container,

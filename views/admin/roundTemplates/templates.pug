@@ -76,8 +76,8 @@ mixin pictureRound(roundNo)
                 //-                     button.move-question(direction="down" round=`${roundNo}` question=`${i}` ) Down
                 //-                     button.delete-question(round=`${roundNo}` question=`${i}` ) Delete
                 //- - ++i
-        .input-container.warning#image-upload-container
-            .question-container-bottom
+        .input-container#image-upload-container
+            .question-container-bottom.warning
                 form#image-upload-form
                     label.image-upload-label(for="image-upload") Upload Pictures
                     input.image-upload#image-upload(type="file" accept="image/*" multiple)
@@ -92,7 +92,7 @@ mixin wildcard(roundNo)
         h6 Use **two asterisks** for #[span(style="font-weight:bold;") bold text]
         .input-container
             .input-label Description
-            textarea.warning.round-desc(rows="2" columns="40" round=`${roundNo}`)
+            textarea.warning.round-desc(rows="3" columns="40" round=`${roundNo}`)
             .input-label Round Format
             .input-group.mb-3
                 .form-check.form-check-inline

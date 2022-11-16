@@ -168,7 +168,9 @@ const removePictureFromRound = (e) => {
 
 	//show warning if no pictures left
 	if (!document.querySelector('.picture-question-container')) {
-		document.querySelector('#image-upload-container').classList.add('warning');
+		document
+			.querySelector('#image-upload-container > .question-container-bottom')
+			.classList.add('warning');
 	}
 };
 
@@ -334,10 +336,11 @@ const addPictureToRound = (file, ...messages) => {
 		handleMultiRequest('/api/v1/games/picture', 'POST', formData, handler);
 	}
 
-	if (document.querySelector('#image-upload-container.warning')) {
-		document
-			.querySelector('#image-upload-container.warning')
-			.classList.remove('warning');
+	const qcb = document.querySelector(
+		'#image-upload-container > .question-container-bottom.warning'
+	);
+	if (qcb) {
+		qcb.classList.remove('warning');
 	}
 };
 
@@ -428,6 +431,13 @@ const handleAddMatchingAnswer = (e) => {
 
 const autoPopulatePoints = (overwrite) => {
 	showMessage('info', 'Auto-populating default settings...', 500);
+
+	//game description
+	const gameDesc = document.getElementById('game-desc');
+	if (!gameDesc.value || overwrite) {
+		gameDesc.value = 'https://www.cyutrivia.com/play\n';
+		handleInputChange({ target: gameDesc });
+	}
 
 	//GK round values
 	for (var i = 1; i <= 7; i += 2) {
@@ -800,7 +810,6 @@ const openWindow = (e) => {
 
 	const handler = (res) => {
 		if (res.status === 'success') {
-			console.log(res.data);
 			loadingGameDiv.classList.add('invisible-div');
 			const sgc = document.getElementById('saved-game-container');
 			sgc.innerHTML = '';
@@ -955,7 +964,7 @@ const handleInputChange = (e) => {
 			audioTheme.classList.remove('warning');
 			audioBonusValue.classList.remove('warning');
 		}
-	} else {
+	} else if (e.target.getAttribute('type') !== 'file') {
 		if (e.target.value) {
 			e.target.classList.remove('warning');
 		} else {
@@ -965,7 +974,7 @@ const handleInputChange = (e) => {
 
 	const pane = e.target.closest('.tab-pane');
 	let warnings;
-	if (e.target === wcListAnswers || e.target === wcListCount) {
+	if (e.target.closest('.tab-pane').getAttribute('id') === 'r4') {
 		warnings = pane.querySelectorAll(
 			'.wc-settings:not(.invisible-div) .warning'
 		);
@@ -976,6 +985,8 @@ const handleInputChange = (e) => {
 	const id = pane.getAttribute('id');
 	const button = document.querySelector(`.nav-link[data-bs-target="#${id}"]`);
 	const wc = button.closest('.nav-item').querySelector('.warning-circle');
+
+	console.log(warnings);
 
 	if (warnings.length > 0) wc.classList.remove('invisible-div');
 	else wc.classList.add('invisible-div');
@@ -1066,7 +1077,7 @@ const handleOpen = (e) => {
 				});
 
 				document
-					.getElementById('image-upload-container')
+					.querySelector('#image-upload-container > .question-container-bottom')
 					.classList.add('warning');
 				r.questions.forEach((q, j) => {
 					const attr = `[round="${i + 1}"][question="${j + 1}"]`;
@@ -1078,7 +1089,9 @@ const handleOpen = (e) => {
 			} else if (i === 3) {
 				//list answers
 				wcListAnswers.value = r.answerList.join('\n');
+				handleInputChange({ target: wcListAnswers });
 				wcListCount.value = r.answerCount;
+				handleInputChange({ target: wcListCount });
 
 				//matching answers
 				const rows = getElementArray(document, '.matching-answer-row');
