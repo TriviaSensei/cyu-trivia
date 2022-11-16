@@ -1,0 +1,10 @@
+.modal.fade#save-changes-modal(tabindex="-1" aria-labelledby="save-changes-label" aria-hidden="true")
+    .modal-dialog.modal-dialog-centered
+        .modal-content#save-changes-content
+            .modal-body
+                p Save changes before closing?
+            .modal-footer
+                button.btn.btn-primary#confirm-save(type="button" data-bs-dismiss="modal") Save
+                button.btn.btn-secondary#dont-save(type="button" data-bs-dismiss="modal") Don't Save
+                button.btn.btn-secondary#cancel-close(type="button" data-bs-dismiss="modal") Cancel
+

@@ -17,25 +17,11 @@ router.use(authController.protect);
 router.patch('/changePassword', authController.updatePassword);
 router.patch('/updateMe', userController.updateMe);
 
-router.post(
-	'/signup',
-	authController.restrictTo('owner'),
-	authController.signup
-);
-router.get(
-	'/getAll',
-	authController.restrictTo('owner'),
-	userController.getAllUsers
-);
-router.patch(
-	'/editUser/:id',
-	authController.restrictTo('owner'),
-	userController.updateUser
-);
-router.patch(
-	'/delete/:id',
-	authController.restrictTo('owner'),
-	userController.deleteUser
-);
+router.use(authController.restrictTo('owner'));
+
+router.post('/signup', authController.signup);
+router.get('/getAll', userController.getAllUsers);
+router.patch('/editUser/:id', userController.updateUser);
+router.patch('/delete/:id', userController.deleteUser);
 
 module.exports = router;

@@ -1,0 +1,11 @@
+.modal.fade#open-game-modal(tabindex="-1" aria-labelledby="open-game-label" aria-hidden="true")
+    .modal-dialog.modal-dialog-centered
+        .modal-content#open-game-content
+            .modal-header
+                h5.modal-title#open-game-label Open Game
+                button.btn-close(type="button" data-bs-dismiss="modal" aria-label="Close")
+            .modal-body
+                p#loading-game-div Loading games...
+                #saved-game-container
+            .modal-footer
+                button.btn.btn-secondary(type="button" data-bs-dismiss="modal") Close

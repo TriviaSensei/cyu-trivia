@@ -120,11 +120,11 @@ exports.getAll = (Model, popOptions) =>
 		const arr = req.originalUrl.trim().split('/');
 		const loc = arr.length > 3 ? arr[3] : '';
 
-		let sortOrder = null;
 		if (loc === 'users') {
-			sortOrder = { lastName: 1 };
+			req.query.sort = 'lastName';
+		} else if (loc === 'games') {
+			req.query.sort = '-lastModified';
 		}
-		console.log(req.query);
 
 		let features;
 		if (popOptions) {

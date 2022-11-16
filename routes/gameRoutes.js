@@ -15,10 +15,11 @@ router
 	.route('/picture')
 	.post(gameController.uploadImages, gameController.AWSUpload);
 
-router
-	.route('/:id')
-	.patch(gameController.updateGame)
-	.delete(gameController.deleteGame);
+router.route('/delete/:id').patch(gameController.deleteGame);
+
+router.route('/:id').patch(gameController.updateGame);
+
+router.route('/').get(gameController.getAll);
 
 router.post('/', gameController.createGame);
 module.exports = router;

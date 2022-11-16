@@ -14,6 +14,7 @@ const addMatchingAnswer = document.getElementById('add-matching-answer');
 const matchingContainer = document.querySelector('.matching-answer-container');
 const matchingPrompt = document.getElementById('matching-prompt');
 const matchingAnswer = document.getElementById('matching-answer');
+const wcMatchingBank = document.querySelector('#wc-matching-bank');
 const videoLink = document.querySelector('.video-link');
 const videoPreview = document.getElementById('video-preview');
 const gameDate = document.getElementById('game-date');
@@ -21,8 +22,23 @@ const wcListAnswers = document.getElementById('wc-list-answers');
 const wcListCount = document.getElementById('wc-list-count');
 const audioTheme = document.getElementById('audio-theme');
 const audioBonusValue = document.getElementById('audio-bonus-value');
+const unsavedChanges = document.querySelector('.unsaved-changes');
+const saveButton = document.getElementById('confirm-save');
+const dontSaveButton = document.getElementById('dont-save');
+const confirmDeleteButton = document.getElementById('confirm-delete-game');
 
 const postVideos = getElementArray(document, '.video-container > input');
+
+//modals
+const saveChangesModal = new bootstrap.Modal(
+	document.getElementById('save-changes-modal')
+);
+const openModal = new bootstrap.Modal(
+	document.getElementById('open-game-modal')
+);
+const confirmDeleteModal = new bootstrap.Modal(
+	document.getElementById('delete-game-modal')
+);
 
 const rounds = ['std', 'pic', 'std', 'wc', 'std', 'audio', 'std'];
 const picRound =
@@ -33,6 +49,68 @@ const picRound =
 gameDate.setAttribute('min', new Date().toISOString().split('T')[0]);
 
 let loadedGame = undefined;
+let changesMade = false;
+let action = undefined;
+let gid = undefined;
+let savedAction = undefined;
+let gameSearchResults = [];
+
+const setGID = (e) => {
+	const button = e.target.closest('button');
+	if (!button) return;
+	gid = button.getAttribute('data-id');
+	const action = button.getAttribute('data-action');
+	if (action === 'delete') {
+		confirmDeleteModal.show();
+	} else if (action === 'restore') {
+		deleteGame(null);
+	}
+};
+
+const deleteGame = (e) => {
+	if (!gid) return;
+	const handler = (res) => {
+		if (res.status === 'success') {
+			const button = document.querySelector(`.delete-button[data-id="${gid}"]`);
+			const editButton = document.querySelector(
+				`.edit-button[data-id="${button.getAttribute('data-id')}"]`
+			);
+			if (res.action === 'delete') {
+				showMessage(
+					'info',
+					'Game marked for deletion and will be removed from the database in 5 minutes.',
+					2000
+				);
+				button.classList.add('restore-button');
+				button.setAttribute('data-action', 'restore');
+
+				if (editButton) {
+					editButton.disabled = true;
+				}
+			} else if (res.action === 'restore') {
+				showMessage('info', 'Game successfully restored.', 1000);
+				button.classList.remove('restore-button');
+				button.setAttribute('data-action', 'delete');
+				if (editButton) {
+					editButton.disabled = false;
+				}
+			}
+
+			gid = undefined;
+			action = undefined;
+		} else {
+			showMessage('error', res.message, 1000);
+		}
+	};
+	handleRequest(`/api/v1/games/delete/${gid}`, 'PATCH', null, handler);
+};
+confirmDeleteButton.addEventListener('click', deleteGame);
+
+const handleChangeMade = (e) => {
+	changesMade = true;
+	unsavedChanges.classList.remove('invisible-div');
+};
+wcMatchingBank.addEventListener('change', handleChangeMade);
 
 const listeningForPaste = () => {
 	const activeTabs = getElementArray(document, '.nav-link.active');
@@ -150,7 +228,7 @@ const createPictureBody = (file) => {
 		document.createElement('div'),
 	];
 	c1.classList.add('input-container', 'picture-container');
-	c2.classList.add('input-container', 'picture-answer');
+	c2.classList.add('input-container', 'picture-answer-container');
 	c3.classList.add('input-container', 'picture-actions');
 
 	const [l1, l2, l3] = [
@@ -222,12 +300,13 @@ const createPictureBody = (file) => {
 	return con1;
 };
 
-const addPictureToRound = (file) => {
+const addPictureToRound = (file, ...messages) => {
 	if (typeof file === 'string') {
 		const imgContainer = createPictureBody({
 			image: file,
 		});
-		showMessage('info', 'Successfully added image');
+		if (messages.length === 0 || messages[0])
+			showMessage('info', 'Successfully added image');
 	} else {
 		const imgContainer = createPictureBody(file);
 		const form = document.getElementById('image-upload-form');
@@ -248,6 +327,12 @@ const addPictureToRound = (file) => {
 		showMessage('info', 'Uploading...', 10000);
 		// handleMultiRequest('/api/v1/games/picture', 'POST', formData, handler);
 		handleMultiRequest('/api/v1/games/picture', 'POST', formData, handler);
+	}
+
+	if (document.querySelector('#image-upload-container.warning')) {
+		document
+			.querySelector('#image-upload-container.warning')
+			.classList.remove('warning');
 	}
 };
 
@@ -270,6 +355,7 @@ const handlePaste = (evt) => {
 };
 
 const handleImageUpload = (e) => {
+	handleChangeMade(null);
 	for (var i = 0; i < e.target.files.length; i++) {
 		if (document.querySelectorAll('.picture-question-container').length < 10)
 			addPictureToRound(e.target.files[i]);
@@ -278,6 +364,7 @@ const handleImageUpload = (e) => {
 };
 
 const handleImageURL = (e) => {
+	handleChangeMade(null);
 	addPictureToRound(linkUpload.value);
 };
 
@@ -286,6 +373,7 @@ const handleImagePreview = (e) => {
 };
 
 const deleteMatchingAnswer = (e) => {
+	handleChangeMade(null);
 	e.target.closest('.matching-answer-row').remove();
 
 	if (!document.querySelector('.matching-answer-row')) {
@@ -302,7 +390,7 @@ const deleteMatchingAnswer = (e) => {
 
 const handleAddMatchingAnswer = (e) => {
 	if (!(matchingAnswer.value && matchingPrompt.value)) return;
-
+	handleChangeMade(null);
 	matchingPrompt.value = replaceBrackets(matchingPrompt.value);
 	matchingAnswer.value = replaceBrackets(matchingAnswer.value);
 
@@ -398,7 +486,46 @@ const replaceBrackets = (str) => {
 	return s;
 };
 
-const handleSave = () => {
+const closeGame = () => {
+	const contentContainer = document.getElementById('round-tab-content');
+	const allInputs = getElementArray(contentContainer, 'input,textarea');
+	const videoPreviews = getElementArray(
+		contentContainer,
+		'iframe.video-preview'
+	);
+	const matchingPairs = getElementArray(
+		matchingContainer,
+		'.matching-answer-row'
+	);
+	const radios = getElementArray(
+		document,
+		'input[type="radio"][name="wc-format"]'
+	);
+
+	//clear all input values
+	allInputs.forEach((el) => {
+		el.value = '';
+		handleInputChange({ target: el });
+	});
+
+	//clear all video previews
+	videoPreviews.forEach((v) => {
+		v.setAttribute('src', '');
+	});
+
+	//remove matching round pairs
+	matchingPairs.forEach((m) => {
+		deleteMatchingAnswer({ target: m });
+	});
+
+	radios[0].click();
+
+	loadedGame = undefined;
+	changesMade = false;
+	unsavedChanges.classList.add('invisible-div');
+};
+
+const handleSave = (post) => {
 	const game = {
 		title: document.getElementById('game-title').value,
 		description: document.getElementById('game-desc').value,
@@ -455,6 +582,10 @@ const handleSave = () => {
 				`.picture-question-container[round="${i}"][question="${q}"]`
 			);
 			while (qDiv) {
+				console.log(qDiv.querySelector('.picture-answer'));
+				console.log(
+					replaceBrackets(qDiv.querySelector('.picture-answer').value)
+				);
 				obj.questions.push({
 					link: replaceBrackets(
 						qDiv.querySelector('.picture-container > img').getAttribute('src')
@@ -501,9 +632,7 @@ const handleSave = () => {
 						};
 					}
 				),
-				extraAnswers: replaceBrackets(
-					document.querySelector('#wc-matching-bank').value
-				)
+				extraAnswers: replaceBrackets(wcMatchingBank.value)
 					.split('\n')
 					.filter((a) => {
 						return a.trim() !== '';
@@ -560,14 +689,25 @@ const handleSave = () => {
 		game.rounds.push(obj);
 	}
 
-	console.log(game);
-
 	const handler = (res) => {
 		if (res.status === 'success') {
 			showMessage('info', 'Successfully saved game.');
 			loadedGame = res.data._id;
+			changesMade = false;
+			unsavedChanges.classList.add('invisible-div');
+			if (post === 'close') {
+				closeGame();
+			} else if (post) {
+				openGame(post);
+			}
 		} else {
-			showMessage('error', res.message, 2000);
+			if (res.error.code === 11000) {
+				showMessage(
+					'error',
+					`Duplicate title - "${res.error.keyValue.title}" is already taken.`,
+					2000
+				);
+			} else showMessage('error', res.message, 2000);
 		}
 	};
 	const str = `/api/v1/games/${loadedGame || ''}`;
@@ -576,21 +716,101 @@ const handleSave = () => {
 	handleRequest(str, type, game, handler);
 };
 
+const handleClose = (e) => {
+	if (changesMade) {
+		saveChangesModal.show();
+	} else {
+		showMessage('info', 'Closing game...');
+		closeGame();
+	}
+};
+
+const createGameTile = (data) => {
+	const sgc = document.getElementById('saved-game-container');
+	const newRow = document.createElement('div');
+	newRow.classList.add('game-row');
+
+	const gameInfo = document.createElement('div');
+	gameInfo.classList.add('game-info');
+	const h = document.createElement('h5');
+	h.style.fontWeight = 'bold';
+	h.innerHTML = data.title || 'Untitled game';
+	const desc = document.createElement('p');
+	desc.innerHTML = data.description || 'No description available';
+	const date = document.createElement('p');
+	date.innerHTML = data.date ? data.date.split('T')[0] : 'No date';
+	gameInfo.appendChild(h);
+	gameInfo.appendChild(desc);
+	gameInfo.appendChild(date);
+	newRow.appendChild(gameInfo);
+
+	const actions = document.createElement('div');
+	actions.classList.add('actions');
+	const editButton = document.createElement('button');
+	editButton.classList.add('btn-close', 'edit-button');
+	editButton.setAttribute('data-id', data._id);
+	editButton.setAttribute('data-index', data.index);
+	editButton.addEventListener('click', handleOpen);
+	if (data.deleteAfter) editButton.disabled = true;
+
+	const deleteButton = document.createElement('button');
+	deleteButton.classList.add('btn-close', 'delete-button');
+	deleteButton.setAttribute(
+		'data-action',
+		data.deleteAfter ? 'restore' : 'delete'
+	);
+	deleteButton.setAttribute('data-id', data._id);
+	deleteButton.setAttribute(
+		'alt',
+		data.deleteAfter ? 'Restore game' : 'Delete game'
+	);
+	deleteButton.addEventListener('click', setGID);
+	actions.appendChild(editButton);
+	actions.appendChild(deleteButton);
+
+	newRow.appendChild(actions);
+
+	sgc.appendChild(newRow);
+};
+
+const openWindow = (e) => {
+	openModal.show();
+	const loadingGameDiv = document.getElementById('loading-game-div');
+
+	const handler = (res) => {
+		if (res.status === 'success') {
+			console.log(res.data);
+			loadingGameDiv.classList.add('invisible-div');
+			const sgc = document.getElementById('saved-game-container');
+			sgc.innerHTML = '';
+			gameSearchResults = res.data;
+			res.data.forEach((g, i) => {
+				createGameTile({ ...g, index: i });
+			});
+		} else {
+			showMessage('error', 'Something went wrong');
+			openModal.close();
+		}
+	};
+	loadingGameDiv.classList.remove('invisible-div');
+	handleRequest('/api/v1/games', 'GET', null, handler);
+};
+
 const handleKeys = (e) => {
 	if (e.ctrlKey) {
 		if (e.key.toUpperCase() === 'O') {
 			e.preventDefault();
-			showMessage('info', 'Opening game...');
+			openWindow(e);
 		} else if (e.key.toUpperCase() === 'S') {
 			e.preventDefault();
 			showMessage('info', 'Saving game...');
-			handleSave();
+			handleSave(null);
 		} else if (e.key.toUpperCase() === 'F') {
 			e.preventDefault();
 			autoPopulatePoints();
-		} else if (e.key.toUpperCase() === 'Q') {
+		} else if (e.key.toUpperCase() === 'Q' || e.key.toUpperCase() === 'M') {
 			e.preventDefault();
-			showMessage('info', 'Closing...');
+			handleClose(null);
 		} else if (e.key.toUpperCase() === 'H') {
 			e.preventDefault();
 			showMessage('info', 'Assigning to host...');
@@ -661,17 +881,21 @@ const [fileNew, fileOpen, fileSave, fileClose, actionPop, actionAssign] = [
 	return document.getElementById(a);
 });
 fileSave.addEventListener('click', (e) => {
-	handleSave();
+	handleSave(null);
 });
+fileNew.addEventListener('click', handleClose);
+fileOpen.addEventListener('click', openWindow);
+fileClose.addEventListener('click', handleClose);
 
 //auto-populate default points
 actionPop.addEventListener('click', autoPopulatePoints);
 
 const inputs = document.querySelectorAll(
-	'.input-container input:not([type="radio"]), .input-container textarea, .question-container input:not([type="radio"]), .question-container textarea'
+	'.input-container input:not([type="radio"]):not([type="file"]), .input-container textarea, .question-container input:not([type="radio"]), .question-container textarea'
 );
 
 const handleInputChange = (e) => {
+	handleChangeMade(null);
 	//inputs that we don't care about if they change
 	if (
 		['matching-prompt', 'matching-answer', 'wc-matching-bank'].includes(
@@ -679,6 +903,7 @@ const handleInputChange = (e) => {
 		)
 	)
 		return;
+	else if (e.target.getAttribute('type') === 'radio') return;
 
 	//inputs to be treated specially
 	//list count greater than number of possible answers
@@ -706,12 +931,6 @@ const handleInputChange = (e) => {
 		} else {
 			audioTheme.classList.remove('warning');
 			audioBonusValue.classList.remove('warning');
-		}
-	} else if (e.target === imageUpload) {
-		if (document.querySelector('#image-upload-container.warning')) {
-			document
-				.querySelector('#image-upload-container.warning')
-				.classList.remove('warning');
 		}
 	} else {
 		if (e.target.value) {
@@ -744,6 +963,7 @@ inputs.forEach((i) => {
 });
 
 const handlePostVideo = (e) => {
+	handleChangeMade(null);
 	const res = getEmbeddedLink(e.target.value);
 	const frame = document.querySelector(
 		`.video-container > iframe[round="${e.target.getAttribute('round')}"]`
@@ -764,3 +984,74 @@ postVideos.forEach((v) => {
 });
 
 document.addEventListener('keydown', handleKeys);
+saveButton.addEventListener('click', (e) => {
+	handleSave('close');
+});
+dontSaveButton.addEventListener('click', (e) => {
+	closeGame();
+});
+
+const handleOpen = (e) => {
+	loadedGame = e.target.getAttribute('data-id');
+	const index = parseInt(e.target.getAttribute('data-index'));
+	const data = gameSearchResults[index];
+
+	if (!data) return;
+
+	console.log(data);
+
+	//game info
+	document.getElementById('game-title').value = data.title;
+	document.getElementById('game-desc').value = data.description;
+	document.getElementById('game-date').value = data.date
+		? data.date.split('T')[0]
+		: '';
+
+	data.rounds.forEach((r, i) => {
+		const desc = document.querySelector(`.round-desc[round="${i + 1}"]`);
+		if (desc) desc.value = r.description;
+
+		if (r.pointsPerCorrect) {
+			const ppc = document.querySelector(
+				`.points-per-correct[round="${i + 1}"]`
+			);
+			if (ppc) ppc.value = r.pointsPerCorrect;
+		}
+
+		if (i % 2 === 0) {
+			r.questions.forEach((q, j) => {
+				const attr = `[round="${i + 1}"][question="${j + 1}"]`;
+				const text = document.querySelector(`.question-text${attr}`);
+				const ans = document.querySelector(`.question-answer${attr}`);
+				const val = document.querySelector(`.question-value${attr}`);
+
+				if (text && ans && val) {
+					text.value = q.text;
+					ans.value = q.answer;
+					val.value = q.value;
+				}
+			});
+		} else {
+			if (i === 1) {
+				document
+					.getElementById('image-upload-container')
+					.classList.add('warning');
+				r.questions.forEach((q, j) => {
+					const attr = `[round="${i + 1}"][question="${j + 1}"]`;
+					addPictureToRound(q.link, false);
+					const ans = document.querySelector(`.picture-answer${attr}`);
+					if (ans) ans.value = q.answer;
+					handleInputChange({ target: ans });
+				});
+			}
+		}
+	});
+
+	inputs.forEach((i) => {
+		handleInputChange({ target: i });
+	});
+	openModal.hide();
+
+	changesMade = false;
+	unsavedChanges.classList.add('invisible-div');
+};

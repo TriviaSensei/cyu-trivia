@@ -7,6 +7,7 @@ const S3 = require('aws-sdk/clients/s3');
 const client = new ImgurClient({ clientId: process.env.IMGUR_CLIENT_ID });
 const { v4: uuidV4 } = require('uuid');
 const { resolve } = require('path');
+const deleteTimeout = 5 * 60 * 1000;
 
 const s3 = new S3({
 	accessKeyId: process.env.AWS_KEY,
@@ -94,5 +95,52 @@ exports.AWSUpload = catchAsync(async (req, res, next) => {
 
 exports.createGame = factory.createOne(Game);
 exports.getGame = factory.getOne(Game);
+exports.getAll = factory.getAll(Game);
 exports.updateGame = factory.updateOne(Game);
-exports.deleteGame = factory.deleteOne(Game);
+// exports.deleteGame = factory.deleteOne(Game);
+
+exports.deleteGame = catchAsync(async (req, res, next) => {
+	const gameToDelete = await Game.findById(req.params.id);
+	//make sure game is found
+	if (!gameToDelete) {
+		return res.status(404).json({
+			status: 'fail',
+			message: 'Game not found.',
+		});
+	}
+
+	let action;
+	if (!gameToDelete.deleteAfter) {
+		gameToDelete.deleteAfter = Date.now() + deleteTimeout;
+		setTimeout(
+			async (id) => {
+				const u = await Game.findById(id);
+				if (!u.deleteAfter) {
+					console.log(`Did not delete game ${id}`);
+					return;
+				} else if (u.deleteAfter > new Date()) {
+					console.log(`Not yet time to delete game ${id}`);
+					return;
+				} else {
+					console.log(`Deleting game ${id}`);
+					await u.delete();
+				}
+			},
+			deleteTimeout + 10,
+			req.params.id
+		);
+
+		action = 'delete';
+	} else {
+		gameToDelete.deleteAfter = null;
+		action = 'restore';
+	}
+
+	const data = await gameToDelete.save({ validateBeforeSave: false });
+
+	res.status(200).json({
+		status: 'success',
+		action,
+		data,
+	});
+});

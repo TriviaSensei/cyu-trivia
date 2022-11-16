@@ -1,0 +1,10 @@
+.modal.fade#delete-game-modal(tabindex="-1" aria-labelledby="delete-game-label" aria-hidden="true")
+    .modal-dialog.modal-dialog-centered
+        .modal-content#delete-game-modal-content
+            .modal-header
+                h5.modal-title#delete-game-label Delete game?
+            .modal-body
+                p Are you sure you wish to mark this game for deletion?
+            .modal-footer
+                button.btn.btn-primary#confirm-delete-game(type="button" data-bs-dismiss="modal") Yes
+                button.btn.btn-secondary(type="button" data-bs-dismiss="modal") No

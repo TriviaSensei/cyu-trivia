@@ -8,6 +8,8 @@ const noBadWords = (val) => !filter.isProfane(val);
 const gameSchema = new mongoose.Schema({
 	title: {
 		type: String,
+		unique: true,
+		trim: true,
 		maxlength: [100, 'The maximum length of a game name is 100 characters'],
 		minlength: [1, 'You must specify a title.'],
 		validate: {
@@ -37,6 +39,14 @@ const gameSchema = new mongoose.Schema({
 	},
 	rounds: [Object],
 	ready: Boolean,
+	lastModified: Date,
+	deleteAfter: Date,
+});
+
+gameSchema.pre('save', async function (next) {
+	//only run this function if the password was modified
+	this.lastModified = new Date();
+	next();
 });
 
 const Games = mongoose.model('Games', gameSchema, 'games');
