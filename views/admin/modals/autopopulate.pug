@@ -1,0 +1,12 @@
+.modal.fade#overwrite-modal(tabindex="-1" aria-labelledby="overwrite-label" aria-hidden="true")
+    .modal-dialog.modal-dialog-centered
+        .modal-content#overwrite-content
+            .modal-header 
+                p Autopopulate Default Values
+            .modal-body
+                p Do you wish to overwrite existing values with the defaults?
+            .modal-footer
+                button.btn.btn-primary#confirm-overwrite(type="button" data-bs-dismiss="modal") Yes
+                button.btn.btn-secondary#dont-overwrite(type="button" data-bs-dismiss="modal") No
+                button.btn.btn-secondary#cancel-close(type="button" data-bs-dismiss="modal") Cancel
+

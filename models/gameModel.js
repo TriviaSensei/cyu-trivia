@@ -46,6 +46,7 @@ const gameSchema = new mongoose.Schema({
 gameSchema.pre('save', async function (next) {
 	//only run this function if the password was modified
 	this.lastModified = new Date();
+	console.log(this.lastModified);
 	next();
 });
 

@@ -26,6 +26,8 @@ const unsavedChanges = document.querySelector('.unsaved-changes');
 const saveButton = document.getElementById('confirm-save');
 const dontSaveButton = document.getElementById('dont-save');
 const confirmDeleteButton = document.getElementById('confirm-delete-game');
+const confirmOverwrite = document.getElementById('confirm-overwrite');
+const dontOverwrite = document.getElementById('dont-overwrite');
 
 const postVideos = getElementArray(document, '.video-container > input');
 
@@ -38,6 +40,9 @@ const openModal = new bootstrap.Modal(
 );
 const confirmDeleteModal = new bootstrap.Modal(
 	document.getElementById('delete-game-modal')
+);
+const overwriteModal = new bootstrap.Modal(
+	document.getElementById('overwrite-modal')
 );
 
 const rounds = ['std', 'pic', 'std', 'wc', 'std', 'audio', 'std'];
@@ -421,13 +426,14 @@ const handleAddMatchingAnswer = (e) => {
 	}
 };
 
-const autoPopulatePoints = (e) => {
+const autoPopulatePoints = (overwrite) => {
 	showMessage('info', 'Auto-populating default settings...', 500);
 
 	//GK round values
 	for (var i = 1; i <= 7; i += 2) {
 		const items = getElementArray(document, `.question-value[round="${i}"]`);
 		items.forEach((el) => {
+			if (el.value && !overwrite) return;
 			const qNo = parseInt(el.getAttribute('question'));
 			if (!qNo) return;
 			el.value = Math.floor((qNo + 1) / 2) * 2;
@@ -436,43 +442,69 @@ const autoPopulatePoints = (e) => {
 		});
 
 		const desc = document.querySelector(`.round-desc[round="${i}"]`);
-		desc.value = `General knowledge\n8 questions\n2, 2, 4, 4, 6, 6, 8, 8 points\nBonus: wager 0-${
-			i === 7 ? 20 : 10
-		} points`;
-		handleInputChange({ target: desc });
+		if (overwrite || !desc.value) {
+			desc.value = `General knowledge\n8 questions\n2, 2, 4, 4, 6, 6, 8, 8 points\nBonus: wager 0-${
+				i === 7 ? 20 : 10
+			} points`;
+			handleInputChange({ target: desc });
+		}
 	}
 
 	//points per correct on all even rounds
 	const ppc = getElementArray(document, '.points-per-correct');
 	ppc.forEach((el) => {
+		if (el.value && !overwrite) return;
 		el.value = 4;
 		handleInputChange({ target: el });
 	});
 	//audio bonus
 	const bv = document.querySelector('.bonus-value');
-	bv.value = 5;
-	handleInputChange({ target: bv });
+	if (!bv.value || overwrite) {
+		bv.value = 5;
+		handleInputChange({ target: bv });
+	}
 
 	//list answer count
-	wcListCount.value = 10;
-	handleInputChange({ target: wcListCount });
+	if (!wcListCount.value || overwrite) {
+		wcListCount.value = 10;
+		handleInputChange({ target: wcListCount });
+	}
 
+	//description defaults
+	let descs = ['', '', ''];
 	//pic description
-	const desc2 = document.querySelector(`.round-desc[round="2"]`);
-	desc2.value = `Picture round\n`;
-
-	//pic description
-	const desc4 = document.querySelector(`.round-desc[round="4"]`);
-	desc4.value = `Halftime\n`;
-
+	descs[0] = `Picture round\n`;
+	//wc description
+	descs[1] = `Halftime\n`;
 	//audio description
-	const desc6 = document.querySelector(`.round-desc[round="6"]`);
-	desc6.value = `Audio round\nName the title (2 points) and artist (2 points) for each clip.\nFor a 5-point bonus, give the theme that ties all of the titie/artists together.`;
+	descs[2] = `Audio round\nName the title (2 points) and artist (2 points) for each clip.\nFor a 5-point bonus, give the theme that ties all of the titie/artists together.`;
 
-	handleInputChange({ target: desc2 });
-	handleInputChange({ target: desc4 });
-	handleInputChange({ target: desc6 });
+	descs.forEach((d, i) => {
+		const desc = document.querySelector(`.round-desc[round="${i * 2 + 2}"]`);
+		if (desc.value && !overwrite) return;
+		desc.value = d;
+		handleInputChange({ target: desc });
+	});
+	// const desc2 = document.querySelector(`.round-desc[round="2"]`);
+	// desc2.value = `Picture round\n`;
+
+	// //pic description
+	// const desc4 = document.querySelector(`.round-desc[round="4"]`);
+	// desc4.value = `Halftime\n`;
+	// handleInputChange({ target: desc4 });
+
+	// //audio description
+	// const desc6 = document.querySelector(`.round-desc[round="6"]`);
+	// desc6.value =
+	// handleInputChange({ target: desc6 });
 };
+
+confirmOverwrite.addEventListener('click', (e) => {
+	autoPopulatePoints(true);
+});
+dontOverwrite.addEventListener('click', (e) => {
+	autoPopulatePoints(false);
+});
 
 const replaceBrackets = (str) => {
 	if (!str) return '';
@@ -489,10 +521,7 @@ const replaceBrackets = (str) => {
 const closeGame = () => {
 	const contentContainer = document.getElementById('round-tab-content');
 	const allInputs = getElementArray(contentContainer, 'input,textarea');
-	const videoPreviews = getElementArray(
-		contentContainer,
-		'iframe.video-preview'
-	);
+	const videoPreviews = getElementArray(contentContainer, 'iframe');
 	const matchingPairs = getElementArray(
 		matchingContainer,
 		'.matching-answer-row'
@@ -543,9 +572,8 @@ const handleSave = (post) => {
 					document.querySelector(`.round-desc[round="${i}"]`).value
 				),
 				questions: [],
-				video: document
-					.querySelector(`.video-preview[round="${i}"]`)
-					.getAttribute('src'),
+				video: document.querySelector(`.video-container > input[round="${i}"]`)
+					.value,
 			};
 			let q = 1;
 			let qDiv = document.querySelector(
@@ -572,9 +600,8 @@ const handleSave = (post) => {
 					document.querySelector(`.points-per-correct[round="${i}"]`).value
 				),
 				questions: [],
-				video: document
-					.querySelector(`.video-preview[round="${i}"]`)
-					.getAttribute('src'),
+				video: document.querySelector(`.video-container > input[round="${i}"]`)
+					.value,
 			};
 
 			let q = 1;
@@ -582,10 +609,6 @@ const handleSave = (post) => {
 				`.picture-question-container[round="${i}"][question="${q}"]`
 			);
 			while (qDiv) {
-				console.log(qDiv.querySelector('.picture-answer'));
-				console.log(
-					replaceBrackets(qDiv.querySelector('.picture-answer').value)
-				);
 				obj.questions.push({
 					link: replaceBrackets(
 						qDiv.querySelector('.picture-container > img').getAttribute('src')
@@ -600,7 +623,7 @@ const handleSave = (post) => {
 			}
 		} else if (format === 'wc') {
 			const roundFormat = document.querySelector(
-				`[name="wc-format"][checked]`
+				`[name="wc-format"]:checked`
 			).value;
 			obj = {
 				description: replaceBrackets(
@@ -638,9 +661,8 @@ const handleSave = (post) => {
 						return a.trim() !== '';
 					}),
 				questions: [],
-				video: document
-					.querySelector(`.video-preview[round="${i}"]`)
-					.getAttribute('src'),
+				video: document.querySelector(`.video-container > input[round="${i}"]`)
+					.value,
 			};
 
 			let q = 1;
@@ -675,14 +697,13 @@ const handleSave = (post) => {
 					.filter((a) => {
 						return a.trim() !== '';
 					}),
-				videoLink: document.querySelector(`#video-preview`).getAttribute('src'),
+				videoLink: document.querySelector(`.video-link`).value,
 				theme: document.querySelector('#audio-theme').value,
 				themePoints: parseInt(
 					document.querySelector('#audio-bonus-value').value
 				),
-				video: document
-					.querySelector(`.video-preview[round="${i}"]`)
-					.getAttribute('src'),
+				video: document.querySelector(`.video-container > input[round="${i}"]`)
+					.value,
 			};
 		}
 
@@ -807,7 +828,7 @@ const handleKeys = (e) => {
 			handleSave(null);
 		} else if (e.key.toUpperCase() === 'F') {
 			e.preventDefault();
-			autoPopulatePoints();
+			overwriteModal.show();
 		} else if (e.key.toUpperCase() === 'Q' || e.key.toUpperCase() === 'M') {
 			e.preventDefault();
 			handleClose(null);
@@ -854,20 +875,20 @@ wcFormatRadio.forEach((r) => {
 addMatchingAnswer.addEventListener('click', handleAddMatchingAnswer);
 
 //music round controls/listeners
-videoLink.addEventListener('change', (e) => {
+const handleAudioRoundVideo = (e) => {
 	const result = getEmbeddedLink(e.target.value);
-	console.log(result);
 	if (result.status === 'success') {
 		videoPreview.setAttribute('src', result.link);
-		videoPreview.parentElement.classList.remove('invisible-div');
+		videoPreview.classList.remove('invisible-div');
 	} else {
 		videoPreview.setAttribute('src', '');
-		videoPreview.parentElement.classList.add('invisible-div');
+		videoPreview.classList.add('invisible-div');
 		if (result.message !== 'No link given') {
 			showMessage('error', result.message, 1000);
 		}
 	}
-});
+};
+videoLink.addEventListener('change', handleAudioRoundVideo);
 
 //menu listeners
 const [fileNew, fileOpen, fileSave, fileClose, actionPop, actionAssign] = [
@@ -888,7 +909,9 @@ fileOpen.addEventListener('click', openWindow);
 fileClose.addEventListener('click', handleClose);
 
 //auto-populate default points
-actionPop.addEventListener('click', autoPopulatePoints);
+actionPop.addEventListener('click', (e) => {
+	overwriteModal.show();
+});
 
 const inputs = document.querySelectorAll(
 	'.input-container input:not([type="radio"]):not([type="file"]), .input-container textarea, .question-container input:not([type="radio"]), .question-container textarea'
@@ -1033,6 +1056,15 @@ const handleOpen = (e) => {
 			});
 		} else {
 			if (i === 1) {
+				//remove all pictures first
+				const els = getElementArray(
+					document,
+					`#picture-round-questions > .question-container`
+				);
+				els.forEach((el) => {
+					el.remove();
+				});
+
 				document
 					.getElementById('image-upload-container')
 					.classList.add('warning');
@@ -1043,7 +1075,62 @@ const handleOpen = (e) => {
 					if (ans) ans.value = q.answer;
 					handleInputChange({ target: ans });
 				});
+			} else if (i === 3) {
+				//list answers
+				wcListAnswers.value = r.answerList.join('\n');
+				wcListCount.value = r.answerCount;
+
+				//matching answers
+				const rows = getElementArray(document, '.matching-answer-row');
+				rows.forEach((el) => {
+					el.remove();
+				});
+				document.querySelector('.no-pairs').classList.remove('invisible-div');
+				r.matchingPairs.forEach((p) => {
+					matchingPrompt.value = p.prompt;
+					matchingAnswer.value = p.answer;
+					handleAddMatchingAnswer(null);
+				});
+				wcMatchingBank.value = r.extraAnswers.join('\n');
+
+				r.questions.forEach((q, j) => {
+					const qText = document.querySelector(
+						`.question-text[round="${i + 1}"][question="${j + 1}"]`
+					);
+					const qAns = document.querySelector(
+						`.question-answer[round="${i + 1}"][question="${j + 1}"]`
+					);
+					if (!qText || !qAns) return;
+					qText.value = q.text;
+					qAns.value = q.answer;
+				});
+
+				const radio = document.querySelector(
+					`input[type="radio"][name="wc-format"][value="${r.format}"]`
+				);
+				if (radio) {
+					radio.click();
+				}
+			} else if (i === 5) {
+				if (videoLink) {
+					videoLink.value = r.videoLink;
+					handleAudioRoundVideo({ target: videoLink });
+				}
+				const rAnswers = document.querySelector('.round-answers[round="6"]');
+				rAnswers.value = r.questions.join('\n');
+				const theme = document.getElementById('audio-theme');
+				const themePts = document.getElementById('audio-bonus-value');
+				if (theme) theme.value = r.theme;
+				if (themePts) themePts.value = r.themePoints;
 			}
+		}
+
+		if (r.video) {
+			const videoInput = document.querySelector(
+				`.video-container > input[round="${i + 1}"]`
+			);
+			videoInput.value = r.video;
+			handlePostVideo({ target: videoInput });
 		}
 	});
 

@@ -158,9 +158,9 @@ mixin audioRound(roundNo)
             textarea.warning.round-desc(rows="2" columns="40" round=`${roundNo}`)
             .input-label Video Link 
             input.warning.video-link(type='text' round=`${roundNo}`)
-            #video-preview-container.question-container.invisible-div
+            #video-preview-container.question-container
                 .input-label Preview: 
-                iframe#video-preview(width="320" height="240" src="")
+                iframe#video-preview.invisible-div(width="320" height="240" src="")
             .input-label Answers (each on new line; do not include theme)
             textarea.warning.round-answers(rows="10" columns="40" round=`${roundNo}`)
             .question-container-bottom

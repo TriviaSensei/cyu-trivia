@@ -248,10 +248,6 @@ td button:not([disabled]):hover {
 	font-weight: bold;
 }
 
-.question-container > iframe {
-	margin: auto;
-}
-
 .question-container input,
 .question-container textarea,
 .input-container input,
