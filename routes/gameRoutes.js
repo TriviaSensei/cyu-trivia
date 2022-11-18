@@ -18,7 +18,7 @@ router
 router.route('/delete/:id').patch(gameController.deleteGame);
 
 router.route('/:id').patch(gameController.updateGame);
-
+router.route('/:id/:uid').patch(gameController.assignHost);
 router.route('/').get(gameController.getAll);
 
 router.post('/', gameController.createGame);

@@ -1,4 +1,5 @@
 const Game = require('../models/gameModel');
+const User = require('../models/userModel');
 const factory = require('../controllers/handlerFactory');
 const catchAsync = require('../utils/catchAsync');
 const multer = require('multer');
@@ -7,6 +8,8 @@ const S3 = require('aws-sdk/clients/s3');
 const client = new ImgurClient({ clientId: process.env.IMGUR_CLIENT_ID });
 const { v4: uuidV4 } = require('uuid');
 const { resolve } = require('path');
+const AppError = require('../utils/appError');
+const { default: mongoose } = require('mongoose');
 const deleteTimeout = 5 * 60 * 1000;
 
 const s3 = new S3({
@@ -48,50 +51,33 @@ exports.AWSUpload = catchAsync(async (req, res, next) => {
 	});
 });
 
-// exports.uploadToImgur = catchAsync(async (req, res, next) => {
-// 	if (!req.files || !req.files.pictures) {
-// 		if ((typeof req.body.questions).toLowerCase() === 'string') {
-// 			req.body.questions = JSON.parse(req.body.questions);
-// 			req.body.questions = req.body.questions.map((q) => {
-// 				return {
-// 					image: q.image,
-// 					answer: q.answer,
-// 				};
-// 			});
-// 		}
-// 		return next();
-// 	}
+exports.assignHost = catchAsync(async (req, res, next) => {
+	const game = await Game.findById(req.params.id);
+	const user = await User.findById(req.params.uid);
 
-// 	const responses = await Promise.all(
-// 		req.files.pictures.map((p, i) => {
-// 			console.log(p);
+	if (!game || !user) {
+		return next(new AppError('User or game not found', 404));
+	}
 
-// 			return client.upload({
-// 				image: p.buffer,
-// 				title: p.originalname,
-// 			});
-// 		})
-// 	);
+	if (
+		game.hosts.some((h) => {
+			return h.toString() === req.params.uid;
+		})
+	) {
+		return next(new AppError('Host is already assigned to this game.', 400));
+	}
 
-// 	let code;
-// 	if (
-// 		responses.some((r) => {
-// 			if (!r.success) {
-// 				code = r.status;
-// 				return true;
-// 			}
-// 		})
-// 	) {
-// 		return next(new AppError('Something went wrong', code));
-// 	}
+	game.hosts.push(new mongoose.Types.ObjectId(req.params.uid));
+	user.assignedGames.push(new mongoose.Types.ObjectId(req.params.id));
 
-// 	res.status(200).json({
-// 		status: 'success',
-// 		data: responses.map((r) => {
-// 			return r.data.link;
-// 		}),
-// 	});
-// });
+	await game.save();
+	await user.save();
+
+	res.status(200).json({
+		status: 'success',
+		data: game,
+	});
+});
 
 exports.createGame = factory.createOne(Game);
 exports.getGame = factory.getOne(Game);
@@ -144,3 +130,48 @@ exports.deleteGame = catchAsync(async (req, res, next) => {
 		data,
 	});
 });
+
+// exports.uploadToImgur = catchAsync(async (req, res, next) => {
+// 	if (!req.files || !req.files.pictures) {
+// 		if ((typeof req.body.questions).toLowerCase() === 'string') {
+// 			req.body.questions = JSON.parse(req.body.questions);
+// 			req.body.questions = req.body.questions.map((q) => {
+// 				return {
+// 					image: q.image,
+// 					answer: q.answer,
+// 				};
+// 			});
+// 		}
+// 		return next();
+// 	}
+
+// 	const responses = await Promise.all(
+// 		req.files.pictures.map((p, i) => {
+// 			console.log(p);
+
+// 			return client.upload({
+// 				image: p.buffer,
+// 				title: p.originalname,
+// 			});
+// 		})
+// 	);
+
+// 	let code;
+// 	if (
+// 		responses.some((r) => {
+// 			if (!r.success) {
+// 				code = r.status;
+// 				return true;
+// 			}
+// 		})
+// 	) {
+// 		return next(new AppError('Something went wrong', code));
+// 	}
+
+// 	res.status(200).json({
+// 		status: 'success',
+// 		data: responses.map((r) => {
+// 			return r.data.link;
+// 		}),
+// 	});
+// });

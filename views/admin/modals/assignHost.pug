@@ -1,0 +1,17 @@
+.modal.fade#host-modal(tabindex="-1" aria-labelledby="host-label" aria-hidden="true")
+    .modal-dialog.modal-dialog-centered
+        .modal-content#host-modal-content
+            .modal-header
+                h5.modal-title#host-label Add/Remove Hosts
+                button.btn-close(type="button" data-bs-dismiss="modal" aria-label="Close")
+            .modal-body
+                p#host-loading-div Loading hosts...
+                #host-table-container
+                    .host-list
+                        h5 Available hosts:
+                        .list-left#non-hosts
+                    .host-list
+                        h5 Assigned hosts:
+                        .list-right#hosts
+            .modal-footer
+                button.btn.btn-secondary(type="button" data-bs-dismiss="modal") Close

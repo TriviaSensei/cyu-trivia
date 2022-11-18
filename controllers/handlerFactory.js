@@ -47,7 +47,7 @@ exports.updateOne = (Model) =>
 
 		// console.log(req.body);
 		// console.log(req.params.id);
-		if (loc === 'users') {
+		if (loc.toLowerCase() === 'users') {
 			const user = await Model.findById(req.params.id);
 			if (!user) {
 				return res.status(200).json({
@@ -58,6 +58,8 @@ exports.updateOne = (Model) =>
 			if (user.role === 'owner') {
 				req.body.role = 'owner';
 			}
+		} else if (loc.toLowerCase() === 'games') {
+			req.body.lastModified = new Date();
 		}
 
 		let toReturn = null;

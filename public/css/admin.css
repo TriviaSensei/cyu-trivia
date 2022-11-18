@@ -2,8 +2,12 @@ html,
 body,
 .main-content {
 	overflow-y: hidden;
+	overflow-x: hidden;
 }
-
+.game-container div {
+	max-width: 100%;
+	overflow-x: hidden;
+}
 #admin-console {
 	margin-top: 3vh;
 	width: min(100%, 1000px);
@@ -153,6 +157,8 @@ td button:not([disabled]):hover {
 
 .tab-content {
 	flex: 1;
+	max-width: 100%;
+	overflow-x: hidden;
 }
 
 .dropdown-toggle {
@@ -192,6 +198,7 @@ td button:not([disabled]):hover {
 
 .round-container {
 	width: 100%;
+	max-width: 100%;
 	max-height: 55vh;
 	padding: 10px;
 }
@@ -229,7 +236,8 @@ td button:not([disabled]):hover {
 }
 
 .game-container .tab-pane {
-	overflow-y: scroll;
+	overflow-x: hidden;
+	max-width: 100%;
 }
 .question-container,
 .input-container,
@@ -237,6 +245,10 @@ td button:not([disabled]):hover {
 	display: flex;
 	flex-direction: column;
 	font-size: 2vh;
+}
+.question-container,
+.question-container-bottom {
+	max-width: 100%;
 }
 
 .question-label,
@@ -264,7 +276,8 @@ td button:not([disabled]):hover {
 
 .question-container-bottom,
 .control-button-container,
-.matching-answer-row {
+.matching-answer-row,
+.host-list-container {
 	display: flex;
 	flex-direction: row;
 }
@@ -274,15 +287,35 @@ td button:not([disabled]):hover {
 	border-bottom: 1px solid yellow;
 }
 
+.host-list-container {
+	flex-wrap: wrap;
+}
+
 .matching-prompt-div,
-.matching-answer-div {
-	flex: 1;
+.matching-answer-div,
+.host-div {
 	border-radius: 5px;
 	margin: 5px;
 	background-color: darkblue;
 	border: 1px solid yellow;
 	padding: 10px;
 	font-weight: bold;
+}
+
+.matching-prompt-div,
+.matching-answer-div {
+	flex: 1;
+}
+
+.host-div {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+}
+
+.host-div > div {
+	margin-right: 15px;
+	margin-left: 15px;
 }
 
 .matching-prompt-div > p,
@@ -358,6 +391,46 @@ td button:not([disabled]):hover {
 	margin: auto;
 }
 
+#host-table-container {
+	display: flex;
+	flex-direction: row;
+	overflow-y: scroll;
+}
+
+.host-list {
+	flex: 1;
+	text-align: center;
+}
+
+.list-left,
+.list-right {
+	display: flex;
+	flex-direction: column;
+	flex: 1;
+}
+
+.list-left > .host-tile {
+	display: flex;
+	flex-direction: row;
+	justify-content: end;
+}
+
+.list-left button {
+	opacity: unset;
+	background: white url('/img/right-arrow.svg') center/1em auto no-repeat;
+}
+
+.list-right button {
+	opacity: unset;
+	background: white url('/img/left-arrow.svg') center/1em auto no-repeat;
+}
+
+.list-right > .host-tile {
+	display: flex;
+	flex-direction: row-reverse;
+	justify-content: start;
+}
+
 @media (pointer: fine) and (min-width: 768px) {
 	.game-container {
 		flex-direction: row;
@@ -375,7 +448,7 @@ td button:not([disabled]):hover {
 	}
 
 	.round-container {
-		/* max-height: 90vh; */
+		max-height: 90vh;
 		height: 100%;
 	}
 

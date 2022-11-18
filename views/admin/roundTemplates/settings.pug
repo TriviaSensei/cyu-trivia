@@ -8,7 +8,15 @@
         .input-label Description
         textarea.warning#game-desc(rows="4" columns="40")
     .input-container
-        .question-container-bottom 
-            .input-container
-                .input-label Game Date
-                input.warning#game-date(type="date")
+        .input-label Game Date
+        input.warning#game-date(type="date")
+    .input-container 
+        .input-label Hosts 
+        .host-list-container
+            .no-hosts (None)
+            //- .host-div 
+            //-     div Yu, Chuck
+            //-     button.btn-close.delete-button
+    label.image-upload-label(for="add-host" data-bs-toggle="modal" data-bs-target="#host-modal") Add/Remove Hosts
+    button.image-upload#add-host(data-bs-toggle='modal' data-bs-target="#host-modal")
+    

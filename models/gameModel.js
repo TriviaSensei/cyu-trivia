@@ -38,9 +38,11 @@ const gameSchema = new mongoose.Schema({
 
 				const d = new Date().toISOString();
 				const e = moment().tz('America/New_York').format();
-				const offset =
+				let offset =
 					parseInt(e.split('T')[1].split(':')[0]) -
 					parseInt(d.split('T')[1].split(':')[0]);
+
+				if (offset > 0) offset = offset - 24;
 
 				const currentDate = new Date(
 					Date.parse(new Date()) + offset * 60 * 60 * 1000
@@ -57,6 +59,10 @@ const gameSchema = new mongoose.Schema({
 				const sDate = submittedDate.getDate();
 				const sYear = submittedDate.getFullYear();
 
+				// console.log(offset);
+				// console.log(year, month + 1, date);
+				// console.log(sYear, sMonth + 1, sDate);
+
 				return !(
 					sYear < year ||
 					(sYear === year && sMonth < month) ||
@@ -67,16 +73,13 @@ const gameSchema = new mongoose.Schema({
 		},
 	},
 	rounds: [Object],
+	assignedHosts: {
+		type: [mongoose.Schema.ObjectId],
+		ref: 'user',
+	},
 	ready: Boolean,
 	lastModified: Date,
 	deleteAfter: Date,
-});
-
-gameSchema.pre('save', async function (next) {
-	//only run this function if the password was modified
-	this.lastModified = new Date();
-	console.log(this.lastModified);
-	next();
 });
 
 const Games = mongoose.model('Games', gameSchema, 'games');

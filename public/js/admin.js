@@ -64,7 +64,7 @@ const deleteUser = (e) => {
 confirmDeleteButton.addEventListener('click', deleteUser);
 
 const loadUsers = (e) => {
-	loadingDiv?.classList.remove('invisible-div');
+	if (loadingDiv) loadingDiv.classList.remove('invisible-div');
 	userListContainer.innerHTML = '';
 	const handler = (res) => {
 		if (res.status === 'success') {

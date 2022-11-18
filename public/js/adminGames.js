@@ -28,8 +28,11 @@ const dontSaveButton = document.getElementById('dont-save');
 const confirmDeleteButton = document.getElementById('confirm-delete-game');
 const confirmOverwrite = document.getElementById('confirm-overwrite');
 const dontOverwrite = document.getElementById('dont-overwrite');
-
 const postVideos = getElementArray(document, '.video-container > input');
+const addHost = document.getElementById('add-host');
+const loadingDiv = document.getElementById('host-loading-div');
+const nonHostContainer = document.getElementById('non-hosts');
+const hostContainer = document.getElementById('hosts');
 
 //modals
 const saveChangesModal = new bootstrap.Modal(
@@ -44,6 +47,7 @@ const confirmDeleteModal = new bootstrap.Modal(
 const overwriteModal = new bootstrap.Modal(
 	document.getElementById('overwrite-modal')
 );
+const hostModal = new bootstrap.Modal(document.getElementById('host-modal'));
 
 const rounds = ['std', 'pic', 'std', 'wc', 'std', 'audio', 'std'];
 const picRound =
@@ -55,10 +59,12 @@ gameDate.setAttribute('min', new Date().toISOString().split('T')[0]);
 
 let loadedGame = undefined;
 let changesMade = false;
-let action = undefined;
 let gid = undefined;
-let savedAction = undefined;
 let gameSearchResults = [];
+let allHosts = [];
+let hosts = [];
+let nonHosts = [];
+let savedAction;
 
 const setGID = (e) => {
 	const button = e.target.closest('button');
@@ -560,7 +566,11 @@ const closeGame = () => {
 	radios[0].click();
 
 	loadedGame = undefined;
+	hosts = [];
+	nonHosts = allHosts.slice(0);
+	populateHostLists();
 	changesMade = false;
+	savedAction = undefined;
 	unsavedChanges.classList.add('invisible-div');
 };
 
@@ -726,6 +736,15 @@ const handleSave = (post) => {
 			loadedGame = res.data._id;
 			changesMade = false;
 			unsavedChanges.classList.add('invisible-div');
+			console.log(res.data);
+
+			const searchIndex = gameSearchResults.findIndex((g) => {
+				return g._id === res.data._id;
+			});
+			if (searchIndex >= 0) {
+				gameSearchResults[searchIndex] = res.data;
+			}
+
 			if (post === 'close') {
 				closeGame();
 			} else if (post) {
@@ -749,6 +768,7 @@ const handleSave = (post) => {
 
 const handleClose = (e) => {
 	if (changesMade) {
+		savedAction = 'close';
 		saveChangesModal.show();
 	} else {
 		showMessage('info', 'Closing game...');
@@ -781,7 +801,8 @@ const createGameTile = (data) => {
 	editButton.classList.add('btn-close', 'edit-button');
 	editButton.setAttribute('data-id', data._id);
 	editButton.setAttribute('data-index', data.index);
-	editButton.addEventListener('click', handleOpen);
+	editButton.setAttribute('data-bs-dismiss', 'modal');
+	editButton.addEventListener('click', handleClickEdit);
 	if (data.deleteAfter) editButton.disabled = true;
 
 	const deleteButton = document.createElement('button');
@@ -808,22 +829,31 @@ const openWindow = (e) => {
 	openModal.show();
 	const loadingGameDiv = document.getElementById('loading-game-div');
 
-	const handler = (res) => {
-		if (res.status === 'success') {
-			loadingGameDiv.classList.add('invisible-div');
-			const sgc = document.getElementById('saved-game-container');
-			sgc.innerHTML = '';
-			gameSearchResults = res.data;
-			res.data.forEach((g, i) => {
-				createGameTile({ ...g, index: i });
-			});
-		} else {
-			showMessage('error', 'Something went wrong');
-			openModal.close();
-		}
-	};
-	loadingGameDiv.classList.remove('invisible-div');
-	handleRequest('/api/v1/games', 'GET', null, handler);
+	if (gameSearchResults.length === 0) {
+		const handler = (res) => {
+			if (res.status === 'success') {
+				loadingGameDiv.classList.add('invisible-div');
+				const sgc = document.getElementById('saved-game-container');
+				sgc.innerHTML = '';
+				gameSearchResults = res.data;
+				res.data.forEach((g, i) => {
+					createGameTile({ ...g, index: i });
+				});
+			} else {
+				showMessage('error', 'Something went wrong');
+				openModal.close();
+			}
+		};
+		loadingGameDiv.classList.remove('invisible-div');
+		handleRequest('/api/v1/games', 'GET', null, handler);
+	} else {
+		loadingGameDiv.classList.add('invisible-div');
+		const sgc = document.getElementById('saved-game-container');
+		sgc.innerHTML = '';
+		gameSearchResults.forEach((g, i) => {
+			createGameTile({ ...g, index: i });
+		});
+	}
 };
 
 const handleKeys = (e) => {
@@ -844,6 +874,20 @@ const handleKeys = (e) => {
 		} else if (e.key.toUpperCase() === 'H') {
 			e.preventDefault();
 			showMessage('info', 'Assigning to host...');
+		} else if (
+			e.key.toUpperCase() === 'BACKSPACE' ||
+			e.key.toUpperCase() === 'DELETE'
+		) {
+			if (
+				document.activeElement.tagName.toUpperCase() === 'INPUT' ||
+				document.activeElement.tagName.toUpperCase() === 'TEXTAREA'
+			) {
+				if (
+					document.activeElement !== matchingPrompt &&
+					document.activeElement !== matchingAnswer
+				)
+					setTimeout(handleInputChange, 1, { target: document.activeElement });
+			}
 		}
 	} else if (
 		e.key.toUpperCase() === 'RETURN' ||
@@ -856,6 +900,15 @@ const handleKeys = (e) => {
 			e.preventDefault();
 			handleAddMatchingAnswer(null);
 		}
+	} else if (
+		document.activeElement.tagName.toUpperCase() === 'INPUT' ||
+		document.activeElement.tagName.toUpperCase() === 'TEXTAREA'
+	) {
+		if (
+			document.activeElement !== matchingPrompt &&
+			document.activeElement !== matchingAnswer
+		)
+			setTimeout(handleInputChange, 1, { target: document.activeElement });
 	}
 };
 
@@ -986,8 +1039,6 @@ const handleInputChange = (e) => {
 	const button = document.querySelector(`.nav-link[data-bs-target="#${id}"]`);
 	const wc = button.closest('.nav-item').querySelector('.warning-circle');
 
-	console.log(warnings);
-
 	if (warnings.length > 0) wc.classList.remove('invisible-div');
 	else wc.classList.add('invisible-div');
 };
@@ -1019,7 +1070,7 @@ postVideos.forEach((v) => {
 
 document.addEventListener('keydown', handleKeys);
 saveButton.addEventListener('click', (e) => {
-	handleSave('close');
+	handleSave(savedAction);
 });
 dontSaveButton.addEventListener('click', (e) => {
 	closeGame();
@@ -1031,8 +1082,6 @@ const handleOpen = (e) => {
 	const data = gameSearchResults[index];
 
 	if (!data) return;
-
-	console.log(data);
 
 	//game info
 	document.getElementById('game-title').value = data.title;
@@ -1155,3 +1204,83 @@ const handleOpen = (e) => {
 	changesMade = false;
 	unsavedChanges.classList.add('invisible-div');
 };
+
+const handleClickEdit = (e) => {
+	if (changesMade) {
+		savedAction = e.target.getAttribute('data-id');
+		saveChangesModal.show();
+	} else {
+		handleOpen({ target: e.target });
+	}
+};
+
+const toggleHost = (e) => {};
+
+const createTile = (data) => {
+	const newTile = document.createElement('div');
+	newTile.classList.add('host-tile');
+	newTile.classList.add('host-div');
+	const content = document.createElement('div');
+	content.innerHTML = data.name;
+	const button = document.createElement('button');
+	button.classList.add('btn-close');
+	button.setAttribute('data-id', data._id);
+	button.addEventListener('click', toggleHost);
+	newTile.appendChild(content);
+	newTile.appendChild(button);
+	return newTile;
+};
+
+const populateHostLists = () => {
+	nonHostContainer.innerHTML = '';
+	hostContainer.innerHTML = '';
+
+	nonHosts.forEach((u) => {
+		nonHostContainer.appendChild(createTile(u));
+	});
+	hosts.forEach((u) => {
+		hostContainer.appendChild(createTile(u));
+	});
+};
+
+const loadHosts = (e) => {
+	if (loadingDiv) loadingDiv.classList.remove('invisible-div');
+	hostContainer.innerHTML = '';
+	nonHostContainer.innerHTML = '';
+
+	const handler = (res) => {
+		if (res.status === 'success') {
+			allHosts = res.data;
+			nonHosts = [];
+			hosts = [];
+
+			let lg = undefined;
+			if (loadedGame) {
+				lg = gameSearchResults.find((g) => {
+					return g._id.toString() === loadedGame;
+				});
+			}
+			res.data.forEach((h) => {
+				const obj = {
+					name: `${h.lastName}, ${h.firstName}`,
+					_id: h._id,
+					assignedGames: h.assignedGames,
+				};
+				if (!loadedGame || !lg) {
+					nonHosts.push(obj);
+				} else {
+					if (lg.assignedHosts.includes(h._id)) {
+						hosts.push(obj);
+					} else {
+						nonHosts.push(obj);
+					}
+				}
+			});
+			populateHostLists();
+		} else {
+			showMessage('error', 'Something went wrong', 1000);
+		}
+	};
+	handleRequest('/api/v1/users/getAll', 'GET', null, handler);
+};
+if (addHost) addHost.addEventListener('click', loadHosts);

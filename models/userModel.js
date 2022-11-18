@@ -66,6 +66,10 @@ const userSchema = new mongoose.Schema({
 	deleteUserAfter: {
 		type: Date,
 	},
+	assignedGames: {
+		type: [mongoose.Schema.ObjectId],
+		ref: 'game',
+	},
 });
 
 userSchema.pre('save', async function (next) {
