@@ -1,7 +1,12 @@
 mixin videoLink(roundNo)
     .video-container
-        .input-label Post-round video
-        input(type="text" round=`${roundNo}`)
+        .question-container-bottom
+            .input-container
+                .input-label Post-round video
+                input(type="text" round=`${roundNo}`)
+            .input-container 
+                .input-label Starting time (seconds)
+                input(type="number" round=`${roundNo}`)
         .input-label Preview: 
         iframe.video-preview(width="320" height="240" src="" round=`${roundNo}`)
 

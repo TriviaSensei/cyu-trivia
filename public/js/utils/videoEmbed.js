@@ -1,4 +1,4 @@
-export const getEmbeddedLink = (media) => {
+export const getEmbeddedLink = (media, startingTime) => {
 	if (media.length === 0)
 		return {
 			status: 'fail',
@@ -27,7 +27,9 @@ export const getEmbeddedLink = (media) => {
 		}
 		return {
 			status: 'success',
-			link: `https://www.youtube.com/embed/${videoID}`,
+			link: `https://www.youtube.com/embed/${videoID}${
+				startingTime > 0 ? '?start=' + startingTime : ''
+			}`,
 		};
 	} else if (media.toLowerCase().indexOf('youtube') >= 0) {
 		const tokens = media.split('&');
@@ -46,7 +48,9 @@ export const getEmbeddedLink = (media) => {
 		}
 		return {
 			status: 'success',
-			link: `https://www.youtube.com/embed/${videoID}`,
+			link: `https://www.youtube.com/embed/${videoID}${
+				startingTime > 0 ? '?start=' + startingTime : ''
+			}`,
 		};
 	} else if (media.toLowerCase().indexOf('youtu.be') >= 0) {
 		const tokens = media.split('/');
@@ -65,7 +69,9 @@ export const getEmbeddedLink = (media) => {
 		}
 		return {
 			status: 'success',
-			link: `https://www.youtube.com/embed/${videoID}`,
+			link: `https://www.youtube.com/embed/${videoID}${
+				startingTime > 0 ? '?start=' + startingTime : ''
+			}`,
 		};
 	} else if (media.toLowerCase().indexOf('vimeo') >= 0) {
 		const tokens = media.split('/');
@@ -78,7 +84,9 @@ export const getEmbeddedLink = (media) => {
 		const videoID = tokens[tokens.length - 1];
 		return {
 			status: 'success',
-			link: `https://player.vimeo.com/video/${videoID}`,
+			link: `https://player.vimeo.com/video/${videoID}${
+				startingTime > 0 ? '#t=' + startingTime : ''
+			}`,
 		};
 	} else if (media.toLowerCase().indexOf('drive.google.com/file/d') >= 0) {
 		const tokens = media.split('/');
@@ -107,7 +115,9 @@ export const getEmbeddedLink = (media) => {
 		} else {
 			return {
 				status: 'success',
-				link: `https://drive.google.com/file/d/${videoID}/preview`,
+				link: `https://drive.google.com/file/d/${videoID}/preview${
+					startingTime > 0 ? '/view?t=' + startingTime : ''
+				}`,
 			};
 		}
 	}

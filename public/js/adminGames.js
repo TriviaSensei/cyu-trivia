@@ -28,11 +28,19 @@ const dontSaveButton = document.getElementById('dont-save');
 const confirmDeleteButton = document.getElementById('confirm-delete-game');
 const confirmOverwrite = document.getElementById('confirm-overwrite');
 const dontOverwrite = document.getElementById('dont-overwrite');
-const postVideos = getElementArray(document, '.video-container > input');
+const postVideos = getElementArray(
+	document,
+	'.video-container input[type="text"]'
+);
+const videoStartTimes = getElementArray(
+	document,
+	'.video-container input[type="number"]'
+);
 const addHost = document.getElementById('add-host');
 const loadingDiv = document.getElementById('host-loading-div');
 const nonHostContainer = document.getElementById('non-hosts');
 const hostContainer = document.getElementById('hosts');
+const hostListContainer = document.getElementById('host-list-container');
 
 //modals
 const saveChangesModal = new bootstrap.Modal(
@@ -195,7 +203,6 @@ const movePicture = (e) => {
 	if (!thisQ || !thisRound || !thisAns) return;
 
 	const otherQ = thisQ + (e.target.getAttribute('direction') === 'up' ? -1 : 1);
-	console.log(otherQ);
 	if (!otherQ) return;
 	const otherImg = document.querySelector(
 		`.picture-question-container[round="${thisRound}"][question="${otherQ}"] img`
@@ -266,7 +273,7 @@ const createPictureBody = (file) => {
 	con2.classList.add('picture-answer', 'warning');
 	con2.setAttribute('round', picRound);
 	con2.setAttribute('question', q);
-	con2.addEventListener('change', handleInputChange);
+	con2.addEventListener('keydown', handleInputKey);
 
 	const con3 = document.createElement('div');
 	con3.classList.add('control-button-container');
@@ -309,11 +316,12 @@ const createPictureBody = (file) => {
 	c0.appendChild(container);
 	picContainer.appendChild(c0);
 
-	handleInputChange({ target: imageUpload });
+	handleInputChange(imageUpload);
 	return con1;
 };
 
 const addPictureToRound = (file, ...messages) => {
+	handleChangeMade(null);
 	if (typeof file === 'string') {
 		const imgContainer = createPictureBody({
 			image: file,
@@ -369,10 +377,17 @@ const handlePaste = (evt) => {
 };
 
 const handleImageUpload = (e) => {
-	handleChangeMade(null);
 	for (var i = 0; i < e.target.files.length; i++) {
 		if (document.querySelectorAll('.picture-question-container').length < 10)
 			addPictureToRound(e.target.files[i]);
+		else {
+			showMessage(
+				'error',
+				'There is a 10-picture limit for picture rounds.',
+				1000
+			);
+			break;
+		}
 	}
 	e.target.value = '';
 };
@@ -398,7 +413,7 @@ const deleteMatchingAnswer = (e) => {
 
 	if (document.querySelectorAll('.matching-answer-row').length <= 2) {
 		matchingContainer.classList.add('warning');
-		handleInputChange({ target: wcListAnswers });
+		handleInputChange(wcListAnswers);
 	}
 };
 
@@ -431,7 +446,7 @@ const handleAddMatchingAnswer = (e) => {
 
 	if (document.querySelectorAll('.matching-answer-row').length > 2) {
 		matchingContainer.classList.remove('warning');
-		handleInputChange({ target: wcListAnswers });
+		handleInputChange(wcListAnswers);
 	}
 };
 
@@ -442,7 +457,7 @@ const autoPopulatePoints = (overwrite) => {
 	const gameDesc = document.getElementById('game-desc');
 	if (!gameDesc.value || overwrite) {
 		gameDesc.value = 'https://www.cyutrivia.com/play\n';
-		handleInputChange({ target: gameDesc });
+		handleInputChange(gameDesc);
 	}
 
 	//GK round values
@@ -454,7 +469,7 @@ const autoPopulatePoints = (overwrite) => {
 			if (!qNo) return;
 			el.value = Math.floor((qNo + 1) / 2) * 2;
 			if (i === 7 && qNo === 9) el.value = 20;
-			handleInputChange({ target: el });
+			handleInputChange(el);
 		});
 
 		const desc = document.querySelector(`.round-desc[round="${i}"]`);
@@ -462,7 +477,7 @@ const autoPopulatePoints = (overwrite) => {
 			desc.value = `General knowledge\n8 questions\n2, 2, 4, 4, 6, 6, 8, 8 points\nBonus: wager 0-${
 				i === 7 ? 20 : 10
 			} points`;
-			handleInputChange({ target: desc });
+			handleInputChange(desc);
 		}
 	}
 
@@ -471,19 +486,19 @@ const autoPopulatePoints = (overwrite) => {
 	ppc.forEach((el) => {
 		if (el.value && !overwrite) return;
 		el.value = 4;
-		handleInputChange({ target: el });
+		handleInputChange(el);
 	});
 	//audio bonus
 	const bv = document.querySelector('.bonus-value');
 	if (!bv.value || overwrite) {
 		bv.value = 5;
-		handleInputChange({ target: bv });
+		handleInputChange(bv);
 	}
 
 	//list answer count
 	if (!wcListCount.value || overwrite) {
 		wcListCount.value = 10;
-		handleInputChange({ target: wcListCount });
+		handleInputChange(wcListCount);
 	}
 
 	//description defaults
@@ -499,20 +514,8 @@ const autoPopulatePoints = (overwrite) => {
 		const desc = document.querySelector(`.round-desc[round="${i * 2 + 2}"]`);
 		if (desc.value && !overwrite) return;
 		desc.value = d;
-		handleInputChange({ target: desc });
+		handleInputChange(desc);
 	});
-	// const desc2 = document.querySelector(`.round-desc[round="2"]`);
-	// desc2.value = `Picture round\n`;
-
-	// //pic description
-	// const desc4 = document.querySelector(`.round-desc[round="4"]`);
-	// desc4.value = `Halftime\n`;
-	// handleInputChange({ target: desc4 });
-
-	// //audio description
-	// const desc6 = document.querySelector(`.round-desc[round="6"]`);
-	// desc6.value =
-	// handleInputChange({ target: desc6 });
 };
 
 confirmOverwrite.addEventListener('click', (e) => {
@@ -542,6 +545,10 @@ const closeGame = () => {
 		matchingContainer,
 		'.matching-answer-row'
 	);
+	const pictures = getElementArray(
+		contentContainer,
+		'#picture-round-questions > .question-container'
+	);
 	const radios = getElementArray(
 		document,
 		'input[type="radio"][name="wc-format"]'
@@ -550,7 +557,11 @@ const closeGame = () => {
 	//clear all input values
 	allInputs.forEach((el) => {
 		el.value = '';
-		handleInputChange({ target: el });
+		handleInputChange(el);
+	});
+
+	pictures.forEach((p) => {
+		removePictureFromRound({ target: p });
 	});
 
 	//clear all video previews
@@ -570,7 +581,6 @@ const closeGame = () => {
 	nonHosts = allHosts.slice(0);
 	populateHostLists();
 	changesMade = false;
-	savedAction = undefined;
 	unsavedChanges.classList.add('invisible-div');
 };
 
@@ -592,8 +602,14 @@ const handleSave = (post) => {
 					document.querySelector(`.round-desc[round="${i}"]`).value
 				),
 				questions: [],
-				video: document.querySelector(`.video-container > input[round="${i}"]`)
-					.value,
+				video: document.querySelector(
+					`.video-container input[type="text"][round="${i}"]`
+				).value,
+				videoStart: parseInt(
+					document.querySelector(
+						`.video-container input[type="number"][round="${i}"]`
+					).value
+				),
 			};
 			let q = 1;
 			let qDiv = document.querySelector(
@@ -620,8 +636,14 @@ const handleSave = (post) => {
 					document.querySelector(`.points-per-correct[round="${i}"]`).value
 				),
 				questions: [],
-				video: document.querySelector(`.video-container > input[round="${i}"]`)
-					.value,
+				video: document.querySelector(
+					`.video-container input[type="text"][round="${i}"]`
+				).value,
+				videoStart: parseInt(
+					document.querySelector(
+						`.video-container input[type="number"][round="${i}"]`
+					).value
+				),
 			};
 
 			let q = 1;
@@ -681,8 +703,14 @@ const handleSave = (post) => {
 						return a.trim() !== '';
 					}),
 				questions: [],
-				video: document.querySelector(`.video-container > input[round="${i}"]`)
-					.value,
+				video: document.querySelector(
+					`.video-container input[type="text"][round="${i}"]`
+				).value,
+				videoStart: parseInt(
+					document.querySelector(
+						`.video-container input[type="number"][round="${i}"]`
+					).value
+				),
 			};
 
 			let q = 1;
@@ -722,8 +750,14 @@ const handleSave = (post) => {
 				themePoints: parseInt(
 					document.querySelector('#audio-bonus-value').value
 				),
-				video: document.querySelector(`.video-container > input[round="${i}"]`)
-					.value,
+				video: document.querySelector(
+					`.video-container input[type="text"][round="${i}"]`
+				).value,
+				videoStart: parseInt(
+					document.querySelector(
+						`.video-container input[type="number"][round="${i}"]`
+					).value
+				),
 			};
 		}
 
@@ -736,7 +770,6 @@ const handleSave = (post) => {
 			loadedGame = res.data._id;
 			changesMade = false;
 			unsavedChanges.classList.add('invisible-div');
-			console.log(res.data);
 
 			const searchIndex = gameSearchResults.findIndex((g) => {
 				return g._id === res.data._id;
@@ -748,7 +781,7 @@ const handleSave = (post) => {
 			if (post === 'close') {
 				closeGame();
 			} else if (post) {
-				openGame(post);
+				handleOpen(document.querySelector(`.edit-button[data-id="${post}"]`));
 			}
 		} else {
 			if (res.error.code === 11000) {
@@ -874,20 +907,6 @@ const handleKeys = (e) => {
 		} else if (e.key.toUpperCase() === 'H') {
 			e.preventDefault();
 			showMessage('info', 'Assigning to host...');
-		} else if (
-			e.key.toUpperCase() === 'BACKSPACE' ||
-			e.key.toUpperCase() === 'DELETE'
-		) {
-			if (
-				document.activeElement.tagName.toUpperCase() === 'INPUT' ||
-				document.activeElement.tagName.toUpperCase() === 'TEXTAREA'
-			) {
-				if (
-					document.activeElement !== matchingPrompt &&
-					document.activeElement !== matchingAnswer
-				)
-					setTimeout(handleInputChange, 1, { target: document.activeElement });
-			}
 		}
 	} else if (
 		e.key.toUpperCase() === 'RETURN' ||
@@ -900,15 +919,6 @@ const handleKeys = (e) => {
 			e.preventDefault();
 			handleAddMatchingAnswer(null);
 		}
-	} else if (
-		document.activeElement.tagName.toUpperCase() === 'INPUT' ||
-		document.activeElement.tagName.toUpperCase() === 'TEXTAREA'
-	) {
-		if (
-			document.activeElement !== matchingPrompt &&
-			document.activeElement !== matchingAnswer
-		)
-			setTimeout(handleInputChange, 1, { target: document.activeElement });
 	}
 };
 
@@ -929,7 +939,7 @@ wcFormatRadio.forEach((r) => {
 			document
 				.getElementById(`${e.target.value}-settings`)
 				?.classList.remove('invisible-div');
-			handleInputChange({ target: wcListAnswers });
+			handleInputChange(wcListAnswers);
 		}
 	});
 });
@@ -938,7 +948,7 @@ addMatchingAnswer.addEventListener('click', handleAddMatchingAnswer);
 
 //music round controls/listeners
 const handleAudioRoundVideo = (e) => {
-	const result = getEmbeddedLink(e.target.value);
+	const result = getEmbeddedLink(e.target.value, 0);
 	if (result.status === 'success') {
 		videoPreview.setAttribute('src', result.link);
 		videoPreview.classList.remove('invisible-div');
@@ -976,23 +986,23 @@ actionPop.addEventListener('click', (e) => {
 });
 
 const inputs = document.querySelectorAll(
-	'.input-container input:not([type="radio"]):not([type="file"]), .input-container textarea, .question-container input:not([type="radio"]), .question-container textarea'
+	'.input-container input:not([type="radio"]):not([type="file"]), .input-container textarea, .question-container input:not([type="radio"]), .question-container textarea, .video-container input'
 );
 
-const handleInputChange = (e) => {
+const handleInputChange = (element) => {
 	handleChangeMade(null);
 	//inputs that we don't care about if they change
 	if (
 		['matching-prompt', 'matching-answer', 'wc-matching-bank'].includes(
-			e.target.id
+			element.id
 		)
 	)
 		return;
-	else if (e.target.getAttribute('type') === 'radio') return;
+	else if (element.getAttribute('type') === 'radio') return;
 
 	//inputs to be treated specially
 	//list count greater than number of possible answers
-	if (e.target === wcListAnswers || e.target === wcListCount) {
+	if (element === wcListAnswers || element === wcListCount) {
 		//answer count needs a value that is at no more than the number of answers listed
 		if (
 			parseInt(wcListCount.value) >
@@ -1008,7 +1018,7 @@ const handleInputChange = (e) => {
 			wcListCount.classList.remove('warning');
 			wcListAnswers.classList.remove('warning');
 		}
-	} else if (e.target === audioTheme || e.target === audioBonusValue) {
+	} else if (element === audioTheme || element === audioBonusValue) {
 		//if there is an audio theme, it must be given a value
 		if (audioTheme.value && !audioBonusValue.value) {
 			audioTheme.classList.add('warning');
@@ -1017,17 +1027,20 @@ const handleInputChange = (e) => {
 			audioTheme.classList.remove('warning');
 			audioBonusValue.classList.remove('warning');
 		}
-	} else if (e.target.getAttribute('type') !== 'file') {
-		if (e.target.value) {
-			e.target.classList.remove('warning');
+	} else if (
+		element.getAttribute('type') !== 'file' &&
+		!element.closest('.video-container')
+	) {
+		if (element.value) {
+			element.classList.remove('warning');
 		} else {
-			e.target.classList.add('warning');
+			element.classList.add('warning');
 		}
 	}
 
-	const pane = e.target.closest('.tab-pane');
+	const pane = element.closest('.tab-pane');
 	let warnings;
-	if (e.target.closest('.tab-pane').getAttribute('id') === 'r4') {
+	if (element.closest('.tab-pane').getAttribute('id') === 'r4') {
 		warnings = pane.querySelectorAll(
 			'.wc-settings:not(.invisible-div) .warning'
 		);
@@ -1043,13 +1056,34 @@ const handleInputChange = (e) => {
 	else wc.classList.add('invisible-div');
 };
 
+const handleInputKey = (e) => {
+	const oldValue = e.target.value;
+	let newValue;
+	setTimeout(() => {
+		newValue = e.target.value;
+		if (newValue.toString() !== oldValue.toString()) {
+			handleInputChange(e.target);
+		}
+	});
+};
+
 inputs.forEach((i) => {
-	i.addEventListener('change', handleInputChange);
+	i.addEventListener('keydown', handleInputKey);
 });
 
 const handlePostVideo = (e) => {
 	handleChangeMade(null);
-	const res = getEmbeddedLink(e.target.value);
+	const startTime = parseInt(
+		e.target.closest('.video-container').querySelector('input[type="number"]')
+			.value
+	);
+	const videoLink = e.target
+		.closest('.video-container')
+		.querySelector('input[type="text"]');
+
+	if (!videoLink.value) return;
+
+	const res = getEmbeddedLink(videoLink.value, Math.max(0, startTime));
 	const frame = document.querySelector(
 		`.video-container > iframe[round="${e.target.getAttribute('round')}"]`
 	);
@@ -1059,7 +1093,7 @@ const handlePostVideo = (e) => {
 		frame.setAttribute('src', '');
 	} else {
 		showMessage('error', res.message);
-		e.target.value = '';
+		videoLink.value = '';
 		frame.setAttribute('src', '');
 	}
 };
@@ -1067,18 +1101,29 @@ const handlePostVideo = (e) => {
 postVideos.forEach((v) => {
 	v.addEventListener('change', handlePostVideo);
 });
+videoStartTimes.forEach((v) => {
+	v.addEventListener('change', handlePostVideo);
+});
 
 document.addEventListener('keydown', handleKeys);
 saveButton.addEventListener('click', (e) => {
 	handleSave(savedAction);
+	savedAction = undefined;
 });
 dontSaveButton.addEventListener('click', (e) => {
 	closeGame();
+
+	if (savedAction) {
+		handleOpen(
+			document.querySelector(`.edit-button[data-id="${savedAction}"]`)
+		);
+		savedAction = undefined;
+	}
 });
 
-const handleOpen = (e) => {
-	loadedGame = e.target.getAttribute('data-id');
-	const index = parseInt(e.target.getAttribute('data-index'));
+const handleOpen = (element) => {
+	loadedGame = element.getAttribute('data-id');
+	const index = parseInt(element.getAttribute('data-index'));
 	const data = gameSearchResults[index];
 
 	if (!data) return;
@@ -1133,14 +1178,14 @@ const handleOpen = (e) => {
 					addPictureToRound(q.link, false);
 					const ans = document.querySelector(`.picture-answer${attr}`);
 					if (ans) ans.value = q.answer;
-					handleInputChange({ target: ans });
+					handleInputChange(ans);
 				});
 			} else if (i === 3) {
 				//list answers
 				wcListAnswers.value = r.answerList.join('\n');
-				handleInputChange({ target: wcListAnswers });
+				handleInputChange(wcListAnswers);
 				wcListCount.value = r.answerCount;
-				handleInputChange({ target: wcListCount });
+				handleInputChange(wcListCount);
 
 				//matching answers
 				const rows = getElementArray(document, '.matching-answer-row');
@@ -1186,22 +1231,27 @@ const handleOpen = (e) => {
 				if (themePts) themePts.value = r.themePoints;
 			}
 		}
-
 		if (r.video) {
 			const videoInput = document.querySelector(
-				`.video-container > input[round="${i + 1}"]`
+				`.video-container input[type="text"][round="${i + 1}"]`
 			);
 			videoInput.value = r.video;
+
+			const videoStart = document.querySelector(
+				`.video-container input[type="number"][round="${i + 1}"]`
+			);
+			videoStart.value = r.videoStart;
 			handlePostVideo({ target: videoInput });
 		}
 	});
 
 	inputs.forEach((i) => {
-		handleInputChange({ target: i });
+		handleInputChange(i);
 	});
 	openModal.hide();
 
 	changesMade = false;
+	loadHosts(null);
 	unsavedChanges.classList.add('invisible-div');
 };
 
@@ -1210,16 +1260,66 @@ const handleClickEdit = (e) => {
 		savedAction = e.target.getAttribute('data-id');
 		saveChangesModal.show();
 	} else {
-		handleOpen({ target: e.target });
+		handleOpen(e.target);
 	}
 };
 
-const toggleHost = (e) => {};
+const toggleHost = (e) => {
+	const parent = e.target.closest(
+		'.list-left, .list-right, #host-list-container'
+	);
+	if (!parent) return;
+
+	handleChangeMade(null);
+
+	if (parent === hostContainer || parent === hostListContainer) {
+		nonHostContainer.appendChild(
+			document.querySelector(
+				`.host-tile[data-id="${e.target.getAttribute('data-id')}"]`
+			)
+		);
+
+		const hostDiv = hostListContainer.querySelector(
+			`.host-div[data-id="${e.target.getAttribute('data-id')}"]`
+		);
+
+		if (hostDiv) hostDiv.remove();
+
+		if (!hostListContainer.querySelector('.host-div')) {
+			document.querySelector('.no-hosts').classList.remove('invisible-div');
+		}
+		nonHosts.push(
+			hosts.find((h) => {
+				return h._id === e.target.getAttribute('data-id');
+			})
+		);
+		hosts = hosts.filter((h) => {
+			return h._id !== e.target.getAttribute('data-id');
+		});
+
+		if (parent === hostListContainer) {
+			const tile = e.target.closest('.host-div');
+			if (tile) tile.remove();
+		}
+	} else if (parent === nonHostContainer) {
+		hostContainer.appendChild(e.target.closest('.host-tile'));
+		const newHost = nonHosts.find((h) => {
+			return h._id === e.target.getAttribute('data-id');
+		});
+		hosts.push(newHost);
+		hostListContainer.appendChild(createHostDiv(newHost));
+		document.querySelector('.no-hosts').classList.add('invisible-div');
+		nonHosts = nonHosts.filter((h) => {
+			return h._id !== e.target.getAttribute('data-id');
+		});
+	}
+};
 
 const createTile = (data) => {
 	const newTile = document.createElement('div');
 	newTile.classList.add('host-tile');
 	newTile.classList.add('host-div');
+	newTile.setAttribute('data-id', data._id);
 	const content = document.createElement('div');
 	content.innerHTML = data.name;
 	const button = document.createElement('button');
@@ -1231,15 +1331,34 @@ const createTile = (data) => {
 	return newTile;
 };
 
+const createHostDiv = (data) => {
+	const newTile = document.createElement('div');
+	newTile.classList.add('host-div');
+	newTile.setAttribute('data-id', data._id);
+	const content = document.createElement('div');
+	content.innerHTML = data.name;
+	const button = document.createElement('button');
+	button.classList.add('btn-close');
+	button.classList.add('delete-button');
+	button.setAttribute('data-id', data._id);
+	button.addEventListener('click', toggleHost);
+	newTile.appendChild(content);
+	newTile.appendChild(button);
+	return newTile;
+};
+
 const populateHostLists = () => {
 	nonHostContainer.innerHTML = '';
 	hostContainer.innerHTML = '';
-
+	hostListContainer.innerHTML = '';
 	nonHosts.forEach((u) => {
 		nonHostContainer.appendChild(createTile(u));
 	});
+	document.querySelector('.no-hosts').classList.remove('invisible-div');
 	hosts.forEach((u) => {
 		hostContainer.appendChild(createTile(u));
+		document.querySelector('.no-hosts').classList.add('invisible-div');
+		hostListContainer.appendChild(createHostDiv(u));
 	});
 };
 
@@ -1283,4 +1402,5 @@ const loadHosts = (e) => {
 	};
 	handleRequest('/api/v1/users/getAll', 'GET', null, handler);
 };
+loadHosts(null);
 if (addHost) addHost.addEventListener('click', loadHosts);
