@@ -590,6 +590,7 @@ const handleSave = (post) => {
 		description: document.getElementById('game-desc').value,
 		date: Date.parse(document.getElementById('game-date').value),
 		rounds: [],
+		assignedHosts: hosts,
 	};
 
 	for (var i = 1; i <= rounds.length; i++) {
