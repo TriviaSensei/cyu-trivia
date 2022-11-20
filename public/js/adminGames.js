@@ -1271,16 +1271,16 @@ const toggleHost = (e) => {
 	if (!parent) return;
 
 	handleChangeMade(null);
+	const hostId = e.target.getAttribute('data-id');
 
+	//removing a host from a game
 	if (parent === hostContainer || parent === hostListContainer) {
 		nonHostContainer.appendChild(
-			document.querySelector(
-				`.host-tile[data-id="${e.target.getAttribute('data-id')}"]`
-			)
+			document.querySelector(`.host-tile[data-id="${hostId}"]`)
 		);
 
 		const hostDiv = hostListContainer.querySelector(
-			`.host-div[data-id="${e.target.getAttribute('data-id')}"]`
+			`.host-div[data-id="${hostId}"]`
 		);
 
 		if (hostDiv) hostDiv.remove();
@@ -1290,27 +1290,47 @@ const toggleHost = (e) => {
 		}
 		nonHosts.push(
 			hosts.find((h) => {
-				return h._id === e.target.getAttribute('data-id');
+				return h._id === hostId;
 			})
 		);
 		hosts = hosts.filter((h) => {
-			return h._id !== e.target.getAttribute('data-id');
+			return h._id !== hostId;
 		});
 
 		if (parent === hostListContainer) {
 			const tile = e.target.closest('.host-div');
 			if (tile) tile.remove();
 		}
-	} else if (parent === nonHostContainer) {
+
+		gameSearchResults.find((g) => {
+			if (g._id === loadedGame) {
+				g.assignedHosts = g.assignedHosts.filter((h) => {
+					return h !== hostId;
+				});
+				return true;
+			}
+			return false;
+		});
+	}
+	//adding a host to a game
+	else if (parent === nonHostContainer) {
 		hostContainer.appendChild(e.target.closest('.host-tile'));
 		const newHost = nonHosts.find((h) => {
-			return h._id === e.target.getAttribute('data-id');
+			return h._id === hostId;
 		});
 		hosts.push(newHost);
 		hostListContainer.appendChild(createHostDiv(newHost));
 		document.querySelector('.no-hosts').classList.add('invisible-div');
 		nonHosts = nonHosts.filter((h) => {
-			return h._id !== e.target.getAttribute('data-id');
+			return h._id !== hostId;
+		});
+
+		gameSearchResults.find((g) => {
+			if (g._id === loadedGame) {
+				g.assignedHosts.push(hostId);
+				return true;
+			}
+			return false;
 		});
 	}
 };
