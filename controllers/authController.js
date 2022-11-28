@@ -90,6 +90,7 @@ exports.localOnly = (req, res, next) => {
 };
 
 exports.signup = catchAsync(async (req, res, next) => {
+	console.log('signup');
 	//do not await User.create(req.body) so that the user cannot put whatever they want into the body.
 	//Only take the necessary fields.
 	const url = `${req.protocol}://${req.get('host')}/activate`;

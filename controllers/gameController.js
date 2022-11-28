@@ -79,6 +79,17 @@ exports.assignHost = catchAsync(async (req, res, next) => {
 	});
 });
 
+exports.getHostedGames = catchAsync(async (req, res, next) => {
+	const games = await Game.find({
+		assignedHosts: res.locals.user._id,
+	});
+
+	res.status(200).json({
+		status: 'success',
+		data: games,
+	});
+});
+
 exports.createGame = factory.createOne(Game);
 exports.getGame = factory.getOne(Game);
 exports.getAll = factory.getAll(Game);

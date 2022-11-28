@@ -1,6 +1,7 @@
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
 const APIFeatures = require('../utils/apiFeatures');
+const moment = require('moment-timezone');
 
 //this will delete one of any document, depending on what gets passed to it.
 exports.deleteOne = (Model) =>
@@ -59,6 +60,23 @@ exports.updateOne = (Model) =>
 				req.body.role = 'owner';
 			}
 		} else if (loc.toLowerCase() === 'games') {
+			const arr = req.originalUrl.trim().split('/');
+			const loc = arr.length > 3 ? arr[3] : '';
+
+			if (loc === 'games') {
+				const d = new Date().toISOString();
+				const e = moment().tz('America/New_York').format();
+				let offset =
+					parseInt(e.split('T')[1].split(':')[0]) -
+					parseInt(d.split('T')[1].split(':')[0]);
+
+				if (offset > 0) offset = offset - 24;
+
+				const newDate = new Date(req.body.date - offset * 1000 * 60 * 60);
+
+				req.body.date = newDate;
+			}
+
 			req.body.lastModified = new Date();
 		}
 
@@ -80,6 +98,24 @@ exports.updateOne = (Model) =>
 
 exports.createOne = (Model) =>
 	catchAsync(async (req, res, next) => {
+		const arr = req.originalUrl.trim().split('/');
+		const loc = arr.length > 3 ? arr[3] : '';
+
+		if (loc === 'games') {
+			const d = new Date().toISOString();
+			const e = moment().tz('America/New_York').format();
+			let offset =
+				parseInt(e.split('T')[1].split(':')[0]) -
+				parseInt(d.split('T')[1].split(':')[0]);
+
+			if (offset > 0) offset = offset - 24;
+
+			const newDate = new Date(req.body.date - offset * 1000 * 60 * 60);
+
+			req.body.date = newDate;
+		}
+		req.body.lastModified = new Date();
+
 		const doc = await Model.create(req.body);
 		res.status(201).json({
 			status: 'success',

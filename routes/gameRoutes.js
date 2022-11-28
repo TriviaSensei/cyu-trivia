@@ -7,9 +7,9 @@ const router = express.Router();
 //logged in users only for game routes
 router.use(authController.protect);
 
-router.route('/:id').get(gameController.getGame);
-
 router.use(authController.restrictTo('admin', 'owner'));
+
+router.route('/:id').get(gameController.getGame);
 
 router
 	.route('/picture')

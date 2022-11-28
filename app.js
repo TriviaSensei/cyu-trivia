@@ -41,9 +41,10 @@ app.use((req, res, next) => {
 app.use(cookieParser());
 
 // 2) Routes
-app.use('/', viewRouter);
+
 app.use('/api/v1/users/', userRouter);
 app.use('/api/v1/games/', gameRouter);
+app.use('/', viewRouter);
 
 const limiter = rateLimit({
 	max: 3,

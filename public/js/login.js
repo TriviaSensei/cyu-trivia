@@ -35,7 +35,6 @@ if (loginForm) {
 
 if (logout) {
 	logout.addEventListener('click', (e) => {
-		console.log('logging out');
 		const handler = (res) => {
 			if (res.status === 'success') {
 				showMessage('info', 'Successfully logged out', 1000);

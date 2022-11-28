@@ -1,4 +1,5 @@
 const catchAsync = require('../utils/catchAsync');
+const Game = require('../models/gameModel');
 
 exports.httpsRedirect = (req, res, next) => {
 	// console.log(req.header('x-forwarded-proto'));
@@ -92,5 +93,27 @@ exports.getAdmin = catchAsync(async (req, res, next) => {
 	// this will look in the /views (set in app.js) folder for 'overview.pug' (pug engine also specified in app.js)
 	res.status(200).render('admin', {
 		title: 'Admin',
+	});
+});
+
+exports.getHost = catchAsync(async (req, res, next) => {
+	const games = await Game.find({
+		assignedHosts: res.locals.user._id,
+	});
+
+	const data = games.map((g) => {
+		const { _id, title, date } = g;
+		return {
+			_id,
+			title,
+			date,
+		};
+	});
+
+	// 3) render template using tour data from (1)
+	// this will look in the /views (set in app.js) folder for 'overview.pug' (pug engine also specified in app.js)
+	res.status(200).render('host', {
+		title: 'Host',
+		data,
 	});
 });

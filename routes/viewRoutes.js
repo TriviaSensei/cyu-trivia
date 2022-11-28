@@ -18,6 +18,12 @@ router.get(
 	authController.restrictTo('admin', 'owner'),
 	viewsController.getAdmin
 );
+router.get(
+	'/host',
+	authController.protect,
+	authController.restrictTo('admin', 'owner'),
+	viewsController.getHost
+);
 
 // router.get('*', (req, res, next) => {
 // 	res.redirect('/login');

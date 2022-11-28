@@ -1,0 +1,43 @@
+extends _base
+
+block styles
+    link(href="/css/host.css" rel="stylesheet")
+
+block navbar_content
+    li.navlink(style="background-color:#0000ff")
+        a
+            .navlink-inner
+                p Host
+    li.navlink
+        a(href="/profile") 
+            .navlink-inner
+                p Profile
+    - if (user.role === 'admin' || user.role === 'owner')
+        li.navlink
+            a(href="/admin")
+                .navlink-inner
+                    p Admin
+    li.navlink
+        a#logout
+            .navlink-inner
+                p Logout
+
+block content 
+    h3.page-title Your assigned games
+    table 
+        thead
+            tr 
+                th Title 
+                th Date
+                th Start
+        tbody
+            each game in data 
+                tr
+                    td= game.title 
+                    td= game.date.toDateString()
+                    td 
+                        button.start-button(data-id=`${game._id}`) Start
+
+block scripts 
+    script(src="/socket.io/socket.io.js")
+    script(src="/js/host.js" type='module')

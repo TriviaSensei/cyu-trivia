@@ -40,6 +40,10 @@ body {
 	z-index: 2000;
 }
 
+.carousel-item {
+	transition: transform 0.1s ease-in-out;
+}
+
 .message {
 	position: absolute;
 	top: 50%;
@@ -52,6 +56,7 @@ body {
 	background-color: white;
 	padding: 10px;
 	opacity: 1;
+	font-weight: bold;
 	transition: opacity 0.25s ease-in-out;
 	-moz-transition: opacity 0.25s ease-in-out;
 	-webkit-transition: opacity 0.25s ease-in-out;
@@ -281,6 +286,12 @@ li.navlink {
 	row-gap: 20px;
 	column-gap: 20px;
 	width: 100%;
+}
+
+.sample-round-container {
+	display: flex;
+	flex-direction: column-reverse;
+	align-items: flex-start;
 }
 
 .service-tile {

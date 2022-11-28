@@ -133,15 +133,15 @@ exports.deleteUser = catchAsync(async (req, res, next) => {
 		}
 	}
 	let action;
-	if (!userToDelete.deleteUserAfter) {
-		userToDelete.deleteUserAfter = Date.now() + deleteTimeout;
+	if (!userToDelete.deleteAfter) {
+		userToDelete.deleteAfter = Date.now() + deleteTimeout;
 		setTimeout(
 			async (id) => {
 				const u = await User.findById(id);
-				if (!u.deleteUserAfter) {
+				if (!u.deleteAfter) {
 					console.log(`Did not delete user ${id}`);
 					return;
-				} else if (u.deleteUserAfter > new Date()) {
+				} else if (u.deleteAfter > new Date()) {
 					console.log(`Not yet time to delete user ${id}`);
 					return;
 				} else {
@@ -155,7 +155,7 @@ exports.deleteUser = catchAsync(async (req, res, next) => {
 
 		action = 'delete';
 	} else {
-		userToDelete.deleteUserAfter = null;
+		userToDelete.deleteAfter = null;
 		action = 'restore';
 	}
 

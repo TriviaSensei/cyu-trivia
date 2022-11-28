@@ -2,7 +2,7 @@ export const msgTypes = [
 	{
 		type: 'error',
 		color: '#ffffff',
-		bgcolor: '#ff0000',
+		bgcolor: '#ab0000',
 	},
 	{
 		type: 'info',

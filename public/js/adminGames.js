@@ -115,8 +115,17 @@ const deleteGame = (e) => {
 				}
 			}
 
+			if (gameSearchResults) {
+				gameSearchResults.some((g) => {
+					if (g._id === res.data._id) {
+						g.deleteAfter = res.action === 'delete';
+						return true;
+					}
+					return false;
+				});
+			}
+
 			gid = undefined;
-			action = undefined;
 		} else {
 			showMessage('error', res.message, 1000);
 		}
@@ -841,6 +850,9 @@ const createGameTile = (data) => {
 
 	const deleteButton = document.createElement('button');
 	deleteButton.classList.add('btn-close', 'delete-button');
+	if (data.deleteAfter) {
+		deleteButton.classList.add('restore-button');
+	}
 	deleteButton.setAttribute(
 		'data-action',
 		data.deleteAfter ? 'restore' : 'delete'
