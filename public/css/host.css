@@ -53,6 +53,7 @@ th {
 .chat-container {
 	flex: 1;
 	display: flex;
+	font-size: min(16px, 2vh);
 	max-height: 100%;
 	overflow-y: scroll;
 	overflow-x: hidden;
@@ -79,7 +80,7 @@ th {
 }
 
 .chat-label {
-	font-size: 0.8rem;
+	font-size: min(0.8rem, 12px);
 	color: white;
 	font-weight: bold;
 }

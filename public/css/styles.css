@@ -24,7 +24,7 @@ body {
 	);
 	overflow-x: hidden;
 	font-family: 'Lato', sans-serif;
-	font-size: 2vh;
+	font-size: min(min(16px, 2vh), 2vw);
 	background-size: cover;
 	-webkit-touch-callout: none; /* iOS Safari */
 	-webkit-user-select: none; /* Safari */
@@ -34,6 +34,7 @@ body {
 	user-select: none;
 	height: 100%;
 	max-height: 100%;
+	scrollbar-width: thin;
 }
 
 #game-message {
@@ -250,7 +251,7 @@ a:visited {
 	flex: 1;
 	display: flex;
 	flex-direction: column;
-	margin: 2vh;
+	margin: 10px;
 	overflow-y: hidden;
 }
 
@@ -331,15 +332,15 @@ li.navlink {
 
 .grid-display {
 	flex: 1;
-	display: grid;
-	grid-template-columns: 1fr;
-	row-gap: 20px;
-	column-gap: 20px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
 	width: 100%;
 }
 
 .sample-round-container {
 	display: flex;
+	max-width: 400px;
 	flex-direction: column-reverse;
 	align-items: flex-start;
 }
@@ -466,6 +467,7 @@ li.navlink {
 	padding: 5% 8% 10% 12%;
 	display: flex;
 	flex-direction: column;
+	font-size: min(16px, 2vh);
 }
 
 .slide-contents > div {
@@ -502,11 +504,11 @@ li.navlink {
 	height: 15%;
 }
 
-.d1 {
+.flair-div.d1 {
 	clip-path: polygon(0 3.2%, 0 41.6%, 38.4% 80%, 77.6% 80%);
 	background-color: #0145ac;
 }
-.d2 {
+.flair-div.d2 {
 	clip-path: polygon(22.4% 22.4%, 61.6% 22.4%, 100% 60.8%, 100% 100%);
 	background-color: #82c7a5;
 }
@@ -553,9 +555,15 @@ li.navlink {
 	.banner-text {
 		font-size: 3vw;
 	}
-	.grid-display {
-		grid-template-columns: repeat(3, 1fr);
-		justify-content: space-between;
+
+	@media (min-width: 1200px) {
+		.grid-display {
+			all: unset;
+			display: grid;
+			grid-template-columns: repeat(3, 1fr);
+			justify-content: space-between;
+			column-gap: 20px;
+		}
 	}
 
 	.section-content-media {

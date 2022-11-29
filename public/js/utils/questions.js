@@ -1,4 +1,4 @@
-exports.questions = [
+export const questions = [
 	{
 		value: 2,
 		text: '"Computer", "Amazon", and "Echo" were the original alternative "wake words" that could replace **what default word**?',
@@ -41,7 +41,7 @@ exports.questions = [
 	},
 ];
 
-exports.pictures = {
+export const pictures = {
 	title: 'Name the Girl Scout Cookie',
 	answers: [
 		'Do-si-dos/Peanut Butter Sandwiches',
@@ -57,7 +57,7 @@ exports.pictures = {
 	],
 };
 
-exports.wildcard = {
+export const wildcard = {
 	title: 'Estimate in the requested units, within 10%',
 	questions: [
 		{

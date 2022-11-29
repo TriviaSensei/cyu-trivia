@@ -10,7 +10,6 @@ export const Host = (socket) => {
 	socket.on('set-user-cookie', setUserCookie);
 
 	socket.on('game-started', (data) => {
-		console.log(data);
 		const myId = getCookie('id');
 
 		if (data.newGame.chat) {
@@ -26,6 +25,16 @@ export const Host = (socket) => {
 			});
 		}
 
+		let currentSlides = [];
+		for (var i = 0; i <= data.newGame.currentSlide; i++) {
+			if (data.newGame.slides[i].clear) {
+				currentSlides = [];
+			}
+			currentSlides.push(data.newGame.slides[i]);
+		}
+
+		console.log(currentSlides);
+
 		document.querySelector('.top-navbar').classList.add('invisible-div');
 		document.getElementById('assigned-games').classList.add('invisible-div');
 		document
@@ -37,7 +46,15 @@ export const Host = (socket) => {
 	});
 
 	socket.on('game-chat', (data) => {
-		const newMessage = createChatMessage(data.id, data.message, data.from);
+		let newMessage;
+		if (data.isSystem)
+			newMessage = createChatMessage(
+				data.id,
+				data.message,
+				data.from,
+				'system'
+			);
+		else newMessage = createChatMessage(data.id, data.message, data.from);
 		chatContainer.appendChild(newMessage);
 		chatContainer.scrollTop = chatContainer.scrollHeight;
 	});

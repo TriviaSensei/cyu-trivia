@@ -5,6 +5,7 @@ const contentDiv = document.querySelector('.main-content');
 const menu = document.querySelector('.menu-button');
 const menuContent = document.querySelector('.menu-content-mobile');
 
+import { questions, pictures, wildcard } from './utils/questions.js';
 import { getElementArray } from './utils/getElementArray.js';
 
 const bsQuestionCarousel = new bootstrap.Carousel(
@@ -27,9 +28,7 @@ const bsWildcardCarousel = new bootstrap.Carousel(
 );
 
 let socket = io();
-let questions;
-let pictures;
-let wildcard;
+
 let currentFooter;
 let liveInterval;
 
@@ -163,7 +162,7 @@ const toggleMenu = (e) => {
 	}
 };
 
-document.addEventListener('DOMContentLoaded', () => {
+window.addEventListener('load', () => {
 	//set the margin top for the main content
 	const flyers = getElementArray(document, '.banner-text').sort((a, b) => {
 		return (
@@ -179,8 +178,6 @@ document.addEventListener('DOMContentLoaded', () => {
 			f.style.opacity = 1;
 		}, t);
 	});
-
-	socket.emit('request-questions', null);
 
 	const links = getElementArray(document, '.navlink');
 	links.forEach((l) => {
@@ -243,12 +240,7 @@ function handleSubmit(e) {
 		req.send(JSON.stringify(body));
 	}
 }
-
-socket.on('questions', (data) => {
-	questions = data.questions;
-	pictures = data.pictures;
-	wildcard = data.wildcard;
-
+const handleQuestions = () => {
 	const items = getElementArray(
 		document,
 		'#question-carousel-inner > .carousel-item'
@@ -363,7 +355,8 @@ socket.on('questions', (data) => {
 		body.innerHTML = w.text;
 	});
 	bsWildcardCarousel.to(0);
-});
+};
+handleQuestions();
 
 socket.on('live-now', (data) => {
 	console.log(data);

@@ -1,4 +1,4 @@
-const { questions, pictures, wildcard } = require('./questions');
+// const { questions, pictures, wildcard } = require('../public/js/utils/questions');
 const Game = require('../models/gameModel');
 const User = require('../models/userModel');
 const { promisify } = require('util');
@@ -370,23 +370,26 @@ const socket = (http, server) => {
 		if (user.gameid) {
 			socket.join(user.gameid);
 			const game = gameManager.getGameById(user.gameid);
-			console.log(`${user.name} rejoining game ${user.gameid}`);
-			if (user.id !== game.host) io.to(socket.id).emit('game-joined', game);
-			else
-				io.to(socket.id).emit('game-started', {
-					newGame: game,
-				});
-		}
-		if (user.teamid) {
-			socket.join(user.teamid);
-			console.log(`${user.name} rejoining game ${user.teamid}`);
+			if (game) {
+				console.log(`${user.name} rejoining game ${user.gameid}`);
+				if (user.id !== game.host) io.to(socket.id).emit('game-joined', game);
+				else
+					io.to(socket.id).emit('game-started', {
+						newGame: game,
+					});
+
+				if (user.teamid) {
+					socket.join(user.teamid);
+					console.log(`${user.name} rejoining game ${user.teamid}`);
+				}
+			}
 		}
 
 		// io.to(user.gameid).emit('')
-
-		socket.on('request-questions', (data) => {
-			io.to(socket.id).emit('questions', { questions, pictures, wildcard });
-		});
+		// socket.on('request-questions', (data) => {
+		// 	console.log('questions requested');
+		// 	io.to(socket.id).emit('questions', { questions, pictures, wildcard });
+		// });
 
 		socket.on('start-game', async (data) => {
 			if (!jwt || !user) {
@@ -451,6 +454,18 @@ const socket = (http, server) => {
 			}
 			socket.join(game.id);
 			io.to(socket.id).emit('game-joined', game);
+			const newMsg = gameManager.addChatMessage(
+				game.id,
+				{ name: 'system', id: 'system' },
+				`${data.name} has joined the game.`
+			);
+			socket.to(game.id).emit('game-chat', {
+				from: 'System',
+				isSystem: true,
+				isHost: false,
+				message: newMsg.text,
+				id: newMsg.mid,
+			});
 		});
 
 		socket.on('game-chat', (data, cb) => {
@@ -465,7 +480,7 @@ const socket = (http, server) => {
 			const message = data.message.replace(re1, '&lt;').replace(re2, '&gt;');
 
 			const sender = userManager.getUser(socket.id);
-			if (!sender.gameid) return;
+			if (!sender || !sender.gameid) return;
 			const game = gameManager.getGameById(sender.gameid);
 			const isHost = sender.id === game.host;
 
