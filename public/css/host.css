@@ -26,3 +26,86 @@ th {
 	background-color: yellow;
 	color: black;
 }
+
+.top-unset {
+	top: unset;
+	max-height: unset;
+}
+
+#hosting-container,
+#game-container {
+	height: 100%;
+	display: flex;
+	width: min(100%, 600px);
+	flex-direction: column;
+	align-items: center;
+}
+
+#game-control-container {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	width: 100%;
+	overflow-y: hidden;
+	padding: 10px;
+}
+
+.chat-container {
+	flex: 1;
+	display: flex;
+	overflow-y: scroll;
+	overflow-x: hidden;
+	flex-direction: column;
+}
+
+.chat-container > .chat-message-container {
+	display: flex;
+	flex-direction: column;
+	margin: 10px;
+}
+
+.from-other {
+	align-items: flex-start;
+}
+
+.from-me {
+	align-items: flex-end;
+}
+
+.from-system {
+	align-items: center;
+}
+
+.chat-label {
+	font-size: 0.8rem;
+	color: white;
+	font-weight: bold;
+}
+
+.chat-message {
+	max-width: 85%;
+	border-radius: 5px;
+	background-color: gray;
+	padding: 5px 10px;
+	font-weight: bold;
+}
+
+.from-me > .chat-message {
+	background-color: steelblue;
+}
+
+.from-system > .chat-message {
+	background-color: transparent;
+	font-size: 0.8rem;
+	color: gray;
+}
+
+.from-host > .chat-message {
+	border: 2px solid yellow;
+}
+
+.input-group > input {
+	background-color: lightgray !important;
+	/* color: yellow !important; */
+	font-weight: bold !important;
+}

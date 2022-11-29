@@ -1,7 +1,22 @@
 const { questions, pictures, wildcard } = require('./questions');
 const Game = require('../models/gameModel');
+const User = require('../models/userModel');
 const { promisify } = require('util');
 const jwt = require('jsonwebtoken');
+const UserManager = require('./managers/userManager');
+const GameManager = require('./managers/gameManager');
+const { v4: uuidv4 } = require('uuid');
+const Filter = require('bad-words');
+const filter = new Filter();
+
+const randomCode = (len) => {
+	let code = '';
+
+	for (var i = 0; i < len; i++) {
+		code = `${code}${Math.floor(Math.random() * 10)}`;
+	}
+	return code;
+};
 
 const createSlides = (data) => {
 	const toReturn = [
@@ -9,7 +24,7 @@ const createSlides = (data) => {
 			new: true,
 			clear: true,
 			header: 'Welcome',
-			body: data.description,
+			body: `${data.description}\nhttps://www.cyutrivia.com/play\nJoin code: ${data.joinCode}`,
 		},
 		{
 			new: true,
@@ -312,39 +327,69 @@ const socket = (http, server) => {
 
 	io.listen(server);
 
-	io.on('connection', (socket) => {
+	const userManager = new UserManager('id');
+	const gameManager = new GameManager('id');
+
+	io.on('connection', async (socket) => {
 		const getCookie = (name) => {
-			const tokens = socket.handshake.headers.cookie.split('=');
-			for (var i = 0; i < tokens.length; i += 2) {
-				if (tokens[i] === name) {
-					return tokens.length > i + 1 ? tokens[i + 1] : null;
+			let cookies;
+			if (socket.handshake.headers.cookie) {
+				cookies = socket.handshake.headers.cookie.split(';');
+				for (var j = 0; j < cookies.length; j++) {
+					const tokens = cookies[j].trim().split('=');
+					if (tokens[0] === name) {
+						return tokens.length > 1 ? tokens[1] : null;
+					}
 				}
 			}
 			return null;
 		};
 
+		const uid = getCookie('id');
+		const token = getCookie('jwt');
+		let loggedInUser;
+		let decoded;
+		if (token) {
+			decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
+			if (decoded) {
+				loggedInUser = await User.findById(decoded.id);
+			}
+		}
 		console.log(`A user has connected from ${socket.handshake.address}`);
+		if (loggedInUser) {
+			console.log(`\tName: ${loggedInUser.displayName}`);
+		}
+
+		const user = userManager.addUser(
+			{
+				name: loggedInUser ? loggedInUser.displayName : '',
+				socketid: socket.id,
+			},
+			uid
+		);
+		console.log(`\tID: ${user.id}`);
+
+		io.to(socket.id).emit('set-user-cookie', { id: user.id });
+
+		//rejoin the team and game chat if they were part of one already
+		if (user.gameid) {
+			socket.join(user.gameid);
+		}
+		if (user.teamid) {
+			socket.join(user.teamid);
+		}
 
 		socket.on('request-questions', (data) => {
 			io.to(socket.id).emit('questions', { questions, pictures, wildcard });
 		});
 
 		socket.on('start-game', async (data) => {
-			const cookie = getCookie('jwt');
-			if (!cookie) {
+			if (!jwt || !user) {
 				return io
 					.to(socket.id)
 					.emit('error', { message: 'You are not logged in.' });
 			}
-			const decoded = await promisify(jwt.verify)(
-				cookie,
-				process.env.JWT_SECRET
-			);
-			if (!decoded) {
-				return io
-					.to(socket.id)
-					.emit('error', { message: 'You are not logged in.' });
-			}
+
 			const game = await Game.findById(data._id);
 			if (!game || game.deleteAfter) {
 				return io.to(socket.id).emit('error', { message: 'Game not found.' });
@@ -355,12 +400,55 @@ const socket = (http, server) => {
 						.to(socket.id)
 						.emit('error', { message: 'This game may not be started yet.' });
 				}
-				io.to(socket.id).emit('game-started', createSlides(game));
+				const joinCode = process.env.LOCAL === 'true' ? '1111' : randomCode(4);
+				game.joinCode = joinCode;
+
+				const slides = createSlides(game);
+				const newGame = gameManager.startNewGame(slides, joinCode, user.id);
+				const updatedUser = userManager.setAttribute(
+					user.id,
+					'gameid',
+					newGame.id
+				);
+				socket.join(newGame.id);
+				if (updatedUser) {
+					console.log(`${user.name} has started game ${newGame.id}`);
+				}
+				io.to(socket.id).emit('game-started', { slides, newGame });
+				io.emit('live-now', {
+					live: true,
+				});
 			} else {
 				return io
 					.to(socket.id)
 					.emit('error', { message: 'You are not a host of this game.' });
 			}
+		});
+
+		socket.on('join-game', (data) => {
+			if (filter.isProfane(data.name)) {
+				return io
+					.to(socket.id)
+					.emit('error', { message: 'Watch your language.' });
+			}
+
+			const game = gameManager.getGame(data.joinCode);
+
+			if (!game) {
+				return io.to(socket.id).emit('error', { message: 'Game not found.' });
+			}
+			const updatedUser = userManager.setAttribute(user.id, 'game', game.id);
+			if (updatedUser) {
+				console.log(`${data.name} joining game ${game.id}`);
+			}
+			socket.join(game.id);
+			io.to(socket.id).emit('game-joined', game);
+		});
+
+		socket.on('disconnect', (reason) => {
+			const user = userManager.getUser(socket.id);
+			console.log(`${user ? user.name || user.id : 'A user'} has disconnected`);
+			userManager.handleDisconnect(socket.id);
 		});
 	});
 };

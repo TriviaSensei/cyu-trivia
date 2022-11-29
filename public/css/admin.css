@@ -17,33 +17,6 @@ body,
 	flex-direction: column;
 }
 
-.nav-link {
-	color: yellow;
-	font-weight: bold;
-}
-
-.nav-link.active {
-	background-color: #ccc !important;
-}
-
-.tab-pane.active {
-	width: 100%;
-	height: 100%;
-}
-.tab-wrapper {
-	display: flex;
-	width: 100%;
-	height: 100%;
-}
-
-.tab-inner {
-	flex: 1;
-	display: flex;
-	flex-direction: column;
-	margin: 2vh;
-	overflow-y: hidden;
-}
-
 .control-panel {
 	display: flex;
 	flex-direction: column;
@@ -60,6 +33,7 @@ body,
 	border-radius: 10px;
 	padding: 10px;
 	background-color: #ccc;
+	font-weight: bold;
 }
 
 .button-container > button:hover {
@@ -155,12 +129,6 @@ td button:not([disabled]):hover {
 	background: white url('/img/restore.svg') center/1em auto no-repeat;
 }
 
-.tab-content {
-	flex: 1;
-	max-width: 100%;
-	overflow-x: hidden;
-}
-
 .dropdown-toggle {
 	font-weight: bold;
 }
@@ -212,23 +180,6 @@ td button:not([disabled]):hover {
 	border: none;
 	border-top: 10px dotted yellow;
 	opacity: 0.5;
-}
-
-#round-tabs > .nav-item {
-	position: relative;
-}
-
-.warning-circle {
-	position: absolute;
-	z-index: 100;
-	top: 25%;
-	left: 85%;
-	background-color: orange;
-	width: 8px;
-	height: 8px;
-	border-radius: 50%;
-	transform: translate(-50%, -50%);
-	border: none;
 }
 
 .warning {

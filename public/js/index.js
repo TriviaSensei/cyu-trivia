@@ -365,7 +365,7 @@ socket.on('questions', (data) => {
 	bsWildcardCarousel.to(0);
 });
 
-socket.on('set-live', (data) => {
+socket.on('live-now', (data) => {
 	console.log(data);
 
 	if (liveInterval) {

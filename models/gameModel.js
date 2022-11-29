@@ -75,7 +75,7 @@ const gameSchema = new mongoose.Schema({
 	rounds: [Object],
 	assignedHosts: {
 		type: [mongoose.Schema.ObjectId],
-		ref: 'user',
+		ref: 'Users',
 	},
 	ready: Boolean,
 	lastModified: Date,

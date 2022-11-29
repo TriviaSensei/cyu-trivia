@@ -68,7 +68,7 @@ const userSchema = new mongoose.Schema({
 	},
 	assignedGames: {
 		type: [mongoose.Schema.ObjectId],
-		ref: 'game',
+		ref: 'Games',
 	},
 });
 

@@ -22,22 +22,111 @@ block navbar_content
             .navlink-inner
                 p Logout
 
-block content 
-    h3.page-title Your assigned games
-    table 
-        thead
-            tr 
-                th Title 
-                th Date
-                th Start
-        tbody
-            each game in data 
-                tr
-                    td= game.title 
-                    td= game.date.toDateString()
-                    td 
-                        button.start-button(data-id=`${game._id}`) Start
-
+block content
+    #assigned-games
+        h3.page-title Your assigned games
+        table 
+            thead
+                tr 
+                    th Title 
+                    th Date
+                    th Start
+            tbody
+                each game in data 
+                    tr
+                        td= game.title 
+                        td= game.date.toDateString()
+                        td 
+                            button.start-button(data-id=`${game._id}`) Start
+    #hosting-container.invisible-div
+        #slideshow-outer.w-75.invisible-div
+            .slideshow-container.w-100.ratio(style="--bs-aspect-ratio: 75%;")
+                #game-carousel.carousel.slide(data-bs-ride="carousel" data-bs-interval="false" data-bs-touch="false")
+                    .carousel-inner#game-carousel-inner 
+                    button.carousel-control-prev(type="button" data-bs-target="#game-carousel" data-bs-slide="prev")
+                        span.carousel-control-prev-icon(aria-hidden="true")
+                        span.visually-hidden Previous
+                    button.carousel-control-next(type="button" data-bs-target="#game-carousel" data-bs-slide="next")
+                        span.carousel-control-next-icon(aria-hidden="true")
+                        span.visually-hidden Next
+        #game-control-container
+            ul.nav.nav-tabs.nav-fill#admin-tabs(role="tablist")
+                li.nav-item(role="presentation")
+                    button.nav-link.active#chat-tab(data-bs-toggle="tab" data-bs-target="#chat" type="button" role="tab" aria-controls="chat" aria-selected="true") Chat
+                li.nav-item(role="presentation")
+                    button.nav-link#grading-tab(data-bs-toggle="tab" data-bs-target="#grading" type="button" role="tab" aria-controls="grading" aria-selected="false") Teams/Grading
+            .tab-content#host-tabs-content
+                .tab-pane.fade.show.active#chat(role="tabpanel" aria-labelledby="user-tab")
+                    .tab-wrapper 
+                        .tab-inner
+                            .chat-container
+                                .chat-message-container.from-other
+                                    .chat-label Bob 
+                                    .chat-message Hello, everyone!
+                                .chat-message-container.from-me.from-host
+                                    .chat-label Me
+                                    .chat-message Hello, Bob
+                                .chat-message-container.from-me.from-host
+                                    .chat-label Me
+                                    .chat-message Ready to do this?
+                                .chat-message-container.from-other
+                                    .chat-label Bob 
+                                    .chat-message Let's do it!
+                                .chat-message-container.from-system
+                                    .chat-message Jim has joined the game.
+                                .chat-message-container.from-system
+                                    .chat-message Bill has joined the game.
+                                .chat-message-container.from-other
+                                    .chat-label Jim 
+                                    .chat-message hey, guys. this is a long text message because I like talking a lot and I'm really long-winded.
+                            .input-group
+                                input#chat-message.form-control(type="text" placeholder="Enter a message" aria-label="Enter a message" aria-describedby="send-chat")
+                                button.btn.btn-secondary#send-chat(type="button") Send
+                 
+                .tab-pane.fade#grading(role="tabpanel" aria-labelledby="user-tab")
+                    .tab-wrapper 
+                        .tab-inner
+                            p Grading
+                            p Grading
+                            p Grading
+                            p Grading
+                            p Grading
+                            p Grading
+                            p Grading
+                            p Grading
+                            p Grading
+                            p Grading
+                            p Grading
+                            p Grading
+                            p Grading
+                            p Grading
+                            p Grading
+                            p Grading
+                            p Grading
+                            p Grading
+                            p Grading
+                            p Grading
+                            p Grading
+                            p Grading
+                            p Grading
+                            p Grading
+                            p Grading
+                            p Grading
+                            p Grading
+                            p Grading
+                            p Grading
+                            p Grading
+                            p Grading
+                            p Grading
+                            p Grading
+                            p Grading
+                            p Grading
+                            p Grading
+                            p Grading
+                            p Grading
+                            p Grading
+                    
 block scripts 
     script(src="/socket.io/socket.io.js")
     script(src="/js/host.js" type='module')
+    script(src="/js/utils/menu.js" type="module")

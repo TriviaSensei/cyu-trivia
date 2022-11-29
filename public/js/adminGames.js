@@ -121,7 +121,6 @@ const deleteGame = (e) => {
 						g.deleteAfter = res.action === 'delete';
 						return true;
 					}
-					return false;
 				});
 			}
 
@@ -1322,7 +1321,6 @@ const toggleHost = (e) => {
 				});
 				return true;
 			}
-			return false;
 		});
 	}
 	//adding a host to a game
@@ -1343,7 +1341,6 @@ const toggleHost = (e) => {
 				g.assignedHosts.push(hostId);
 				return true;
 			}
-			return false;
 		});
 	}
 };

@@ -97,9 +97,12 @@ exports.getAdmin = catchAsync(async (req, res, next) => {
 });
 
 exports.getHost = catchAsync(async (req, res, next) => {
-	const games = await Game.find({
-		assignedHosts: res.locals.user._id,
-	});
+	// const games = await Game.find({
+	// 	assignedHosts: res.locals.user._id,
+	// });
+
+	const user = await res.locals.user.populate('assignedGames');
+	const games = user.assignedGames;
 
 	const data = games.map((g) => {
 		const { _id, title, date } = g;

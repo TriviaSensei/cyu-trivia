@@ -1,15 +1,109 @@
 extends _base
 
+block styles
+    link(href="/css/host.css" rel="stylesheet")
+
 block mobilemenu 
 
 block content 
     #join-div.centered.mb-3
-        form#login-form
+        form#join-form
             label.form-label(for="name") Your name:
             input.form-control#name(type="text" placeholder="Your name" required)            
             label.form-label(for="join-code") Join code:
             input.form-control#code(type="text" placeholder="Join code" required)            
             div(style="width: 100%; display: flex; margin-top: 3vh")
                 button(type='submit').join-button Join
+    #game-container.invisible-div
+        #slideshow-outer.w-75.invisible-div
+            .slideshow-container.w-100.ratio(style="--bs-aspect-ratio: 75%;")
+                #game-carousel.carousel.slide(data-bs-ride="carousel" data-bs-interval="false" data-bs-touch="false")
+                    .carousel-inner#game-carousel-inner 
+                    button.carousel-control-prev(type="button" data-bs-target="#game-carousel" data-bs-slide="prev")
+                        span.carousel-control-prev-icon(aria-hidden="true")
+                        span.visually-hidden Previous
+                    button.carousel-control-next(type="button" data-bs-target="#game-carousel" data-bs-slide="next")
+                        span.carousel-control-next-icon(aria-hidden="true")
+                        span.visually-hidden Next
+        #game-control-container
+            ul.nav.nav-tabs.nav-fill#admin-tabs(role="tablist")
+                li.nav-item(role="presentation")
+                    button.nav-link.active#game-tab(data-bs-toggle="tab" data-bs-target="#game" type="button" role="tab" aria-controls="game" aria-selected="true") Game Chat
+                li.nav-item(role="presentation")
+                    button.nav-link#team-tab(data-bs-toggle="tab" data-bs-target="#team" type="button" role="tab" aria-controls="team" aria-selected="false") Team
+            .tab-content#player-tabs-content
+                .tab-pane.fade.show.active#game(role="tabpanel" aria-labelledby="user-tab")
+                    .tab-wrapper 
+                        .tab-inner
+                            .chat-container
+                                .chat-message-container.from-other
+                                    .chat-label Bob 
+                                    .chat-message Hello, everyone!
+                                .chat-message-container.from-me.from-host
+                                    .chat-label Me
+                                    .chat-message Hello, Bob
+                                .chat-message-container.from-me.from-host
+                                    .chat-label Me
+                                    .chat-message Ready to do this?
+                                .chat-message-container.from-other
+                                    .chat-label Bob 
+                                    .chat-message Let's do it!
+                                .chat-message-container.from-system
+                                    .chat-message Jim has joined the game.
+                                .chat-message-container.from-system
+                                    .chat-message Bill has joined the game.
+                                .chat-message-container.from-other
+                                    .chat-label Jim 
+                                    .chat-message hey, guys. this is a long text message because I like talking a lot and I'm really long-winded.
+                            .input-group
+                                input#chat-message.form-control(type="text" placeholder="Enter a message" aria-label="Enter a message" aria-describedby="send-chat")
+                                button.btn.btn-secondary#send-chat(type="button") Send
+                .tab-pane.fade#team(role="tabpanel" aria-labelledby="user-tab")
+                    .tab-wrapper 
+                        .tab-inner
+                            p Team
+                            p Team
+                            p Team
+                            p Team
+                            p Team
+                            p Team
+                            p Team
+                            p Team
+                            p Team
+                            p Team
+                            p Team
+                            p Team
+                            p Team
+                            p Team
+                            p Team
+                            p Team
+                            p Team
+                            p Team
+                            p Team
+                            p Team
+                            p Team
+                            p Team
+                            p Team
+                            p Team
+                            p Team
+                            p Team
+                            p Team
+                            p Team
+                            p Team
+                            p Team
+                            p Team
+                            p Team
+                            p Team
+                            p Team
+                            p Team
+                            p Team
+                            p Team
+                            p Team
+                            p Team
 
-block menubutton 
+block menubutton
+
+block scripts 
+    script(src="/socket.io/socket.io.js")
+    script(src="/js/play.js" type="module")
+    script(src="/js/utils/menu.js" type="module")

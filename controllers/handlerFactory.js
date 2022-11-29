@@ -2,7 +2,7 @@ const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
 const APIFeatures = require('../utils/apiFeatures');
 const moment = require('moment-timezone');
-
+const User = require('../models/userModel');
 //this will delete one of any document, depending on what gets passed to it.
 exports.deleteOne = (Model) =>
 	catchAsync(async (req, res, next) => {
@@ -63,18 +63,48 @@ exports.updateOne = (Model) =>
 			const arr = req.originalUrl.trim().split('/');
 			const loc = arr.length > 3 ? arr[3] : '';
 
-			if (loc === 'games') {
-				const d = new Date().toISOString();
-				const e = moment().tz('America/New_York').format();
-				let offset =
-					parseInt(e.split('T')[1].split(':')[0]) -
-					parseInt(d.split('T')[1].split(':')[0]);
+			const d = new Date().toISOString();
+			const e = moment().tz('America/New_York').format();
+			let offset =
+				parseInt(e.split('T')[1].split(':')[0]) -
+				parseInt(d.split('T')[1].split(':')[0]);
 
-				if (offset > 0) offset = offset - 24;
+			if (offset > 0) offset = offset - 24;
 
-				const newDate = new Date(req.body.date - offset * 1000 * 60 * 60);
+			const newDate = new Date(req.body.date - offset * 1000 * 60 * 60);
 
-				req.body.date = newDate;
+			req.body.date = newDate;
+
+			if (req.body.assignedHosts) {
+				//find any host with this game already assigned
+				const hosts = await User.find({
+					assignedGames: req.params.id,
+				});
+
+				//remove this game from their list if they're not in the assigned hosts list for this request
+				hosts.forEach(async (h) => {
+					if (!req.body.assignedHosts.includes(h._id)) {
+						h.assignedGames = h.assignedGames.filter((g) => {
+							return g.toString() !== req.params.id;
+						});
+						await h.save({ validateBeforeSave: false });
+					}
+				});
+
+				//for every host, add it to their list if it's not already there
+				req.body.assignedHosts.forEach(async (h) => {
+					const host = await User.findById(h);
+					if (host) {
+						if (
+							!host.assignedGames.some((g) => {
+								return g._id.toString() === req.params.id;
+							})
+						) {
+							host.assignedGames.push(req.params.id);
+							await host.save({ validateBeforeSave: false });
+						}
+					}
+				});
 			}
 
 			req.body.lastModified = new Date();
