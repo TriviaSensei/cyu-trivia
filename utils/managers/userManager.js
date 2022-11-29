@@ -102,7 +102,20 @@ module.exports = class UserManager {
 	setAttribute(id, attribute, value) {
 		let toReturn = this.users.find((u) => {
 			if (u.id === id) {
-				u[attribute] = value;
+				if (Array.isArray(attribute)) {
+					if (Array.isArray(value) && attribute.length === value.length) {
+						attribute.forEach((a, i) => {
+							u[a] = value[i];
+						});
+					} else return false;
+				} else if ((typeof attribute).toUpperCase() === 'STRING') {
+					u[attribute] = value;
+				} else if ((typeof attribute).toUpperCase() === 'OBJECT') {
+					const props = Object.getOwnPropertyNames(attribute);
+					props.forEach((p) => {
+						u[p] = attribute[p];
+					});
+				}
 				return true;
 			}
 		});

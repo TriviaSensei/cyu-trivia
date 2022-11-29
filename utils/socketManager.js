@@ -9,15 +9,6 @@ const { v4: uuidv4 } = require('uuid');
 const Filter = require('bad-words');
 const filter = new Filter();
 
-const randomCode = (len) => {
-	let code = '';
-
-	for (var i = 0; i < len; i++) {
-		code = `${code}${Math.floor(Math.random() * 10)}`;
-	}
-	return code;
-};
-
 const createSlides = (data) => {
 	const toReturn = [
 		{
@@ -331,6 +322,10 @@ const socket = (http, server) => {
 	const gameManager = new GameManager('id');
 
 	io.on('connection', async (socket) => {
+		const emitError = (msg) => {
+			io.to(socket.id).emit('error', { message: msg });
+		};
+
 		const getCookie = (name) => {
 			let cookies;
 			if (socket.handshake.headers.cookie) {
@@ -374,10 +369,20 @@ const socket = (http, server) => {
 		//rejoin the team and game chat if they were part of one already
 		if (user.gameid) {
 			socket.join(user.gameid);
+			const game = gameManager.getGameById(user.gameid);
+			console.log(`${user.name} rejoining game ${user.gameid}`);
+			if (user.id !== game.host) io.to(socket.id).emit('game-joined', game);
+			else
+				io.to(socket.id).emit('game-started', {
+					newGame: game,
+				});
 		}
 		if (user.teamid) {
 			socket.join(user.teamid);
+			console.log(`${user.name} rejoining game ${user.teamid}`);
 		}
+
+		// io.to(user.gameid).emit('')
 
 		socket.on('request-questions', (data) => {
 			io.to(socket.id).emit('questions', { questions, pictures, wildcard });
@@ -385,26 +390,26 @@ const socket = (http, server) => {
 
 		socket.on('start-game', async (data) => {
 			if (!jwt || !user) {
-				return io
-					.to(socket.id)
-					.emit('error', { message: 'You are not logged in.' });
+				return emitError('You are not logged in');
 			}
 
 			const game = await Game.findById(data._id);
 			if (!game || game.deleteAfter) {
-				return io.to(socket.id).emit('error', { message: 'Game not found.' });
+				emitError('Game not found.');
 			}
 			if (game.assignedHosts.includes(decoded.id)) {
 				if (new Date() <= game.date && process.env.LOCAL !== 'true') {
-					return io
-						.to(socket.id)
-						.emit('error', { message: 'This game may not be started yet.' });
+					return emitError('This game may not be started yet.');
 				}
-				const joinCode = process.env.LOCAL === 'true' ? '1111' : randomCode(4);
-				game.joinCode = joinCode;
 
+				const newGame = gameManager.startNewGame(user.id);
+				const joinCode = newGame.joinCode;
+				game.joinCode = joinCode;
 				const slides = createSlides(game);
-				const newGame = gameManager.startNewGame(slides, joinCode, user.id);
+				gameManager.setAttribute(newGame.id, {
+					slides,
+				});
+
 				const updatedUser = userManager.setAttribute(
 					user.id,
 					'gameid',
@@ -414,35 +419,74 @@ const socket = (http, server) => {
 				if (updatedUser) {
 					console.log(`${user.name} has started game ${newGame.id}`);
 				}
-				io.to(socket.id).emit('game-started', { slides, newGame });
+				io.to(socket.id).emit('game-started', { newGame });
 				io.emit('live-now', {
 					live: true,
 				});
 			} else {
-				return io
-					.to(socket.id)
-					.emit('error', { message: 'You are not a host of this game.' });
+				return emitError('You are not a host of this game.');
 			}
 		});
 
 		socket.on('join-game', (data) => {
 			if (filter.isProfane(data.name)) {
-				return io
-					.to(socket.id)
-					.emit('error', { message: 'Watch your language.' });
+				return emitError('Watch your language');
 			}
 
 			const game = gameManager.getGame(data.joinCode);
 
 			if (!game) {
-				return io.to(socket.id).emit('error', { message: 'Game not found.' });
+				return emitError('Game not found.');
 			}
-			const updatedUser = userManager.setAttribute(user.id, 'game', game.id);
+
+			const updatedUser = userManager.setAttribute(
+				user.id,
+				['name', 'gameid'],
+				[data.name, game.id]
+			);
 			if (updatedUser) {
-				console.log(`${data.name} joining game ${game.id}`);
+				console.log(
+					`${updatedUser.name} (${updatedUser.id}) joining game ${updatedUser.gameid}`
+				);
 			}
 			socket.join(game.id);
 			io.to(socket.id).emit('game-joined', game);
+		});
+
+		socket.on('game-chat', (data, cb) => {
+			if (filter.isProfane(data.message)) {
+				cb({
+					status: 'FAIL',
+				});
+				return emitError('Watch your language');
+			}
+			const re1 = /</g;
+			const re2 = />/g;
+			const message = data.message.replace(re1, '&lt;').replace(re2, '&gt;');
+
+			const sender = userManager.getUser(socket.id);
+			if (!sender.gameid) return;
+			const game = gameManager.getGameById(sender.gameid);
+			const isHost = sender.id === game.host;
+
+			const newMsg = gameManager.addChatMessage(
+				game.id,
+				isHost ? { ...sender, isHost: true } : { ...sender, isHost: false },
+				data.message
+			);
+
+			cb({
+				status: 'OK',
+				message,
+				id: newMsg.mid,
+			});
+
+			socket.to(sender.gameid).emit('game-chat', {
+				from: sender.name,
+				isHost,
+				message,
+				id: newMsg.mid,
+			});
 		});
 
 		socket.on('disconnect', (reason) => {

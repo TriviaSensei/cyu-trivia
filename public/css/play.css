@@ -1,0 +1,41 @@
+.team-container {
+	width: 100%;
+	height: 100%;
+	display: flex;
+	flex-direction: column;
+}
+
+/* #team-chat {
+	display: flex;
+	flex-direction: column;
+} */
+
+.answer-container {
+	padding: 10px;
+}
+
+#team-answer-container {
+	width: 100%;
+	height: 100%;
+	overflow-y: scroll;
+}
+
+@media (pointer: fine) and (min-width: 800px) {
+	#team-tabs {
+		display: none;
+	}
+
+	#team-tabs-content {
+		display: flex;
+	}
+
+	#team-chat {
+		all: unset;
+		flex: 2;
+	}
+
+	#team-answers {
+		all: unset;
+		flex: 3;
+	}
+}

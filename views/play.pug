@@ -2,6 +2,7 @@ extends _base
 
 block styles
     link(href="/css/host.css" rel="stylesheet")
+    link(href="/css/play.css" rel="stylesheet")
 
 block mobilemenu 
 
@@ -9,9 +10,9 @@ block content
     #join-div.centered.mb-3
         form#join-form
             label.form-label(for="name") Your name:
-            input.form-control#name(type="text" placeholder="Your name" required)            
+            input.form-control#name(type="text" placeholder="Your name" value="bob" required)            
             label.form-label(for="join-code") Join code:
-            input.form-control#code(type="text" placeholder="Join code" required)            
+            input.form-control#code(type="text" placeholder="Join code" value="1111" required)            
             div(style="width: 100%; display: flex; margin-top: 3vh")
                 button(type='submit').join-button Join
     #game-container.invisible-div
@@ -35,71 +36,80 @@ block content
                 .tab-pane.fade.show.active#game(role="tabpanel" aria-labelledby="user-tab")
                     .tab-wrapper 
                         .tab-inner
-                            .chat-container
-                                .chat-message-container.from-other
-                                    .chat-label Bob 
-                                    .chat-message Hello, everyone!
-                                .chat-message-container.from-me.from-host
-                                    .chat-label Me
-                                    .chat-message Hello, Bob
-                                .chat-message-container.from-me.from-host
-                                    .chat-label Me
-                                    .chat-message Ready to do this?
-                                .chat-message-container.from-other
-                                    .chat-label Bob 
-                                    .chat-message Let's do it!
-                                .chat-message-container.from-system
-                                    .chat-message Jim has joined the game.
-                                .chat-message-container.from-system
-                                    .chat-message Bill has joined the game.
-                                .chat-message-container.from-other
-                                    .chat-label Jim 
-                                    .chat-message hey, guys. this is a long text message because I like talking a lot and I'm really long-winded.
+                            .chat-container#all-chat
+                                //- .chat-message-container.from-other
+                                //-     .chat-label Bob 
+                                //-     .chat-message Hello, everyone!
+                                //- .chat-message-container.from-me.from-host
+                                //-     .chat-label Me
+                                //-     .chat-message Hello, Bob
+                                //- .chat-message-container.from-me.from-host
+                                //-     .chat-label Me
+                                //-     .chat-message Ready to do this?
+                                //- .chat-message-container.from-other
+                                //-     .chat-label Bob 
+                                //-     .chat-message Let's do it!
+                                //- .chat-message-container.from-system
+                                //-     .chat-message Jim has joined the game.
+                                //- .chat-message-container.from-system
+                                //-     .chat-message Bill has joined the game.
+                                //- .chat-message-container.from-other
+                                //-     .chat-label Jim 
+                                //-     .chat-message hey, guys. this is a long text message because I like talking a lot and I'm really long-winded.
                             .input-group
-                                input#chat-message.form-control(type="text" placeholder="Enter a message" aria-label="Enter a message" aria-describedby="send-chat")
+                                input#chat-message.form-control(type="text" placeholder="Message everyone" aria-label="Message everyone" aria-describedby="send-chat")
                                 button.btn.btn-secondary#send-chat(type="button") Send
                 .tab-pane.fade#team(role="tabpanel" aria-labelledby="user-tab")
                     .tab-wrapper 
                         .tab-inner
-                            p Team
-                            p Team
-                            p Team
-                            p Team
-                            p Team
-                            p Team
-                            p Team
-                            p Team
-                            p Team
-                            p Team
-                            p Team
-                            p Team
-                            p Team
-                            p Team
-                            p Team
-                            p Team
-                            p Team
-                            p Team
-                            p Team
-                            p Team
-                            p Team
-                            p Team
-                            p Team
-                            p Team
-                            p Team
-                            p Team
-                            p Team
-                            p Team
-                            p Team
-                            p Team
-                            p Team
-                            p Team
-                            p Team
-                            p Team
-                            p Team
-                            p Team
-                            p Team
-                            p Team
-                            p Team
+                            .team-container
+                                ul.nav.nav-tabs.nav-fill#team-tabs(role="tablist")
+                                    li.nav-item(role="presentation")
+                                        button.nav-link.active#team-chat-tab(data-bs-toggle="tab" data-bs-target="#team-chat" type="button" role="tab" aria-controls="team-chat" aria-selected="true") Team Chat
+                                    li.nav-item(role="presentation")
+                                        button.nav-link#team-answer-tab(data-bs-toggle="tab" data-bs-target="#team-answers" type="button" role="tab" aria-controls="team-answers" aria-selected="false") Answers
+                                .tab-content#team-tabs-content
+                                    .tab-pane.fade.show.active#team-chat(role="tabpanel" aria-labelledby="user-tab")
+                                        .tab-wrapper 
+                                            .tab-inner
+                                                .chat-container#team-chat-container
+                                                    //- .chat-message-container.from-other
+                                                    //-     .chat-label Bob 
+                                                    //-     .chat-message Hello, everyone!
+                                                    //- .chat-message-container.from-other
+                                                    //-     .chat-label Bob 
+                                                    //-     .chat-message Let's do it!
+                                                    //- .chat-message-container.from-system
+                                                    //-     .chat-message Jim has joined the team.
+                                                    //- .chat-message-container.from-system
+                                                    //-     .chat-message Bill has joined the team.
+                                                    //- .chat-message-container.from-other
+                                                    //-     .chat-label Jim 
+                                                    //-     .chat-message hey, guys. this is a long text message because I like talking a lot and I'm really long-winded.
+                                                .input-group
+                                                    input#team-message.form-control(type="text" placeholder="Message team" aria-label="Message team" aria-describedby="send-chat")
+                                                    button.btn.btn-secondary#send-team-chat(type="button") Send
+                                    .tab-pane.fade.answer-container#team-answers
+                                        .tab-wrapper 
+                                            .tab-inner
+                                                #team-answer-container
+                                                    p team answers
+                                                    p team answers
+                                                    p team answers
+                                                    p team answers
+                                                    p team answers
+                                                    p team answers
+                                                    p team answers
+                                                    p team answers
+                                                    p team answers
+                                                    p team answers
+                                                    p team answers
+                                                    p team answers
+                                                    p team answers
+                                                    p team answers
+                                                    p team answers
+                                    
+
 
 block menubutton
 
