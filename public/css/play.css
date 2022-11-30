@@ -1,8 +1,33 @@
-.team-container {
+.team-container,
+.team-setup {
 	width: 100%;
 	height: 100%;
 	display: flex;
 	flex-direction: column;
+}
+
+.team-list-container {
+	flex: 1;
+	overflow-y: hidden;
+}
+
+.team-list {
+	width: 100%;
+	height: 100%;
+	overflow-y: scroll;
+	display: flex;
+	flex-direction: column;
+}
+
+.team-list > .team-tile {
+	display: flex;
+	margin: 10px;
+}
+
+.team-name-label {
+	flex: 1;
+	font-weight: bold;
+	margin: 10px;
 }
 
 /* #team-chat {

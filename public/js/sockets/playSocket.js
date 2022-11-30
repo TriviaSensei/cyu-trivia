@@ -23,7 +23,7 @@ export const Play = (socket) => {
 					data.id,
 					m.text,
 					myId === m.uid ? 'Me' : m.name,
-					myId === m.uid ? 'me' : 'other',
+					myId === m.uid ? 'me' : m.uid === 'system' ? 'system' : 'other',
 					m.isHost ? 'host' : null
 				);
 				gameChat.appendChild(newMessage);
@@ -39,6 +39,7 @@ export const Play = (socket) => {
 	});
 
 	socket.on('game-chat', (data) => {
+		console.log(data);
 		const newMessage = createChatMessage(
 			data.id,
 			data.message,

@@ -61,7 +61,7 @@ const handleJoin = (e) => {
 	});
 };
 
-document.addEventListener('DOMContentLoaded', (e) => {
+window.addEventListener('load', (e) => {
 	joinForm.addEventListener('submit', handleJoin);
 	chatMessage.addEventListener('keydown', handleSendChat);
 	chatButton.addEventListener('click', handleSendChat);

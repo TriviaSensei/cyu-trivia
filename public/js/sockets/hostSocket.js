@@ -13,12 +13,13 @@ export const Host = (socket) => {
 		const myId = getCookie('id');
 
 		if (data.newGame.chat) {
+			console.log(data.newGame.chat);
 			data.newGame.chat.forEach((m) => {
 				const newMessage = createChatMessage(
 					data.newGame.id,
 					m.text,
 					myId === m.uid ? 'Me' : m.name,
-					myId === m.uid ? 'me' : 'other',
+					myId === m.uid ? 'me' : m.uid === 'system' ? 'system' : 'other',
 					m.isHost ? 'host' : null
 				);
 				chatContainer.appendChild(newMessage);
@@ -47,6 +48,7 @@ export const Host = (socket) => {
 
 	socket.on('game-chat', (data) => {
 		let newMessage;
+		console.log(data);
 		if (data.isSystem)
 			newMessage = createChatMessage(
 				data.id,

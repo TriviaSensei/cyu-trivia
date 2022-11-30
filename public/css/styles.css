@@ -37,6 +37,10 @@ body {
 	scrollbar-width: thin;
 }
 
+button {
+	font-weight: bold;
+}
+
 #game-message {
 	z-index: 2000;
 }
@@ -575,7 +579,7 @@ li.navlink {
 	}
 
 	.slideshow-container {
-		max-width: min(600px, 100%);
+		max-width: min(450px, 100%);
 	}
 
 	.contact-container {

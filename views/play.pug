@@ -6,6 +6,9 @@ block styles
 
 block mobilemenu 
 
+block modals 
+    
+
 block content 
     #join-div.centered.mb-3
         form#join-form
@@ -37,32 +40,29 @@ block content
                     .tab-wrapper 
                         .tab-inner
                             .chat-container#all-chat
-                                //- .chat-message-container.from-other
-                                //-     .chat-label Bob 
-                                //-     .chat-message Hello, everyone!
-                                //- .chat-message-container.from-me.from-host
-                                //-     .chat-label Me
-                                //-     .chat-message Hello, Bob
-                                //- .chat-message-container.from-me.from-host
-                                //-     .chat-label Me
-                                //-     .chat-message Ready to do this?
-                                //- .chat-message-container.from-other
-                                //-     .chat-label Bob 
-                                //-     .chat-message Let's do it!
-                                //- .chat-message-container.from-system
-                                //-     .chat-message Jim has joined the game.
-                                //- .chat-message-container.from-system
-                                //-     .chat-message Bill has joined the game.
-                                //- .chat-message-container.from-other
-                                //-     .chat-label Jim 
-                                //-     .chat-message hey, guys. this is a long text message because I like talking a lot and I'm really long-winded.
                             .input-group
                                 input#chat-message.form-control(type="text" placeholder="Message everyone" aria-label="Message everyone" aria-describedby="send-chat")
                                 button.btn.btn-secondary#send-chat(type="button") Send
                 .tab-pane.fade#team(role="tabpanel" aria-labelledby="user-tab")
                     .tab-wrapper 
                         .tab-inner
-                            .team-container
+                            .team-setup
+                                button#create-team(type="button") Create Team
+                                .team-list-container
+                                    .team-list 
+                                        .team-tile 
+                                            button.join-team Join
+                                            .team-name-label I Swear To Drunk I'm Not God 
+                                        .team-tile 
+                                            button.join-team Join
+                                            .team-name-label Ragequit Against the Machine 
+                                        .team-tile 
+                                            button.join-team Join
+                                            .team-name-label Volkswagenitalia 
+                                        .team-tile 
+                                            button.join-team Join
+                                            .team-name-label Clever Team Name 
+                            .team-container.invisible-div
                                 ul.nav.nav-tabs.nav-fill#team-tabs(role="tablist")
                                     li.nav-item(role="presentation")
                                         button.nav-link.active#team-chat-tab(data-bs-toggle="tab" data-bs-target="#team-chat" type="button" role="tab" aria-controls="team-chat" aria-selected="true") Team Chat
@@ -73,19 +73,6 @@ block content
                                         .tab-wrapper 
                                             .tab-inner
                                                 .chat-container#team-chat-container
-                                                    //- .chat-message-container.from-other
-                                                    //-     .chat-label Bob 
-                                                    //-     .chat-message Hello, everyone!
-                                                    //- .chat-message-container.from-other
-                                                    //-     .chat-label Bob 
-                                                    //-     .chat-message Let's do it!
-                                                    //- .chat-message-container.from-system
-                                                    //-     .chat-message Jim has joined the team.
-                                                    //- .chat-message-container.from-system
-                                                    //-     .chat-message Bill has joined the team.
-                                                    //- .chat-message-container.from-other
-                                                    //-     .chat-label Jim 
-                                                    //-     .chat-message hey, guys. this is a long text message because I like talking a lot and I'm really long-winded.
                                                 .input-group
                                                     input#team-message.form-control(type="text" placeholder="Message team" aria-label="Message team" aria-describedby="send-chat")
                                                     button.btn.btn-secondary#send-team-chat(type="button") Send

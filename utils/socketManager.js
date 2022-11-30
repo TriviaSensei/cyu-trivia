@@ -453,12 +453,13 @@ const socket = (http, server) => {
 				);
 			}
 			socket.join(game.id);
-			io.to(socket.id).emit('game-joined', game);
+
 			const newMsg = gameManager.addChatMessage(
 				game.id,
 				{ name: 'system', id: 'system' },
 				`${data.name} has joined the game.`
 			);
+			io.to(socket.id).emit('game-joined', game);
 			socket.to(game.id).emit('game-chat', {
 				from: 'System',
 				isSystem: true,
