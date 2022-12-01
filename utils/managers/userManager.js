@@ -63,6 +63,12 @@ module.exports = class UserManager {
 		});
 	}
 
+	getUserById(id) {
+		return this.users.find((u) => {
+			return u.id === id;
+		});
+	}
+
 	setUserName(id, name) {
 		let toReturn;
 		this.users.some((u) => {

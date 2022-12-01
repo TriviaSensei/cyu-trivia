@@ -24,7 +24,7 @@ body {
 	);
 	overflow-x: hidden;
 	font-family: 'Lato', sans-serif;
-	font-size: min(min(16px, 2vh), 2vw);
+	font-size: 2vh;
 	background-size: cover;
 	-webkit-touch-callout: none; /* iOS Safari */
 	-webkit-user-select: none; /* Safari */
@@ -37,8 +37,9 @@ body {
 	scrollbar-width: thin;
 }
 
-button {
-	font-weight: bold;
+button,
+input {
+	font-weight: bold !important;
 }
 
 #game-message {
@@ -344,7 +345,7 @@ li.navlink {
 
 .sample-round-container {
 	display: flex;
-	max-width: 400px;
+	max-width: 600px;
 	flex-direction: column-reverse;
 	align-items: flex-start;
 }
@@ -481,13 +482,17 @@ li.navlink {
 .slide-content-wrapper {
 	display: flex;
 }
+.carousel-indicators {
+	margin-bottom: unset;
+	margin-bottom: 0;
+}
 
 .slide-contents > .slide-header {
 	flex: 2;
 }
 
 .slide-contents > .slide-body {
-	flex: 6;
+	flex: 5;
 }
 
 .slide-contents .slide-footer {
@@ -497,7 +502,14 @@ li.navlink {
 
 .fill-container {
 	width: 100%;
-	margin: auto;
+	height: 100%;
+	overflow-y: hidden;
+}
+
+.fill-container > img {
+	width: 100%;
+	height: 100%;
+	object-fit: contain;
 }
 
 .flair-div {

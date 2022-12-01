@@ -7,6 +7,7 @@ const UserManager = require('./managers/userManager');
 const GameManager = require('./managers/gameManager');
 const { v4: uuidv4 } = require('uuid');
 const Filter = require('bad-words');
+const { fail } = require('assert');
 const filter = new Filter();
 
 const createSlides = (data) => {
@@ -319,11 +320,26 @@ const socket = (http, server) => {
 	io.listen(server);
 
 	const userManager = new UserManager('id');
-	const gameManager = new GameManager('id');
+	const gameManager = new GameManager('id', userManager);
 
 	io.on('connection', async (socket) => {
 		const emitError = (msg) => {
 			io.to(socket.id).emit('error', { message: msg });
+		};
+
+		const systemMsg = (gameid, text) => {
+			const newMsg = gameManager.addChatMessage(
+				gameid,
+				{ name: 'system', id: 'system' },
+				text
+			);
+			socket.to(gameid).emit('game-chat', {
+				from: 'System',
+				isSystem: true,
+				isHost: false,
+				message: newMsg.text,
+				id: newMsg.mid,
+			});
 		};
 
 		const getCookie = (name) => {
@@ -355,13 +371,27 @@ const socket = (http, server) => {
 			console.log(`\tName: ${loggedInUser.displayName}`);
 		}
 
-		const user = userManager.addUser(
-			{
-				name: loggedInUser ? loggedInUser.displayName : '',
-				socketid: socket.id,
-			},
-			uid
-		);
+		let user;
+
+		if (uid) {
+			console.log(`Looking up user ${uid}`);
+			user = userManager.getUserById(uid);
+			if (user) {
+				userManager.setAttribute(user.id, 'socketid', socket.id);
+			}
+		}
+
+		if (!user) {
+			console.log(`...not found...creating new user.`);
+			user = userManager.addUser(
+				{
+					name: loggedInUser ? loggedInUser.displayName : '',
+					socketid: socket.id,
+				},
+				uid
+			);
+		}
+
 		console.log(`\tID: ${user.id}`);
 
 		io.to(socket.id).emit('set-user-cookie', { id: user.id });
@@ -372,6 +402,9 @@ const socket = (http, server) => {
 			const game = gameManager.getGameById(user.gameid);
 			if (game) {
 				console.log(`${user.name} rejoining game ${user.gameid}`);
+
+				systemMsg(game.id, `${user.name} has reconnected`);
+
 				if (user.id !== game.host) io.to(socket.id).emit('game-joined', game);
 				else
 					io.to(socket.id).emit('game-started', {
@@ -454,19 +487,9 @@ const socket = (http, server) => {
 			}
 			socket.join(game.id);
 
-			const newMsg = gameManager.addChatMessage(
-				game.id,
-				{ name: 'system', id: 'system' },
-				`${data.name} has joined the game.`
-			);
+			systemMsg(game.id, `${data.name} has joined the game.`);
+
 			io.to(socket.id).emit('game-joined', game);
-			socket.to(game.id).emit('game-chat', {
-				from: 'System',
-				isSystem: true,
-				isHost: false,
-				message: newMsg.text,
-				id: newMsg.mid,
-			});
 		});
 
 		socket.on('game-chat', (data, cb) => {
@@ -505,10 +528,65 @@ const socket = (http, server) => {
 			});
 		});
 
-		socket.on('disconnect', (reason) => {
+		socket.on('set-team-name', (data, cb) => {
+			console.log(socket.id);
 			const user = userManager.getUser(socket.id);
-			console.log(`${user ? user.name || user.id : 'A user'} has disconnected`);
+			if (!user) {
+				return cb({
+					status: 'FAIL',
+					message: 'User not found.',
+				});
+			}
+			//ensure the user is part of a game
+			if (!user.gameid) {
+				return cb({
+					status: 'FAIL',
+					message: 'You are not part of a game.',
+				});
+			}
+
+			//creating a team
+			if (!user.teamId) {
+				const result = gameManager.createTeam(user.gameid, user.id, data.name);
+				console.log(result);
+
+				if (result.success) {
+					const updatedUser = userManager.setAttribute(
+						user.id,
+						'teamid',
+						result.data.id
+					);
+					cb({
+						...result.data,
+						status: 'OK',
+					});
+					io.to(user.gameid).emit('new-team', {
+						name: result.data.name,
+						id: result.data.id,
+					});
+				} else {
+					cb({
+						status: 'FAIL',
+						message: result.message,
+					});
+				}
+			} else {
+				//editing team name
+				const team = gameManager.getTeam(user.gameid, user.teamid);
+			}
+		});
+
+		socket.on('disconnect', (reason) => {
+			console.log(
+				`${
+					user ? (user.name ? user.name : user.id) : 'A user'
+				} has disconnected`
+			);
 			userManager.handleDisconnect(socket.id);
+
+			if (user && user.gameid) {
+				systemMsg(user.gameid, `${user.name} has disconnected.`);
+			}
 		});
 	});
 };

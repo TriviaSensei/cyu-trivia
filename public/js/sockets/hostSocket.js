@@ -13,7 +13,6 @@ export const Host = (socket) => {
 		const myId = getCookie('id');
 
 		if (data.newGame.chat) {
-			console.log(data.newGame.chat);
 			data.newGame.chat.forEach((m) => {
 				const newMessage = createChatMessage(
 					data.newGame.id,
@@ -24,6 +23,9 @@ export const Host = (socket) => {
 				);
 				chatContainer.appendChild(newMessage);
 			});
+			setTimeout(() => {
+				chatContainer.scrollTop = chatContainer.scrollHeight;
+			}, 10);
 		}
 
 		let currentSlides = [];
@@ -48,7 +50,6 @@ export const Host = (socket) => {
 
 	socket.on('game-chat', (data) => {
 		let newMessage;
-		console.log(data);
 		if (data.isSystem)
 			newMessage = createChatMessage(
 				data.id,

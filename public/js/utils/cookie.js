@@ -7,7 +7,6 @@ export const setUserCookie = (data) => {
 
 export const getCookie = (key) => {
 	let cookies;
-	console.log(document.cookie);
 	if (document.cookie) {
 		cookies = document.cookie.split(';');
 		for (var j = 0; j < cookies.length; j++) {

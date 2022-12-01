@@ -7,6 +7,29 @@ import { showMessage, hideMessage } from '../utils/messages.js';
 import { createChatMessage } from '../utils/chatMessage.js';
 
 const gameChat = document.getElementById('all-chat');
+const teamList = document.querySelector('.team-list');
+
+const teamSetup = document.querySelector('.team-setup');
+const teamContainer = document.querySelector('.team-container');
+
+const handleNewTeam = (data) => {
+	const newTile = document.createElement('div');
+	newTile.classList.add('team-tile');
+
+	const butt = document.createElement('button');
+	butt.classList.add('join-team');
+	butt.innerHTML = 'Join';
+	butt.setAttribute('data-id', data.id);
+
+	const label = document.createElement('div');
+	label.classList.add('team-name-label');
+	label.innerHTML = data.name;
+
+	newTile.appendChild(butt);
+	newTile.appendChild(label);
+
+	teamList.appendChild(newTile);
+};
 
 export const Play = (socket) => {
 	socket.on('set-user-cookie', setUserCookie);
@@ -14,7 +37,6 @@ export const Play = (socket) => {
 	socket.on('game-joined', (data) => {
 		console.log(data);
 		const myId = getCookie('id');
-		console.log(myId);
 		showMessage('info', 'Successfully joined game');
 
 		if (data.chat) {
@@ -28,6 +50,15 @@ export const Play = (socket) => {
 				);
 				gameChat.appendChild(newMessage);
 			});
+			setTimeout(() => {
+				gameChat.scrollTop = gameChat.scrollHeight;
+			}, 10);
+		}
+
+		if (data.teams) {
+			data.teams.forEach((t) => {
+				handleNewTeam(t);
+			});
 		}
 
 		document.querySelector('.top-navbar').classList.add('invisible-div');
@@ -36,19 +67,33 @@ export const Play = (socket) => {
 		mainContent.classList.add('top-unset');
 		mainContent.classList.add('h-100');
 		slideShowContainer.classList.remove('invisible-div');
+
+		if (
+			data.teams.some((t) => {
+				return t.players.some((p) => {
+					return p.id === myId;
+				});
+			})
+		) {
+			teamSetup.classList.add('invisible-div');
+			teamContainer.classList.remove('invisible-div');
+		}
 	});
 
 	socket.on('game-chat', (data) => {
-		console.log(data);
-		const newMessage = createChatMessage(
-			data.id,
-			data.message,
-			data.from,
-			'other',
-			data.isHost ? 'host' : null
-		);
+		let newMessage;
+		if (data.isSystem)
+			newMessage = createChatMessage(
+				data.id,
+				data.message,
+				data.from,
+				'system'
+			);
+		else newMessage = createChatMessage(data.id, data.message, data.from);
 
 		gameChat.appendChild(newMessage);
 		gameChat.scrollTop = gameChat.scrollHeight;
 	});
+
+	socket.on('new-team', handleNewTeam);
 };

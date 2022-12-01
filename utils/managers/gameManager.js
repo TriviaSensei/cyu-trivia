@@ -3,9 +3,10 @@ const { v4: uuidv4 } = require('uuid');
 const hostTimeout = 5 * 60 * 1000;
 
 module.exports = class GameManager {
-	constructor(idField) {
+	constructor(idField, userManager) {
 		this.games = [];
 		this.idField = idField;
+		this.userManager = userManager;
 	}
 
 	randomCode(len) {
@@ -66,7 +67,15 @@ module.exports = class GameManager {
 		return toReturn;
 	}
 
-	removeChatMessage(id, mid) {}
+	removeChatMessage(id, mid) {
+		let toReturn;
+		this.games.chat = this.games.chat.filter((m) => {
+			if (m.mid !== mid) return true;
+			toReturn = true;
+			return false;
+		});
+		return toReturn;
+	}
 
 	getGame(joinCode) {
 		return this.games.find((g) => {
@@ -78,6 +87,91 @@ module.exports = class GameManager {
 		return this.games.find((g) => {
 			return g.id === id;
 		});
+	}
+
+	createTeam(id, captain, name) {
+		const captainName = this.userManager.getUserById(captain)?.name;
+
+		const toReturn = {
+			id: uuidv4(),
+			name,
+			players: [
+				{
+					id: captain,
+					name: captainName || '',
+					isCaptain: true,
+				},
+			],
+			chat: [],
+		};
+
+		let result = {
+			success: false,
+			message: 'Game not found',
+			data: null,
+		};
+
+		//for a successful create...
+		this.games.some((g) => {
+			//we need to find a game with the correct id
+			if (g.id === id) {
+				result.message = '';
+				//the player can't be part of a team already in this game, and the team name can't duplicate someone else's
+				if (
+					g.teams.every((t) => {
+						if (t.name.toLowerCase().trim() === name.toLowerCase().trim()) {
+							result.message = 'Team name is taken.';
+							return false;
+						}
+						return t.players.every((p) => {
+							if (p.id === captain) {
+								result.message = 'Player is already on a team.';
+								return false;
+							}
+							return true;
+						});
+					})
+				) {
+					//push the new team into the team table, mark it as a success
+					g.teams.push(toReturn);
+					result.success = true;
+					result.data = toReturn;
+				}
+
+				return true;
+			}
+		});
+
+		return result;
+	}
+
+	getTeam(gameid, teamid) {
+		let result = {
+			success: false,
+			message: '',
+			data: null,
+		};
+
+		const game = this.games.find((g) => {
+			return g.id === gameid;
+		});
+		if (!game) {
+			result.message = 'Game not found.';
+			return result;
+		}
+
+		const team = game.teams.find((t) => {
+			return t.id === teamid;
+		});
+
+		if (!team) {
+			result.message = 'Team not found.';
+			return result;
+		}
+
+		result.success = true;
+		result.data = team;
+		return result;
 	}
 
 	endGame(id) {

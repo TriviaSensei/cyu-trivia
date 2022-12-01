@@ -307,6 +307,7 @@ const handleQuestions = () => {
 				},
 				0
 			);
+			console.log(fontSize);
 		}
 	});
 	bsQuestionCarousel.to(0);
@@ -328,15 +329,14 @@ const handleQuestions = () => {
 		img.setAttribute('src', `/img/picture_round/${i + 1}.png`);
 		body.appendChild(img);
 
-		const ratio = img.offsetWidth / img.offsetHeight;
-		const bodyRatio = body.offsetWidth / body.offsetHeight;
-		body.style.height = '100%';
+		// const ratio = img.offsetWidth / img.offsetHeight;
+		// const bodyRatio = body.offsetWidth / body.offsetHeight;
 
-		if (ratio > bodyRatio) {
-			img.style.width = '80%';
-		} else {
-			img.style.height = '80%';
-		}
+		// if (ratio > bodyRatio) {
+		// 	img.style.width = '80%';
+		// } else {
+		// 	img.style.height = '80%';
+		// }
 	});
 	bsPictureCarousel.to(0);
 

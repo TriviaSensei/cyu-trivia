@@ -7,7 +7,8 @@ block styles
 block mobilemenu 
 
 block modals 
-    
+    include play/modals/createTeam
+    include play/modals/requestJoin
 
 block content 
     #join-div.centered.mb-3
@@ -49,19 +50,7 @@ block content
                             .team-setup
                                 button#create-team(type="button") Create Team
                                 .team-list-container
-                                    .team-list 
-                                        .team-tile 
-                                            button.join-team Join
-                                            .team-name-label I Swear To Drunk I'm Not God 
-                                        .team-tile 
-                                            button.join-team Join
-                                            .team-name-label Ragequit Against the Machine 
-                                        .team-tile 
-                                            button.join-team Join
-                                            .team-name-label Volkswagenitalia 
-                                        .team-tile 
-                                            button.join-team Join
-                                            .team-name-label Clever Team Name 
+                                    .team-list
                             .team-container.invisible-div
                                 ul.nav.nav-tabs.nav-fill#team-tabs(role="tablist")
                                     li.nav-item(role="presentation")
@@ -72,29 +61,20 @@ block content
                                     .tab-pane.fade.show.active#team-chat(role="tabpanel" aria-labelledby="user-tab")
                                         .tab-wrapper 
                                             .tab-inner
-                                                .chat-container#team-chat-container
-                                                .input-group
-                                                    input#team-message.form-control(type="text" placeholder="Message team" aria-label="Message team" aria-describedby="send-chat")
-                                                    button.btn.btn-secondary#send-team-chat(type="button") Send
+                                                #team-wrapper
+                                                    #team-roster
+                                                        h5#team-roster-name Team name here
+                                                        ul#team-roster-list
+                                                    #team-chat-wrapper
+                                                        .chat-container#team-chat-container
+                                                        .input-group
+                                                            input#team-message.form-control(type="text" placeholder="Message team" aria-label="Message team" aria-describedby="send-chat")
+                                                            button.btn.btn-secondary#send-team-chat(type="button") Send
                                     .tab-pane.fade.answer-container#team-answers
                                         .tab-wrapper 
                                             .tab-inner
                                                 #team-answer-container
-                                                    p team answers
-                                                    p team answers
-                                                    p team answers
-                                                    p team answers
-                                                    p team answers
-                                                    p team answers
-                                                    p team answers
-                                                    p team answers
-                                                    p team answers
-                                                    p team answers
-                                                    p team answers
-                                                    p team answers
-                                                    p team answers
-                                                    p team answers
-                                                    p team answers
+                                                    include play/teamAnswers
                                     
 
 
