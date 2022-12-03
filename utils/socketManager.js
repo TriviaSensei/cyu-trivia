@@ -633,8 +633,6 @@ const socket = (http, server) => {
 				id: newMsg.mid,
 			});
 
-			console.log(myUser);
-
 			socket.to(myGame.id).emit('game-chat', {
 				from: myUser.name,
 				isHost: newMsg.isHost,
