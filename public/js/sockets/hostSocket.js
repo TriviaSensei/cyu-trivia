@@ -12,6 +12,8 @@ export const Host = (socket) => {
 	socket.on('game-started', (data) => {
 		const myId = getCookie('id');
 
+		console.log(data);
+
 		if (data.newGame.chat) {
 			data.newGame.chat.forEach((m) => {
 				const newMessage = createChatMessage(
@@ -28,13 +30,10 @@ export const Host = (socket) => {
 			}, 10);
 		}
 
-		let currentSlides = [];
-		for (var i = 0; i <= data.newGame.currentSlide; i++) {
-			if (data.newGame.slides[i].clear) {
-				currentSlides = [];
-			}
-			currentSlides.push(data.newGame.slides[i]);
-		}
+		let currentSlides = data.newGame.slides.slice(
+			0,
+			data.newGame.currentSlide + 1
+		);
 
 		console.log(currentSlides);
 
@@ -49,6 +48,7 @@ export const Host = (socket) => {
 	});
 
 	socket.on('game-chat', (data) => {
+		console.log(data);
 		let newMessage;
 		if (data.isSystem)
 			newMessage = createChatMessage(

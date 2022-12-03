@@ -12,26 +12,32 @@ const teamList = document.querySelector('.team-list');
 const teamSetup = document.querySelector('.team-setup');
 const teamContainer = document.querySelector('.team-container');
 
-const handleNewTeam = (data) => {
-	const newTile = document.createElement('div');
-	newTile.classList.add('team-tile');
-
-	const butt = document.createElement('button');
-	butt.classList.add('join-team');
-	butt.innerHTML = 'Join';
-	butt.setAttribute('data-id', data.id);
-
-	const label = document.createElement('div');
-	label.classList.add('team-name-label');
-	label.innerHTML = data.name;
-
-	newTile.appendChild(butt);
-	newTile.appendChild(label);
-
-	teamList.appendChild(newTile);
-};
-
 export const Play = (socket) => {
+	const handleNewTeam = (data) => {
+		const newTile = document.createElement('div');
+		newTile.classList.add('team-tile');
+
+		const butt = document.createElement('button');
+		butt.classList.add('join-team');
+		butt.innerHTML = 'Join';
+		butt.setAttribute('data-id', data.id);
+		butt.addEventListener('click', handleJoinRequest);
+		const label = document.createElement('div');
+		label.classList.add('team-name-label');
+		label.innerHTML = data.name;
+
+		newTile.appendChild(butt);
+		newTile.appendChild(label);
+
+		teamList.appendChild(newTile);
+	};
+
+	const handleJoinRequest = (e) => {
+		socket.emit('request-join', {
+			teamid: e.target.getAttribute('data-id'),
+		});
+	};
+
 	socket.on('set-user-cookie', setUserCookie);
 
 	socket.on('game-joined', (data) => {
@@ -42,10 +48,14 @@ export const Play = (socket) => {
 		if (data.chat) {
 			data.chat.forEach((m) => {
 				const newMessage = createChatMessage(
-					data.id,
+					m.mid,
 					m.text,
-					myId === m.uid ? 'Me' : m.name,
-					myId === m.uid ? 'me' : m.uid === 'system' ? 'system' : 'other',
+					myId === m.user.id ? 'Me' : m.name,
+					myId === m.user.id
+						? 'me'
+						: m.user.id === 'system'
+						? 'system'
+						: 'other',
 					m.isHost ? 'host' : null
 				);
 				gameChat.appendChild(newMessage);
@@ -81,6 +91,7 @@ export const Play = (socket) => {
 	});
 
 	socket.on('game-chat', (data) => {
+		console.log(data);
 		let newMessage;
 		if (data.isSystem)
 			newMessage = createChatMessage(
@@ -89,7 +100,14 @@ export const Play = (socket) => {
 				data.from,
 				'system'
 			);
-		else newMessage = createChatMessage(data.id, data.message, data.from);
+		else
+			newMessage = createChatMessage(
+				data.id,
+				data.message,
+				data.from,
+				'other',
+				data.isHost ? 'host' : null
+			);
 
 		gameChat.appendChild(newMessage);
 		gameChat.scrollTop = gameChat.scrollHeight;

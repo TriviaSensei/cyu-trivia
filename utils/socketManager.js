@@ -1,22 +1,32 @@
 // const { questions, pictures, wildcard } = require('../public/js/utils/questions');
-const Game = require('../models/gameModel');
-const User = require('../models/userModel');
+const GameModel = require('../models/gameModel');
+const UserModel = require('../models/userModel');
 const { promisify } = require('util');
 const jwt = require('jsonwebtoken');
-const UserManager = require('./managers/userManager');
-const GameManager = require('./managers/gameManager');
+// const UserManager = require('./managers/userManager');
+// const GameManager = require('./managers/gameManager');
+const Game = require('./managers/game');
+const Team = require('./managers/team');
+const User = require('./managers/user');
+
+const disconnectTimeout = 5 * 60 * 1000;
+const captainTimeout = 5000;
+
 const { v4: uuidv4 } = require('uuid');
 const Filter = require('bad-words');
-const { fail } = require('assert');
+const { disconnect } = require('process');
 const filter = new Filter();
 
-const createSlides = (data) => {
+let games = [];
+let users = [];
+
+const createSlides = (data, joinCode) => {
 	const toReturn = [
 		{
 			new: true,
 			clear: true,
 			header: 'Welcome',
-			body: `${data.description}\nhttps://www.cyutrivia.com/play\nJoin code: ${data.joinCode}`,
+			body: `${data.description}\nhttps://www.cyutrivia.com/play\nJoin code: ${joinCode}`,
 		},
 		{
 			new: true,
@@ -310,6 +320,51 @@ const createSlides = (data) => {
 
 	return toReturn;
 };
+const randomCode = (len) => {
+	let code = '';
+
+	for (var i = 0; i < len; i++) {
+		code = `${code}${Math.floor(Math.random() * 10)}`;
+	}
+	return code;
+};
+const getGame = (joinCode) => {
+	return games.find((g) => {
+		return g.joinCode === joinCode;
+	});
+};
+const getGameForUser = (id) => {
+	return games.find((g) => {
+		return (
+			g.host.id === id ||
+			g.players.some((p) => {
+				return p.id === id;
+			})
+		);
+	});
+};
+
+const getUser = (id) => {
+	return users.find((u) => {
+		return u.id === id;
+	});
+};
+
+const replaceBrackets = (text) => {
+	const re1 = /</g;
+	const re2 = />/g;
+	return text.replace(re1, '&lt;').replace(re2, '&gt;');
+};
+// const startNewGame = (host) => {
+// 	let existingGame;
+// 	let joinCode;
+// 	do {
+// 		joinCode = this.randomCode(4);
+// 		existingGame = this.getGame(joinCode);
+// 	} while (existingGame);
+// 	if (process.env.LOCAL === 'true') joinCode = '1111';
+
+// };
 
 const socket = (http, server) => {
 	const io = require('socket.io')(http, {
@@ -319,27 +374,32 @@ const socket = (http, server) => {
 
 	io.listen(server);
 
-	const userManager = new UserManager('id');
-	const gameManager = new GameManager('id', userManager);
+	// const userManager = new UserManager('id');
+	// const gameManager = new GameManager('id', userManager);
 
 	io.on('connection', async (socket) => {
+		let myUser;
+		let myTeam;
+		let myGame;
+
 		const emitError = (msg) => {
 			io.to(socket.id).emit('error', { message: msg });
 		};
 
-		const systemMsg = (gameid, text) => {
-			const newMsg = gameManager.addChatMessage(
-				gameid,
+		const systemMsg = (text) => {
+			const newMsg = myGame.addChatMessage(
 				{ name: 'system', id: 'system' },
 				text
 			);
-			socket.to(gameid).emit('game-chat', {
-				from: 'System',
-				isSystem: true,
-				isHost: false,
-				message: newMsg.text,
-				id: newMsg.mid,
-			});
+			if (myGame) {
+				socket.to(myGame.id).emit('game-chat', {
+					from: 'System',
+					isSystem: true,
+					isHost: false,
+					message: newMsg.text,
+					id: newMsg.mid,
+				});
+			}
 		};
 
 		const getCookie = (name) => {
@@ -356,6 +416,54 @@ const socket = (http, server) => {
 			return null;
 		};
 
+		const handleDisconnect = () => {
+			if (!myUser) return;
+			myUser.connected = false;
+			myUser.lastDisconnect = new Date();
+
+			//notify myGame that user has disconnected
+			if (myGame) {
+				//see what happens if I pass a class-based object to the client - is it just an object?
+				io.to(myGame.id).emit('user-disconnected', myUser);
+			}
+
+			//set timer to remove player from list of players
+			setTimeout(() => {
+				users = users.filter((u) => {
+					if (
+						u.connected ||
+						!u.lastDisconnect ||
+						u.lastDisconnect + disconnectTimeout > new Date()
+					) {
+						return true;
+					} else {
+						if (myGame) {
+							io.to(myGame.id).emit('user-deleted', { id: u.id });
+						}
+						return false;
+					}
+				});
+			}, disconnectTimeout);
+
+			//TODO:
+			//	handle someone reconnecting after everyone disconnects
+			if (myTeam && myTeam.captain.id === myUser.id) {
+				setTimeout(() => {
+					//don't replace me if myuser has reconnected in the time limit,
+					//or it isn't time for replacement yet
+					if (
+						myUser.connected ||
+						myUser.lastDisconnect + captainTimeout > new Date()
+					)
+						return;
+					const newCaptain = myTeam.changeCaptain(false);
+					if (newCaptain) {
+						io.to(newCaptain.id).emit('set-captain', null);
+					}
+				}, captainTimeout);
+			}
+		};
+
 		const uid = getCookie('id');
 		const token = getCookie('jwt');
 		let loggedInUser;
@@ -363,7 +471,7 @@ const socket = (http, server) => {
 		if (token) {
 			decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
 			if (decoded) {
-				loggedInUser = await User.findById(decoded.id);
+				loggedInUser = await UserModel.findById(decoded.id);
 			}
 		}
 		console.log(`A user has connected from ${socket.handshake.address}`);
@@ -371,49 +479,58 @@ const socket = (http, server) => {
 			console.log(`\tName: ${loggedInUser.displayName}`);
 		}
 
-		let user;
-
 		if (uid) {
 			console.log(`Looking up user ${uid}`);
-			user = userManager.getUserById(uid);
-			if (user) {
-				userManager.setAttribute(user.id, 'socketid', socket.id);
+			myUser = getUser(uid);
+			if (myUser) {
+				myUser.connected = true;
+				myUser.lastDisconnect = undefined;
 			}
+			socket.join(uid);
 		}
 
-		if (!user) {
+		if (!myUser) {
 			console.log(`...not found...creating new user.`);
-			user = userManager.addUser(
-				{
-					name: loggedInUser ? loggedInUser.displayName : '',
-					socketid: socket.id,
-				},
-				uid
-			);
+			myUser = new User(loggedInUser ? loggedInUser.displayName : '');
+			users.push(myUser);
+			socket.join(myUser.id);
 		}
 
-		console.log(`\tID: ${user.id}`);
+		console.log(`\tID: ${myUser.id}`);
 
-		io.to(socket.id).emit('set-user-cookie', { id: user.id });
+		io.to(socket.id).emit('set-user-cookie', { id: myUser.id });
 
 		//rejoin the team and game chat if they were part of one already
-		if (user.gameid) {
-			socket.join(user.gameid);
-			const game = gameManager.getGameById(user.gameid);
-			if (game) {
-				console.log(`${user.name} rejoining game ${user.gameid}`);
+		myGame = getGameForUser(myUser.id);
 
-				systemMsg(game.id, `${user.name} has reconnected`);
+		if (myGame) {
+			socket.join(myGame.id);
 
-				if (user.id !== game.host) io.to(socket.id).emit('game-joined', game);
-				else
-					io.to(socket.id).emit('game-started', {
-						newGame: game,
-					});
+			console.log(`${myUser.name} rejoining game ${myGame.id}`);
+			systemMsg(`${myUser.name} has reconnected`);
 
-				if (user.teamid) {
-					socket.join(user.teamid);
-					console.log(`${user.name} rejoining game ${user.teamid}`);
+			if (myUser.id !== myGame.host.id)
+				io.to(socket.id).emit('game-joined', {
+					...myGame,
+					slides: myGame.slides.slice(0, myGame.currentSlide + 1),
+				});
+			else
+				io.to(socket.id).emit('game-started', {
+					newGame: myGame,
+				});
+
+			myTeam = myGame.getTeamForPlayer(myUser.id);
+			if (myTeam) {
+				socket.join(myTeam.id);
+				console.log(`${myUser.name} rejoining team ${myTeam.id}`);
+
+				//is anyone connected other than me? if not, I am the captain now.
+				if (
+					!myTeam.members.find((m) => {
+						return m.connected && m.id !== myUser.id;
+					})
+				) {
+					myTeam.changeCaptain(true, myUser.id);
 				}
 			}
 		}
@@ -425,11 +542,11 @@ const socket = (http, server) => {
 		// });
 
 		socket.on('start-game', async (data) => {
-			if (!jwt || !user) {
+			if (!jwt || !myUser) {
 				return emitError('You are not logged in');
 			}
 
-			const game = await Game.findById(data._id);
+			const game = await GameModel.findById(data._id);
 			if (!game || game.deleteAfter) {
 				emitError('Game not found.');
 			}
@@ -438,24 +555,25 @@ const socket = (http, server) => {
 					return emitError('This game may not be started yet.');
 				}
 
-				const newGame = gameManager.startNewGame(user.id);
-				const joinCode = newGame.joinCode;
-				game.joinCode = joinCode;
-				const slides = createSlides(game);
-				gameManager.setAttribute(newGame.id, {
-					slides,
-				});
-
-				const updatedUser = userManager.setAttribute(
-					user.id,
-					'gameid',
-					newGame.id
-				);
-				socket.join(newGame.id);
-				if (updatedUser) {
-					console.log(`${user.name} has started game ${newGame.id}`);
+				myGame = new Game(myUser, randomCode(4));
+				console.log(`Starting game with join code ${myGame.joinCode}`);
+				while (getGame(myGame.joinCode)) {
+					myGame.joinCode = randomCode(4);
+					console.log(`...which is taken. New code is ${myGame.joinCode}`);
 				}
-				io.to(socket.id).emit('game-started', { newGame });
+				if (process.env.LOCAL === 'true') {
+					myGame.joinCode = '1111';
+				}
+				games.push(myGame);
+				const slides = createSlides(game, myGame.joinCode);
+				myGame.slides = slides;
+				myGame.currentSlide = 0;
+
+				socket.join(myGame.id);
+
+				console.log(`${myUser.name} has started game ${myGame.id}`);
+
+				io.to(socket.id).emit('game-started', { newGame: myGame });
 				io.emit('live-now', {
 					live: true,
 				});
@@ -469,27 +587,27 @@ const socket = (http, server) => {
 				return emitError('Watch your language');
 			}
 
-			const game = gameManager.getGame(data.joinCode);
+			if (myGame) return;
 
-			if (!game) {
+			myGame = getGame(data.joinCode);
+
+			if (!myGame) {
 				return emitError('Game not found.');
 			}
 
-			const updatedUser = userManager.setAttribute(
-				user.id,
-				['name', 'gameid'],
-				[data.name, game.id]
-			);
-			if (updatedUser) {
-				console.log(
-					`${updatedUser.name} (${updatedUser.id}) joining game ${updatedUser.gameid}`
-				);
-			}
-			socket.join(game.id);
+			myGame.players.push(myUser);
 
-			systemMsg(game.id, `${data.name} has joined the game.`);
+			myUser.name = data.name;
 
-			io.to(socket.id).emit('game-joined', game);
+			console.log(`${myUser.name} (${myUser.id}) joining game ${myGame.id}`);
+			socket.join(myGame.id);
+
+			systemMsg(`${data.name} has joined the game.`);
+
+			io.to(socket.id).emit('game-joined', {
+				...myGame,
+				slides: myGame.slides.slice(0, myGame.currentSlide + 1),
+			});
 		});
 
 		socket.on('game-chat', (data, cb) => {
@@ -499,20 +617,15 @@ const socket = (http, server) => {
 				});
 				return emitError('Watch your language');
 			}
-			const re1 = /</g;
-			const re2 = />/g;
-			const message = data.message.replace(re1, '&lt;').replace(re2, '&gt;');
+			const message = replaceBrackets(data.message);
 
-			const sender = userManager.getUser(socket.id);
-			if (!sender || !sender.gameid) return;
-			const game = gameManager.getGameById(sender.gameid);
-			const isHost = sender.id === game.host;
-
-			const newMsg = gameManager.addChatMessage(
-				game.id,
-				isHost ? { ...sender, isHost: true } : { ...sender, isHost: false },
-				data.message
-			);
+			if (!myGame) {
+				return cb({ status: 'FAIL', message: 'Game not found.' });
+			}
+			if (!myUser) {
+				return cb({ status: 'FAIL', message: 'User not found.' });
+			}
+			const newMsg = myGame.addChatMessage(myUser, message);
 
 			cb({
 				status: 'OK',
@@ -520,25 +633,34 @@ const socket = (http, server) => {
 				id: newMsg.mid,
 			});
 
-			socket.to(sender.gameid).emit('game-chat', {
-				from: sender.name,
-				isHost,
+			console.log(myUser);
+
+			socket.to(myGame.id).emit('game-chat', {
+				from: myUser.name,
+				isHost: newMsg.isHost,
 				message,
 				id: newMsg.mid,
 			});
 		});
 
 		socket.on('set-team-name', (data, cb) => {
-			console.log(socket.id);
-			const user = userManager.getUser(socket.id);
-			if (!user) {
-				return cb({
+			if (filter.isProfane(data.name)) {
+				cb({
 					status: 'FAIL',
-					message: 'User not found.',
+					message: 'Watch your language.',
 				});
 			}
+
+			const name = replaceBrackets(data.name);
+
+			if (!myUser)
+				return cb({
+					status: 'FAIL',
+					message: 'User not found',
+				});
+
 			//ensure the user is part of a game
-			if (!user.gameid) {
+			if (!myGame) {
 				return cb({
 					status: 'FAIL',
 					message: 'You are not part of a game.',
@@ -546,46 +668,41 @@ const socket = (http, server) => {
 			}
 
 			//creating a team
-			if (!user.teamId) {
-				const result = gameManager.createTeam(user.gameid, user.id, data.name);
-				console.log(result);
-
-				if (result.success) {
-					const updatedUser = userManager.setAttribute(
-						user.id,
-						'teamid',
-						result.data.id
-					);
-					cb({
-						...result.data,
-						status: 'OK',
-					});
-					io.to(user.gameid).emit('new-team', {
-						name: result.data.name,
-						id: result.data.id,
-					});
-				} else {
-					cb({
-						status: 'FAIL',
-						message: result.message,
-					});
-				}
+			if (!myTeam) {
+				myTeam = new Team(name, myUser);
+				myGame.addTeam(myTeam);
+				cb({
+					status: 'OK',
+					id: myTeam.id,
+					name: myTeam.name,
+				});
+				io.to(myGame.id).emit('new-team', {
+					name: data.name,
+					id: myTeam.id,
+				});
 			} else {
 				//editing team name
-				const team = gameManager.getTeam(user.gameid, user.teamid);
+				//see if this also edits it in the game as well
+				myTeam.name = name;
+				cb({
+					status: 'OK',
+					id: myTeam.id,
+					name: myTeam.name,
+				});
 			}
 		});
 
 		socket.on('disconnect', (reason) => {
 			console.log(
 				`${
-					user ? (user.name ? user.name : user.id) : 'A user'
+					myUser ? (myUser.name ? myUser.name : myUser.id) : 'A user'
 				} has disconnected`
 			);
-			userManager.handleDisconnect(socket.id);
 
-			if (user && user.gameid) {
-				systemMsg(user.gameid, `${user.name} has disconnected.`);
+			handleDisconnect();
+
+			if (myGame) {
+				systemMsg(`${myUser.name} has disconnected.`);
 			}
 		});
 	});

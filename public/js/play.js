@@ -15,10 +15,13 @@ const teamNameEntry = document.getElementById('team-name-entry');
 const createTeamModal = document.getElementById('create-team-modal');
 const teamNameModal = new bootstrap.Modal(createTeamModal);
 
+//team elements
 const teamList = document.querySelector('.team-setup');
 const teamContainer = document.querySelector('.team-container');
 const teamRosterList = document.getElementById('team-roster-list');
-
+const teamNameLabel = document.getElementById('team-roster-name');
+const changeTeamName = document.getElementById('change-team-name');
+//game chat elements
 const chatMessage = document.getElementById('chat-message');
 const chatButton = document.getElementById('send-chat');
 const gameChat = document.getElementById('all-chat');
@@ -107,13 +110,16 @@ const handleTeamName = (e) => {
 						showMessage('info', 'Successfully created team.');
 						teamList.classList.add('invisible-div');
 						teamContainer.classList.remove('invisible-div');
+						teamNameLabel.innerHTML = data.name;
 
 						const l = document.createElement('li');
+						l.setAttribute('data-id', data.id);
 						l.innerHTML = `${data.players[0].name} (C)`;
 						teamRosterList.innerHTML = '';
 						teamRosterList.appendChild(l);
 					} else if (action === 'edit') {
 						showMessage('info', 'Successfully changed team name.');
+						teamNameLabel.innerHTML = data.name;
 					}
 					action = '';
 					teamNameModal.hide();
@@ -143,6 +149,7 @@ window.addEventListener('load', (e) => {
 	chatMessage.addEventListener('keydown', handleSendChat);
 	chatButton.addEventListener('click', handleSendChat);
 	createTeamButton.addEventListener('click', handleCreateAction);
+	changeTeamName.addEventListener('click', handleCreateAction);
 	createTeam.addEventListener('submit', handleTeamName);
 });
 

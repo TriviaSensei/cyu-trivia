@@ -40,6 +40,7 @@ module.exports = class GameManager {
 			currentSlide: 0,
 			key: [],
 			chat: [],
+			joinRequests: [],
 			host,
 			hostConnected: true,
 		};
@@ -87,6 +88,13 @@ module.exports = class GameManager {
 		return this.games.find((g) => {
 			return g.id === id;
 		});
+	}
+
+	getJoinRequests(gameid, teamid) {
+		const toReturn = this.getGameById(gameid)?.joinRequests.filter((r) => {
+			return r.teamid === teamid;
+		});
+		return toReturn;
 	}
 
 	createTeam(id, captain, name) {
