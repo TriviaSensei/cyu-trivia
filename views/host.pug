@@ -59,10 +59,15 @@ block content
                 .tab-pane.fade.show.active#chat(role="tabpanel" aria-labelledby="user-tab")
                     .tab-wrapper 
                         .tab-inner
-                            .chat-container
-                            .input-group
-                                input#chat-message.form-control(type="text" placeholder="Enter a message" aria-label="Enter a message" aria-describedby="send-chat")
-                                button.btn.btn-secondary#send-chat(type="button") Send
+                            #game-wrapper 
+                                #game-roster 
+                                    p In this room:
+                                    ul#game-roster-list
+                                #game-chat-wrapper
+                                    .chat-container
+                                    .input-group
+                                        input#chat-message.form-control(type="text" placeholder="Enter a message" aria-label="Enter a message" aria-describedby="send-chat")
+                                        button.btn.btn-secondary#send-chat(type="button") Send
                  
                 .tab-pane.fade#grading(role="tabpanel" aria-labelledby="user-tab")
                     .tab-wrapper 

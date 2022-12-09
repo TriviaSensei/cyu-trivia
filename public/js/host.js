@@ -59,6 +59,7 @@ document.addEventListener('DOMContentLoaded', (e) => {
 			socket.emit('start-game', {
 				_id: e.target.getAttribute('data-id'),
 			});
+			showMessage('info', 'Starting game...', 3000);
 		});
 	});
 	chatMessage.addEventListener('keydown', handleSendChat);

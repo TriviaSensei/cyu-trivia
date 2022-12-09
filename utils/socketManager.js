@@ -9,12 +9,9 @@ const Game = require('./managers/game');
 const Team = require('./managers/team');
 const User = require('./managers/user');
 
-const disconnectTimeout = 5 * 60 * 1000;
-const captainTimeout = 5000;
+const { reqTimeout, disconnectTimeout, captainTimeout } = require('./settings');
 
-const { v4: uuidv4 } = require('uuid');
 const Filter = require('bad-words');
-const { disconnect } = require('process');
 const filter = new Filter();
 
 let games = [];
@@ -343,6 +340,11 @@ const getGameForUser = (id) => {
 		);
 	});
 };
+const getGameById = (id) => {
+	return games.find((g) => {
+		return g.id === id;
+	});
+};
 
 const getUser = (id) => {
 	return users.find((u) => {
@@ -374,31 +376,59 @@ const socket = (http, server) => {
 
 	io.listen(server);
 
-	// const userManager = new UserManager('id');
-	// const gameManager = new GameManager('id', userManager);
-
 	io.on('connection', async (socket) => {
 		let myUser;
 		let myTeam;
 		let myGame;
 
+		const sanitize = (data) => {
+			return data;
+			// if (Array.isArray(data)) {
+			// 	return data.map((d) => {
+			// 		return sanitize(d);
+			// 	});
+			// } else if ((typeof data).toString().toUpperCase() === 'OBJECT') {
+			// 	const props = Object.getOwnPropertyNames(data);
+			// 	let toReturn = {
+			// 		...data,
+			// 	};
+			// 	props.forEach((p) => {
+			// 		if (p === 'socket') toReturn[p] = undefined;
+			// 		else toReturn[p] = sanitize(data[p]);
+			// 	});
+			// 	return toReturn;
+			// } else {
+			// 	return data;
+			// }
+		};
+
 		const emitError = (msg) => {
 			io.to(socket.id).emit('error', { message: msg });
 		};
 
-		const systemMsg = (text) => {
+		const systemMsg = (text, ...team) => {
 			const newMsg = myGame.addChatMessage(
 				{ name: 'system', id: 'system' },
 				text
 			);
 			if (myGame) {
-				socket.to(myGame.id).emit('game-chat', {
-					from: 'System',
-					isSystem: true,
-					isHost: false,
-					message: newMsg.text,
-					id: newMsg.mid,
-				});
+				if (!team || team.length === 0) {
+					socket.to(myGame.id).emit('game-chat', {
+						from: 'System',
+						isSystem: true,
+						isHost: false,
+						message: newMsg.text,
+						id: newMsg.mid,
+					});
+				} else {
+					socket.to(myTeam.roomid).emit('team-chat', {
+						from: 'System',
+						isSystem: true,
+						isHost: false,
+						message: newMsg.text,
+						id: newMsg.mid,
+					});
+				}
 			}
 		};
 
@@ -421,32 +451,44 @@ const socket = (http, server) => {
 			myUser.connected = false;
 			myUser.lastDisconnect = new Date();
 
-			//notify myGame that user has disconnected
+			//notify myGame and myTeam that user has disconnected
 			if (myGame) {
-				//see what happens if I pass a class-based object to the client - is it just an object?
-				io.to(myGame.id).emit('user-disconnected', myUser);
+				systemMsg(`${myUser.name} has disconnected.`);
+				io.to(myGame.id).emit('user-disconnected', { id: myUser.id });
+			}
+			if (myTeam) {
+				systemMsg(`${myUser.name} has disconnected.`, true);
 			}
 
 			//set timer to remove player from list of players
 			setTimeout(() => {
 				users = users.filter((u) => {
+					//do nothing if I'm connected, I haven't disconnected,
+					//my last disconnnect wasn't long enough ago, or if this isn't me.
 					if (
 						u.connected ||
 						!u.lastDisconnect ||
-						u.lastDisconnect + disconnectTimeout > new Date()
+						u.lastDisconnect + disconnectTimeout > new Date() ||
+						u.id !== myUser.id
 					) {
 						return true;
 					} else {
+						//if I'm in a game...
 						if (myGame) {
+							//tell my game that I should be removed
 							io.to(myGame.id).emit('user-deleted', { id: u.id });
+							//remove my player from the list in my game
+							myGame.removePlayer(myUser.id);
+							//remove my player from the list in my team, if I have a team
+							if (myTeam) {
+								myTeam.removePlayer(myUser.id);
+							}
 						}
 						return false;
 					}
 				});
 			}, disconnectTimeout);
 
-			//TODO:
-			//	handle someone reconnecting after everyone disconnects
 			if (myTeam && myTeam.captain.id === myUser.id) {
 				setTimeout(() => {
 					//don't replace me if myuser has reconnected in the time limit,
@@ -456,9 +498,10 @@ const socket = (http, server) => {
 						myUser.lastDisconnect + captainTimeout > new Date()
 					)
 						return;
+					//change captains (but don't force it)
 					const newCaptain = myTeam.changeCaptain(false);
 					if (newCaptain) {
-						io.to(newCaptain.id).emit('set-captain', null);
+						io.to(newCaptain.id).emit('new-captain', null);
 					}
 				}, captainTimeout);
 			}
@@ -507,23 +550,25 @@ const socket = (http, server) => {
 			socket.join(myGame.id);
 
 			console.log(`${myUser.name} rejoining game ${myGame.id}`);
+			socket.to(myGame.id).emit('user-reconnected', { id: myUser.id });
 			systemMsg(`${myUser.name} has reconnected`);
 
 			if (myUser.id !== myGame.host.id)
 				io.to(socket.id).emit('game-joined', {
-					...myGame,
+					...sanitize(myGame),
 					slides: myGame.slides.slice(0, myGame.currentSlide + 1),
 				});
 			else
 				io.to(socket.id).emit('game-started', {
-					newGame: myGame,
+					newGame: sanitize(myGame),
 				});
 
 			myTeam = myGame.getTeamForPlayer(myUser.id);
 			if (myTeam) {
-				socket.join(myTeam.id);
+				socket.join(myTeam.roomid);
 				console.log(`${myUser.name} rejoining team ${myTeam.id}`);
 
+				systemMsg(`${myUser.name} has reconnected.`, true);
 				//is anyone connected other than me? if not, I am the captain now.
 				if (
 					!myTeam.members.find((m) => {
@@ -573,7 +618,10 @@ const socket = (http, server) => {
 
 				console.log(`${myUser.name} has started game ${myGame.id}`);
 
-				io.to(socket.id).emit('game-started', { newGame: myGame });
+				io.to(myUser.id).emit('game-started', {
+					newGame: sanitize(myGame),
+				});
+
 				io.emit('live-now', {
 					live: true,
 				});
@@ -600,12 +648,17 @@ const socket = (http, server) => {
 			myUser.name = data.name;
 
 			console.log(`${myUser.name} (${myUser.id}) joining game ${myGame.id}`);
+			io.to(myGame.id).emit('user-joined', {
+				id: myUser.id,
+				name: myUser.name,
+			});
 			socket.join(myGame.id);
 
 			systemMsg(`${data.name} has joined the game.`);
 
+			const toSend = sanitize(myGame);
 			io.to(socket.id).emit('game-joined', {
-				...myGame,
+				...toSend,
 				slides: myGame.slides.slice(0, myGame.currentSlide + 1),
 			});
 		});
@@ -613,17 +666,17 @@ const socket = (http, server) => {
 		socket.on('game-chat', (data, cb) => {
 			if (filter.isProfane(data.message)) {
 				cb({
-					status: 'FAIL',
+					status: 'fail',
 				});
 				return emitError('Watch your language');
 			}
 			const message = replaceBrackets(data.message);
 
 			if (!myGame) {
-				return cb({ status: 'FAIL', message: 'Game not found.' });
+				return cb({ status: 'fail', message: 'Game not found.' });
 			}
 			if (!myUser) {
-				return cb({ status: 'FAIL', message: 'User not found.' });
+				return cb({ status: 'fail', message: 'User not found.' });
 			}
 			const newMsg = myGame.addChatMessage(myUser, message);
 
@@ -634,8 +687,45 @@ const socket = (http, server) => {
 			});
 
 			socket.to(myGame.id).emit('game-chat', {
+				to: 'game',
 				from: myUser.name,
 				isHost: newMsg.isHost,
+				message,
+				id: newMsg.mid,
+			});
+		});
+
+		socket.on('team-chat', (data, cb) => {
+			if (filter.isProfane(data.message)) {
+				cb({
+					status: 'fail',
+				});
+				return emitError('Watch your language');
+			}
+			const message = replaceBrackets(data.message);
+
+			if (!myGame) {
+				return cb({ status: 'fail', message: 'Game not found.' });
+			}
+			if (!myUser) {
+				return cb({ status: 'fail', message: 'User not found.' });
+			}
+			if (!myTeam) {
+				return cb({ status: 'fail', message: 'Team not found.' });
+			}
+
+			const newMsg = myTeam.addChatMessage(myUser, message);
+
+			socket.to(myTeam.roomid).emit('team-chat', {
+				to: 'team',
+				from: myUser.name,
+				isHost: newMsg.isHost,
+				message,
+				id: newMsg.mid,
+			});
+
+			cb({
+				status: 'OK',
 				message,
 				id: newMsg.mid,
 			});
@@ -644,7 +734,7 @@ const socket = (http, server) => {
 		socket.on('set-team-name', (data, cb) => {
 			if (filter.isProfane(data.name)) {
 				cb({
-					status: 'FAIL',
+					status: 'fail',
 					message: 'Watch your language.',
 				});
 			}
@@ -653,41 +743,260 @@ const socket = (http, server) => {
 
 			if (!myUser)
 				return cb({
-					status: 'FAIL',
+					status: 'fail',
 					message: 'User not found',
 				});
 
 			//ensure the user is part of a game
 			if (!myGame) {
 				return cb({
-					status: 'FAIL',
+					status: 'fail',
 					message: 'You are not part of a game.',
 				});
 			}
 
 			//creating a team
 			if (!myTeam) {
-				myTeam = new Team(name, myUser);
-				myGame.addTeam(myTeam);
+				myTeam = myGame.addTeam(new Team(name, myUser));
+				if (!myTeam) {
+					return cb({
+						status: 'fail',
+						message: 'A team with that name already exists.',
+					});
+				}
+				socket.join(myTeam.roomid);
 				cb({
 					status: 'OK',
 					id: myTeam.id,
+					roomid: myTeam.roomid,
 					name: myTeam.name,
+					players: sanitize(myTeam.members),
 				});
+
 				io.to(myGame.id).emit('new-team', {
 					name: data.name,
 					id: myTeam.id,
+					players: sanitize(myTeam.members),
 				});
 			} else {
 				//editing team name
 				//see if this also edits it in the game as well
+				if (myTeam.captain.id !== myUser.id) {
+					return cb({
+						status: 'fail',
+						message: 'Only the captain may change the team name.',
+					});
+				}
+
 				myTeam.name = name;
 				cb({
 					status: 'OK',
 					id: myTeam.id,
 					name: myTeam.name,
 				});
+				io.to(myGame.id).emit('edit-team-name', {
+					name: data.name,
+					id: myTeam.id,
+				});
+				io.to(myTeam.roomid).emit('set-team-name', {
+					name: myTeam.name,
+				});
 			}
+		});
+
+		socket.on('request-join', (data, cb) => {
+			if (!myUser)
+				return cb({
+					status: 'fail',
+					message: 'User not found.',
+				});
+			if (!myGame)
+				return cb({
+					status: 'fail',
+					message: 'You are not in a game.',
+				});
+			if (myTeam)
+				return cb({
+					status: 'fail',
+					message: 'You are already on a team.',
+				});
+
+			let timeLeft;
+			if (
+				myGame.teams.some((t) => {
+					return t.joinRequests.some((r) => {
+						if (r.userid === myUser.id) {
+							timeLeft = reqTimeout - (new Date() - Date.parse(r.created));
+							return true;
+						}
+					});
+				})
+			) {
+				return cb({
+					status: 'fail',
+					message: 'You have an active join request.',
+					timeLeft,
+				});
+			}
+
+			const reqTeam = myGame.getTeam(data.teamid);
+			if (!reqTeam)
+				return cb({
+					status: 'fail',
+					message: 'Team not found.',
+				});
+
+			const dr = reqTeam.deniedRequests.find((d) => {
+				return d.player.id === myUser.id;
+			});
+			if (dr && dr.count >= 3) {
+				return cb({
+					status: 'fail',
+					message: 'You may no longer request to join this team.',
+				});
+			}
+
+			reqTeam.addJoinRequest(myUser);
+
+			if (reqTeam.joinRequests.length === 1) {
+				console.log(`Sending join request to ${reqTeam.captain.id}`);
+				reqTeam.setJoinTimer();
+				io.to(reqTeam.captain.id).emit('join-request', sanitize(myUser));
+			}
+
+			return cb({
+				status: 'OK',
+			});
+		});
+
+		socket.on('join-team-by-id', (data, cb) => {
+			myTeam = myGame.teams.find((t) => {
+				return t.roomid === data.id;
+			});
+			if (!myTeam) {
+				cb({
+					status: 'fail',
+					message: 'Team not found',
+				});
+			}
+			socket.join(myTeam.roomid);
+			cb({ status: 'OK' });
+		});
+
+		socket.on('cancel-join', (data, cb) => {
+			if (
+				!myGame.teams.some((t) => {
+					if (t.cancelJoinRequest(data.id)) {
+						io.to(t.captain.id).emit('cancel-join-request', myUser);
+						return true;
+					}
+					return false;
+				})
+			) {
+				return cb({
+					status: 'fail',
+					message: 'Request not found',
+				});
+			}
+			cb({
+				status: 'OK',
+			});
+		});
+
+		socket.on('accept-teammate', (data) => {
+			if (!myTeam) return emitError('You are not in a game.');
+			if (!myUser) return emitError('User not found.');
+
+			if (myTeam.captain.id !== myUser.id)
+				return emitError('You are not the captain.');
+
+			if (
+				myTeam.members.find((m) => {
+					return m.id === data.id;
+				})
+			) {
+				return emitError('That player is already on your team.');
+			}
+
+			const newPlayer = myTeam.cancelJoinRequest(data.id);
+			myTeam.addPlayer(newPlayer);
+			console.log(
+				`${newPlayer.name} accepted onto team ${myTeam.name} (Room ID: ${myTeam.roomid})`
+			);
+
+			const newMsg = myTeam.addChatMessage(
+				{ name: 'system', id: 'system' },
+				`${newPlayer.name} has joined the team.`
+			);
+
+			io.to(myTeam.roomid).emit('new-teammate', {
+				name: newPlayer.name,
+				id: data.id,
+				mid: newMsg.mid,
+				message: newMsg.text,
+			});
+
+			io.to(data.id).emit('request-accepted', {
+				name: myTeam.name,
+				roomid: myTeam.roomid,
+				members: sanitize(myTeam.members),
+				captain: sanitize(myTeam.captain),
+			});
+
+			if (myTeam.joinRequests.length > 0) {
+				setTimeout(() => {
+					io.to(myUser.id).emit('join-request', myTeam.joinRequests[0].player);
+					myTeam.setJoinTimer();
+				}, 200);
+			}
+		});
+
+		socket.on('decline-teammate', (data) => {
+			if (myTeam.captain.id !== myUser.id)
+				return emitError('You are not the captain.');
+
+			const newPlayer = myTeam.cancelJoinRequest(data.id);
+			const dr = myTeam.deniedRequests.find((d) => {
+				return d.player.id === data.id;
+			});
+			if (dr) {
+				dr.count++;
+			} else {
+				myTeam.deniedRequests.push({
+					player: newPlayer,
+					count: 1,
+				});
+			}
+			io.to(data.id).emit('request-denied', { name: myTeam.name });
+		});
+
+		socket.on('leave-team', (data) => {
+			if (!myTeam) {
+				emitError('You are not on a team.');
+			}
+			const newMsg = myTeam.addChatMessage(
+				{ name: 'system', id: 'system' },
+				`${myUser.name} has left the team.`
+			);
+
+			socket.leave(myTeam.roomid);
+			io.to(myTeam.roomid).emit('teammate-left', {
+				id: myUser.id,
+				name: myUser.name,
+				mid: newMsg.mid,
+				message: newMsg.text,
+			});
+			const oldCaptainId = myTeam.captain.id;
+			myTeam.removePlayer(myUser.id);
+			const newCaptainId = myTeam.captain.id;
+			if (oldCaptainId !== newCaptainId) {
+				io.to(newCaptainId).emit('new-captain', null);
+			}
+			if (myTeam.members.length === 0) {
+				myGame.removeTeam(myTeam.id);
+				io.to(myGame.id).emit('remove-team', { id: myTeam.id });
+			}
+			myTeam = undefined;
 		});
 
 		socket.on('disconnect', (reason) => {
@@ -698,10 +1007,6 @@ const socket = (http, server) => {
 			);
 
 			handleDisconnect();
-
-			if (myGame) {
-				systemMsg(`${myUser.name} has disconnected.`);
-			}
 		});
 	});
 };

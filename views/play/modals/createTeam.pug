@@ -1,4 +1,4 @@
-.modal.fade#create-team-modal(tabindex="-1" aria-labelledby="create-team-label" aria-hidden="true")
+.modal.fade#create-team-modal(tabindex="-1" aria-labelledby="create-team-label" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false")
     .modal-dialog.modal-dialog-centered
         .modal-content#create-team-modal-content
             .modal-header
@@ -8,7 +8,7 @@
                 form#new-team-modal-form
                     label.form-label(for="fname") Team Name:
                     .input-group.mb-3
-                        input.form-control#team-name-entry(type="text" placeholder="Team Name" tabindex="-1" required)            
+                        input.form-control#team-name-entry(type="text" placeholder="Team Name" tabindex="-1" autocomplete="off" required)            
             .modal-footer
                 button.btn.btn-primary#confirm-create-team(type="submit" form="new-team-modal-form") Create
                 button.btn.btn-secondary#cancel-create-team(type="button" data-bs-dismiss="modal") Cancel

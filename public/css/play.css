@@ -27,7 +27,8 @@
 	overflow-y: scroll;
 }
 
-#team-chat-wrapper {
+#team-chat-wrapper,
+#game-chat-wrapper {
 	flex: 2;
 	display: flex;
 	flex-direction: column;

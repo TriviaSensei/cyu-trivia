@@ -1,0 +1,10 @@
+.modal.fade#leave-team-modal(tabindex="-1" aria-labelledby="leave-team-label" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false")
+    .modal-dialog.modal-dialog-centered
+        .modal-content#leave-team-modal-content
+            .modal-header
+                h5.modal-title#leave-team-label Leave team?
+            .modal-body
+                p Are you sure you wish to leave your team? This cannot be undone.
+            .modal-footer
+                button.btn.btn-warning#confirm-leave-team(type="button" data-bs-dismiss="modal") Yes
+                button.btn.btn-primary#cancel-leave-team(type="button" data-bs-dismiss="modal") No

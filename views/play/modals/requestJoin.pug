@@ -1,10 +1,10 @@
-.modal.fade#join-team-modal(tabindex="-1" aria-labelledby="join-team-label" aria-hidden="true")
+.modal.fade#join-team-modal(tabindex="-1" aria-labelledby="join-team-label" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false")
     .modal-dialog.modal-dialog-centered
         .modal-content#join-team-modal-content
             .modal-header
                 h5.modal-title#join-team-label Teammate Request
             .modal-body
-                p #[span#new-teammate-name] would like to join your team.     
+                p #[span#new-teammate-name] would like to join your team.
             .modal-footer
                 button.btn.btn-primary#confirm-teammate(type="button" data-bs-dismiss="modal") Allow
                 button.btn.btn-warning#deny-teammate(type="button" data-bs-dismiss="modal") Deny

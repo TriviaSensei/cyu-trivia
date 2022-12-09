@@ -9,12 +9,13 @@ block mobilemenu
 block modals 
     include play/modals/createTeam
     include play/modals/requestJoin
+    include play/modals/leaveTeam
 
 block content 
     #join-div.centered.mb-3
         form#join-form
             label.form-label(for="name") Your name:
-            input.form-control#name(type="text" placeholder="Your name" value="bob" required)            
+            input.form-control#name(type="text" placeholder="Your name" value="bob" autocomplete="off" required)            
             label.form-label(for="join-code") Join code:
             input.form-control#code(type="text" placeholder="Join code" value="1111" required)            
             div(style="width: 100%; display: flex; margin-top: 3vh")
@@ -40,10 +41,15 @@ block content
                 .tab-pane.fade.show.active#game(role="tabpanel" aria-labelledby="user-tab")
                     .tab-wrapper 
                         .tab-inner
-                            .chat-container#all-chat
-                            .input-group
-                                input#chat-message.form-control(type="text" placeholder="Message everyone" aria-label="Message everyone" aria-describedby="send-chat")
-                                button.btn.btn-secondary#send-chat(type="button") Send
+                            #game-wrapper
+                                #game-roster 
+                                    p In this room:
+                                    ul#game-roster-list 
+                                #game-chat-wrapper 
+                                    .chat-container#all-chat
+                                    .input-group
+                                        input#chat-message.form-control(type="text" placeholder="Message everyone" aria-label="Message everyone" aria-describedby="send-chat")
+                                        button.btn.btn-secondary#send-chat(type="button") Send
                 .tab-pane.fade#team(role="tabpanel" aria-labelledby="user-tab")
                     .tab-wrapper 
                         .tab-inner
@@ -63,8 +69,9 @@ block content
                                             .tab-inner
                                                 #team-wrapper
                                                     #team-roster
-                                                        h5 #[span#team-roster-name Team name here] (#[a#change-team-name Change])
+                                                        h5 #[span#team-roster-name Team name here] #[span.invisible-div#name-change (#[a#change-team-name Change])]
                                                         ul#team-roster-list
+                                                        button#leave-team(data-bs-toggle="modal" data-bs-target="#leave-team-modal") Leave
                                                     #team-chat-wrapper
                                                         .chat-container#team-chat-container
                                                         .input-group

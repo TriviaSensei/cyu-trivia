@@ -10,16 +10,44 @@ module.exports = class Game {
 		this.currentSlide = undefined;
 		this.key = [];
 		this.chat = [];
-		this.joinRequests = [];
 		this.host = host;
 	}
 
+	containsPlayer(id) {
+		return this.players.some((m) => {
+			m.id === id;
+		});
+	}
+
+	removePlayer(id) {
+		this.players = this.players.filter((m) => {
+			return m.id !== id;
+		});
+	}
+
+	addPlayer(player) {
+		if (
+			!this.players.some((m) => {
+				return m.id === player.id;
+			})
+		)
+			this.players.push(player);
+	}
+
 	addTeam(team) {
+		if (
+			this.teams.find((t) => {
+				return t.name === team.name;
+			})
+		) {
+			return null;
+		}
 		this.teams.push(team);
+		return team;
 	}
 
 	removeTeam(id) {
-		toReturn = false;
+		let toReturn = false;
 
 		this.teams = this.teams.filter((t) => {
 			if (t.id === id) {
@@ -37,6 +65,12 @@ module.exports = class Game {
 		});
 
 		return toReturn;
+	}
+
+	getTeam(id) {
+		return this.teams.find((t) => {
+			return t.id === id;
+		});
 	}
 
 	advanceSlide() {

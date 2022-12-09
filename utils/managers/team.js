@@ -1,19 +1,22 @@
 const { v4: uuidv4 } = require('uuid');
+const { reqTimeout } = require('../settings');
 
 module.exports = class Team {
 	constructor(name, captain) {
 		this.name = name;
 		this.id = uuidv4();
+		this.roomid = uuidv4();
 		this.members = [captain];
 		this.chat = [];
 		this.submissions = [];
 		this.joinRequests = [];
+		this.deniedRequests = [];
 		this.captain = captain;
 	}
 
 	containsPlayer(id) {
 		return this.members.some((m) => {
-			m.id === id;
+			return m.id === id;
 		});
 	}
 
@@ -21,6 +24,7 @@ module.exports = class Team {
 		this.members = this.members.filter((m) => {
 			return m.id !== id;
 		});
+		if (this.captain.id === id) this.changeCaptain(true);
 	}
 
 	addPlayer(player) {
@@ -32,6 +36,11 @@ module.exports = class Team {
 			this.members.push(player);
 	}
 
+	//change the captain of the team
+	//force - whether to force the system to change captains, if possible
+	//id (optional) - the user id to assign as the captain, if they're connected.
+	//returns: the user object that is the new captain (or undefined if the captain was not assigned,
+	//	in which case the previous captain is retained
 	changeCaptain(force, ...id) {
 		//don't change captain if the captain still connected and we aren't being forced to
 		if (this.captain.connected && !force) return undefined;
@@ -55,5 +64,54 @@ module.exports = class Team {
 				return true;
 			}
 		});
+	}
+
+	addJoinRequest(player) {
+		if (
+			!this.joinRequests.find((jr) => {
+				return jr.player.id === player.id;
+			})
+		) {
+			this.joinRequests.push({
+				player,
+				created: undefined,
+			});
+		}
+	}
+
+	setJoinTimer() {
+		if (this.joinRequests.length === 0) return;
+		this.joinRequests[0].created = new Date();
+		const id = this.joinRequests[0].player.id;
+		setTimeout(this.removeJoinRequest, reqTimeout, this, id);
+	}
+
+	removeJoinRequest(team, userid) {
+		team.joinRequests = team.joinRequests.filter((jr) => {
+			return jr.player.id !== userid || jr.created + reqTimeout > new Date();
+		});
+	}
+
+	cancelJoinRequest(userid) {
+		let toReturn = undefined;
+		this.joinRequests = this.joinRequests.filter((jr) => {
+			if (jr.player.id === userid) {
+				toReturn = jr.player;
+				return false;
+			}
+			return true;
+		});
+		return toReturn;
+	}
+
+	addChatMessage(user, text) {
+		let toReturn = {
+			mid: uuidv4(),
+			user,
+			isHost: false,
+			text,
+		};
+		this.chat.push(toReturn);
+		return toReturn;
 	}
 };
