@@ -83,20 +83,22 @@ export const Play = (socket) => {
 			withTimeout(
 				(data) => {
 					if (data.status !== 'OK') {
-						showMessage('error', data.message, 1000);
-						if (data.timeLeft) {
-							showMessage('info', '', timeLeft);
-							gameMessage.innerHTML = `Requesting to join team ${e.target.getAttribute(
-								'data-name'
-							)}\t`;
-							const span = document.createElement('span');
-							span.style.marginLeft = '5px';
-							span.style.marginRight = '5px';
-							const cancelJoin = document.createElement('button');
-							cancelJoin.innerHTML = 'Cancel';
-							cancelJoin.addEventListener('click', cancelJoinRequest);
-							span.appendChild(cancelJoin);
-							gameMessage.appendChild(span);
+						showMessage('error', data.message);
+						if (data.timeLeft >= 1000) {
+							setTimeout(() => {
+								showMessage('info', '', data.timeLeft - 1000);
+								gameMessage.innerHTML = `Requesting to join team ${e.target.getAttribute(
+									'data-name'
+								)}\t`;
+								const span = document.createElement('span');
+								span.style.marginLeft = '5px';
+								span.style.marginRight = '5px';
+								const cancelJoin = document.createElement('button');
+								cancelJoin.innerHTML = 'Cancel';
+								cancelJoin.addEventListener('click', cancelJoinRequest);
+								span.appendChild(cancelJoin);
+								gameMessage.appendChild(span);
+							}, 1000);
 						}
 					}
 				},

@@ -25,6 +25,7 @@
 	flex: 1;
 	height: 100%;
 	overflow-y: scroll;
+	overflow-x: hidden;
 }
 
 #team-chat-wrapper,
@@ -77,7 +78,7 @@
 	overflow-y: scroll;
 }
 
-@media (pointer: fine) and (min-width: 800px) {
+@media (pointer: fine) and (min-width: 1000px) {
 	#team-tabs {
 		display: none;
 	}
@@ -93,6 +94,6 @@
 
 	#team-answers {
 		all: unset;
-		flex: 3;
+		flex: 2;
 	}
 }

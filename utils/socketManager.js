@@ -556,7 +556,8 @@ const socket = (http, server) => {
 			if (myUser.id !== myGame.host.id)
 				io.to(socket.id).emit('game-joined', {
 					...sanitize(myGame),
-					slides: myGame.slides.slice(0, myGame.currentSlide + 1),
+					// slides: myGame.slides.slice(0, myGame.currentSlide + 1),
+					slides: myGame.slides,
 				});
 			else
 				io.to(socket.id).emit('game-started', {
@@ -968,6 +969,13 @@ const socket = (http, server) => {
 				});
 			}
 			io.to(data.id).emit('request-denied', { name: myTeam.name });
+
+			if (myTeam.joinRequests.length > 0) {
+				setTimeout(() => {
+					io.to(myUser.id).emit('join-request', myTeam.joinRequests[0].player);
+					myTeam.setJoinTimer();
+				}, 200);
+			}
 		});
 
 		socket.on('leave-team', (data) => {

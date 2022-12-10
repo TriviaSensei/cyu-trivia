@@ -24,7 +24,7 @@ body {
 	);
 	overflow-x: hidden;
 	font-family: 'Lato', sans-serif;
-	font-size: 2vh;
+	font-size: 1rem;
 	background-size: cover;
 	-webkit-touch-callout: none; /* iOS Safari */
 	-webkit-user-select: none; /* Safari */
@@ -34,7 +34,12 @@ body {
 	user-select: none;
 	height: 100%;
 	max-height: 100%;
-	scrollbar-width: thin;
+	scrollbar-color: #f00;
+}
+
+body::-webkit-scrollbar {
+	width: 0.2em;
+	background-color: #f00;
 }
 
 button,
@@ -469,10 +474,10 @@ li.navlink {
 .carousel-item > .slide-contents {
 	width: 100%;
 	height: 100%;
-	padding: 5% 8% 10% 12%;
+	padding: 10% 5% 10% 14%;
 	display: flex;
 	flex-direction: column;
-	font-size: min(16px, 2vh);
+	font-size: min(16px, 1rem);
 }
 
 .slide-contents > div {
@@ -489,15 +494,17 @@ li.navlink {
 
 .slide-contents > .slide-header {
 	flex: 2;
+	overflow-y: hidden;
 }
 
 .slide-contents > .slide-body {
 	flex: 5;
+	overflow-y: hidden;
 }
 
 .slide-contents .slide-footer {
 	flex: 1;
-	cursor: pointer;
+	overflow-y: hidden;
 }
 
 .fill-container {
@@ -515,9 +522,9 @@ li.navlink {
 .flair-div {
 	position: absolute;
 	left: 0%;
-	top: 8%;
-	width: 12%;
-	height: 15%;
+	top: 12%;
+	width: 14%;
+	height: 18%;
 }
 
 .flair-div.d1 {

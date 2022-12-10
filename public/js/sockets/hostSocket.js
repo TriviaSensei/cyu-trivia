@@ -4,9 +4,40 @@ import { createChatMessage } from '../utils/chatMessage.js';
 import { setUserCookie, getCookie } from '../utils/cookie.js';
 import { getElementArray } from '../utils/getElementArray.js';
 import { hideMessage, showMessage } from '../utils/messages.js';
-
+import { createSlide, modifySlide } from '../utils/slideshow.js';
 const gameRoster = document.getElementById('game-roster-list');
 const chatContainer = document.querySelector('.chat-container');
+
+const myCarousel = document.querySelector('#game-carousel');
+const slideCarousel = new bootstrap.Carousel(myCarousel);
+const myCarouselInner = myCarousel.querySelector('.carousel-inner');
+
+const handleNewSlide = (data, ...toSetActive) => {
+	console.log(data);
+
+	let setActive = true;
+	if (toSetActive.length > 0) {
+		if (!toSetActive[0]) setActive = false;
+	}
+
+	if (data.clear) {
+		getElementArray(myCarousel, '.carousel-item').forEach((item) => {
+			item.remove();
+		});
+	}
+	if (data.clear || data.new) {
+		const newSlide = createSlide(data);
+		myCarouselInner.appendChild(newSlide);
+		if (setActive) {
+			myCarousel
+				.querySelector('.carousel-item.active')
+				?.classList.remove('active');
+			newSlide.classList.add('active');
+		}
+	} else {
+		modifySlide(data);
+	}
+};
 
 export const Host = (socket) => {
 	socket.on('set-user-cookie', setUserCookie);
@@ -15,8 +46,6 @@ export const Host = (socket) => {
 		hideMessage();
 
 		const myId = getCookie('id');
-
-		console.log(data);
 
 		if (data.newGame.chat) {
 			data.newGame.chat.forEach((m) => {
@@ -42,6 +71,16 @@ export const Host = (socket) => {
 			0,
 			data.newGame.currentSlide + 1
 		);
+
+		currentSlides.forEach((s) => {
+			if (Array.isArray(s)) {
+				s.forEach((s2) => {
+					handleNewSlide(s2);
+				});
+			} else {
+				handleNewSlide(s);
+			}
+		});
 
 		gameRoster.innerHTML = '';
 		const me = document.createElement('li');
