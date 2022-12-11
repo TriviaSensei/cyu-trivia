@@ -1,4 +1,4 @@
-export const getEmbeddedLink = (media, startingTime) => {
+export const getEmbeddedLink = (media, startingTime, autoplay) => {
 	if (media.length === 0)
 		return {
 			status: 'fail',
@@ -29,7 +29,7 @@ export const getEmbeddedLink = (media, startingTime) => {
 			status: 'success',
 			link: `https://www.youtube.com/embed/${videoID}${
 				startingTime > 0 ? '?start=' + startingTime : ''
-			}`,
+			}${autoplay ? '&autoplay=1' : ''}`,
 		};
 	} else if (media.toLowerCase().indexOf('youtube') >= 0) {
 		const tokens = media.split('&');
@@ -50,7 +50,7 @@ export const getEmbeddedLink = (media, startingTime) => {
 			status: 'success',
 			link: `https://www.youtube.com/embed/${videoID}${
 				startingTime > 0 ? '?start=' + startingTime : ''
-			}`,
+			}${autoplay ? '&autoplay=1' : ''}`,
 		};
 	} else if (media.toLowerCase().indexOf('youtu.be') >= 0) {
 		const tokens = media.split('/');
@@ -71,7 +71,7 @@ export const getEmbeddedLink = (media, startingTime) => {
 			status: 'success',
 			link: `https://www.youtube.com/embed/${videoID}${
 				startingTime > 0 ? '?start=' + startingTime : ''
-			}`,
+			}${autoplay ? '&autoplay=1' : ''}`,
 		};
 	} else if (media.toLowerCase().indexOf('vimeo') >= 0) {
 		const tokens = media.split('/');
@@ -86,7 +86,7 @@ export const getEmbeddedLink = (media, startingTime) => {
 			status: 'success',
 			link: `https://player.vimeo.com/video/${videoID}${
 				startingTime > 0 ? '#t=' + startingTime : ''
-			}`,
+			}${autoplay ? '&autoplay=1' : ''}`,
 		};
 	} else if (media.toLowerCase().indexOf('drive.google.com/file/d') >= 0) {
 		const tokens = media.split('/');
@@ -117,7 +117,7 @@ export const getEmbeddedLink = (media, startingTime) => {
 				status: 'success',
 				link: `https://drive.google.com/file/d/${videoID}/preview${
 					startingTime > 0 ? '/view?t=' + startingTime : ''
-				}`,
+				}${autoplay ? '&autoplay=1' : ''}`,
 			};
 		}
 	}

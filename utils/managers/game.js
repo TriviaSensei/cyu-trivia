@@ -11,6 +11,7 @@ module.exports = class Game {
 		this.key = [];
 		this.chat = [];
 		this.host = host;
+		this.timer = undefined;
 	}
 
 	containsPlayer(id) {
@@ -74,9 +75,18 @@ module.exports = class Game {
 	}
 
 	advanceSlide() {
+		if (this.timer && new Date() < this.timer && process.env.LOCAL !== 'true')
+			return false;
+
 		this.currentSlide === undefined
 			? (this.currentSlide = 0)
 			: this.currentSlide++;
+
+		if (this.slides[this.currentSlide].timer) {
+			this.setTimer(this.slides[this.currentSlide].timer);
+		}
+
+		return true;
 	}
 
 	getTeamForPlayer(id) {
@@ -94,5 +104,9 @@ module.exports = class Game {
 		};
 		this.chat.push(toReturn);
 		return toReturn;
+	}
+
+	setTimer(minutes) {
+		this.timer = Date.parse(new Date()) + minutes * 60 * 1000;
 	}
 };

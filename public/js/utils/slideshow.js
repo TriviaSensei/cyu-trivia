@@ -22,7 +22,7 @@ const createHeader = (data) => {
 const createBody = (data) => {
 	const body = createElement('.slide-body');
 	if (data.body) {
-		const str = data.body;
+		let str = data.body;
 		let count = 0;
 		while (str.indexOf('**') >= 0) {
 			count = 1 - count;
@@ -39,9 +39,15 @@ const createBody = (data) => {
 		container.appendChild(img);
 		body.appendChild(container);
 	} else if (data.videoLink) {
-		const videoSrc = getEmbeddedLink(data.videoLink, data.videoStart || 0);
+		const videoSrc = getEmbeddedLink(
+			data.videoLink,
+			data.videoStart || 0,
+			data.autoplay ? true : false
+		);
 		const frame = createElement('iframe.fill-container');
-		frame.setAttribute('src', videoSrc);
+		frame.setAttribute('src', videoSrc.link);
+		frame.setAttribute('allowfullscreen', 'allowfullscreen');
+		if (data.autoplay) frame.setAttribute('allow', 'autoplay');
 		body.appendChild(frame);
 	}
 	return body;
@@ -70,8 +76,6 @@ export const createSlide = (data) => {
 	const body = createBody(data);
 	const footer = createFooter(data);
 
-	console.log(footer);
-
 	contents.appendChild(header);
 	contents.appendChild(body);
 	contents.appendChild(footer);
@@ -82,7 +86,9 @@ export const createSlide = (data) => {
 
 export const modifySlide = (data) => {
 	const carousel = document.getElementById('game-carousel');
-	const currentSlide = carousel.querySelector('.carousel-item:last-child');
+	const currentSlide = carousel.querySelector(
+		'.carousel-item:last-child .slide-contents'
+	);
 
 	if (!currentSlide) return;
 

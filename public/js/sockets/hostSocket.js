@@ -5,12 +5,43 @@ import { setUserCookie, getCookie } from '../utils/cookie.js';
 import { getElementArray } from '../utils/getElementArray.js';
 import { hideMessage, showMessage } from '../utils/messages.js';
 import { createSlide, modifySlide } from '../utils/slideshow.js';
+import { withTimeout } from '../utils/socketTimeout.js';
 const gameRoster = document.getElementById('game-roster-list');
 const chatContainer = document.querySelector('.chat-container');
 
 const myCarousel = document.querySelector('#game-carousel');
 const slideCarousel = new bootstrap.Carousel(myCarousel);
 const myCarouselInner = myCarousel.querySelector('.carousel-inner');
+const ssNext = document.getElementById('slide-show-next');
+const ssPrev = document.getElementById('slide-show-prev');
+const timer = document.getElementById('timer');
+let timerInterval;
+let timeLeft;
+
+const getTimeString = (time) => {
+	return `${Math.floor(time / 60)}:${time % 60 < 10 ? '0' : ''}${time % 60}`;
+};
+
+const setTimer = (time) => {
+	timeLeft = Math.max(0, Math.floor(time));
+	timer.innerHTML = getTimeString(timeLeft);
+};
+
+const decrementTimer = () => {
+	timeLeft = Math.max(0, timeLeft - 1);
+	timer.innerHTML = getTimeString(timeLeft);
+};
+
+const startTimer = () => {
+	timer.classList.remove('invisible-div');
+	if (timerInterval) clearInterval(timerInterval);
+	timerInterval = setInterval(decrementTimer, 1000);
+};
+
+const stopTimer = () => {
+	clearInterval(timerInterval);
+	timer.classList.add('invisible-div');
+};
 
 const handleNewSlide = (data, ...toSetActive) => {
 	console.log(data);
@@ -20,20 +51,34 @@ const handleNewSlide = (data, ...toSetActive) => {
 		if (!toSetActive[0]) setActive = false;
 	}
 
-	if (data.clear) {
-		getElementArray(myCarousel, '.carousel-item').forEach((item) => {
-			item.remove();
-		});
-	}
+	stopTimer();
+
 	if (data.clear || data.new) {
 		const newSlide = createSlide(data);
 		myCarouselInner.appendChild(newSlide);
+
+		console.log(newSlide);
+
 		if (setActive) {
-			myCarousel
-				.querySelector('.carousel-item.active')
-				?.classList.remove('active');
-			newSlide.classList.add('active');
+			if (!myCarousel.querySelector('.carousel-item.active')) {
+				myCarousel
+					.querySelector('.carousel-item.active')
+					?.classList.remove('active');
+				newSlide.classList.add('active');
+			} else {
+				slideCarousel.next();
+			}
 		}
+		if (data.clear) {
+			getElementArray(myCarousel, '.carousel-item:not(:last-child)').forEach(
+				(item) => {
+					item.remove();
+				}
+			);
+		}
+	} else if (data.timer) {
+		setTimer(data.timer * 60);
+		startTimer();
 	} else {
 		modifySlide(data);
 	}
@@ -44,6 +89,7 @@ export const Host = (socket) => {
 
 	socket.on('game-started', (data) => {
 		hideMessage();
+		console.log(data);
 
 		const myId = getCookie('id');
 
@@ -148,5 +194,62 @@ export const Host = (socket) => {
 		bps.forEach((b) => {
 			b.classList.remove('disconnected');
 		});
+	});
+
+	ssNext.addEventListener('click', (e) => {
+		const currentSlide = myCarousel.querySelector('.carousel-item.active');
+		const lastSlide = myCarousel.querySelector('.carousel-item:last-child');
+
+		// if (document.querySelectorAll('.score-row').length > 0) {
+		// 	const remainingRows = document.querySelectorAll('.score-row');
+		// 	if (remainingRows.length > 0) {
+		// 		const item = remainingRows.item(remainingRows.length - 1);
+		// 		item.classList.remove('invisible-div');
+		// 		item.classList.remove('score-row');
+		// 		item.classList.add('shown-row');
+		// 	}
+		// 	const shownRows = document.querySelectorAll('.shown-row');
+		// 	if (shownRows.length > maxTeamsShown) {
+		// 		shownRows.item(shownRows.length - 1).classList.add('invisible-div');
+		// 		shownRows.item(shownRows.length - 1).classList.remove('shown-row');
+		// 	}
+		// } else
+
+		if (currentSlide === lastSlide) {
+			socket.emit(
+				'next-slide',
+				null,
+				withTimeout(
+					(res) => {
+						if (res.status === 'OK') {
+							console.log(res.data);
+							if (Array.isArray(res.data)) {
+								res.data.forEach((d) => {
+									handleNewSlide(d);
+								});
+								const count =
+									myCarousel.querySelectorAll('.carousel-item').length;
+								slideCarousel.to(count - 1);
+							} else {
+								handleNewSlide(res.data);
+							}
+						} else {
+							showMessage('error', res.message);
+						}
+					},
+					() => {
+						showMessage('error', res.message);
+					},
+					1000
+				)
+			);
+		} else {
+			slideCarousel.next();
+		}
+	});
+
+	ssPrev.addEventListener('click', (e) => {
+		console.log('prev');
+		slideCarousel.prev();
 	});
 };

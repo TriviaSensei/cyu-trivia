@@ -54,6 +54,11 @@ th {
 	position: relative;
 }
 
+.carousel-control-next,
+.carousel-control-prev {
+	width: 7.5%;
+}
+
 .slide-footer {
 	cursor: unset;
 }

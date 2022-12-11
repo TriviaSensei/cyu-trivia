@@ -125,8 +125,6 @@ export const Play = (socket) => {
 	socket.on('set-user-cookie', setUserCookie);
 
 	socket.on('game-joined', (data) => {
-		console.log(data);
-
 		myGame = data;
 
 		gameRoster.innerHTML = '';
@@ -149,7 +147,6 @@ export const Play = (socket) => {
 		});
 
 		if (myTeam) {
-			console.log(myTeam);
 			teamSetup.classList.add('invisible-div');
 			teamContainer.classList.remove('invisible-div');
 
@@ -200,8 +197,6 @@ export const Play = (socket) => {
 		myUser = myGame.players.find((p) => {
 			return p.id === myId;
 		});
-
-		showMessage('info', 'Successfully joined game');
 
 		if (data.chat) {
 			data.chat.forEach((m) => {

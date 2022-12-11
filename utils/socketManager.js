@@ -23,7 +23,7 @@ const createSlides = (data, joinCode) => {
 			new: true,
 			clear: true,
 			header: 'Welcome',
-			body: `${data.description}\nhttps://www.cyutrivia.com/play\nJoin code: ${joinCode}`,
+			body: `${data.description}\n\nhttps://www.cyutrivia.com/play\n\nJoin code: ${joinCode}`,
 		},
 		{
 			new: true,
@@ -38,12 +38,14 @@ const createSlides = (data, joinCode) => {
 			clear: true,
 			header: `Round ${i + 1}`,
 			body: r.description,
+			newRound: true,
+			roundNumber: i + 1,
 		});
 		if (i % 2 === 0) {
 			r.questions.forEach((q, j) => {
 				toReturn.push({
 					new: true,
-					clear: true,
+					clear: false,
 					header: `Round ${i + 1}, ${
 						j === r.questions.length - 1 ? 'Bonus' : `Question ${j + 1}`
 					}\n${j === r.questions.length - 1 ? 'Wager 0-' : ''}${q.value} ${
@@ -103,6 +105,7 @@ const createSlides = (data, joinCode) => {
 				clear: false,
 				header: 'Round 6 - Audio',
 				videoLink: r.videoLink,
+				autoplay: false,
 			});
 			toReturn.push({
 				new: false,
@@ -118,6 +121,7 @@ const createSlides = (data, joinCode) => {
 				header: 'Stand by',
 				videoLink: r.video,
 				videoStart: r.videoStart || 0,
+				autoplay: true,
 			});
 		}
 
@@ -357,16 +361,6 @@ const replaceBrackets = (text) => {
 	const re2 = />/g;
 	return text.replace(re1, '&lt;').replace(re2, '&gt;');
 };
-// const startNewGame = (host) => {
-// 	let existingGame;
-// 	let joinCode;
-// 	do {
-// 		joinCode = this.randomCode(4);
-// 		existingGame = this.getGame(joinCode);
-// 	} while (existingGame);
-// 	if (process.env.LOCAL === 'true') joinCode = '1111';
-
-// };
 
 const socket = (http, server) => {
 	const io = require('socket.io')(http, {
@@ -1005,6 +999,25 @@ const socket = (http, server) => {
 				io.to(myGame.id).emit('remove-team', { id: myTeam.id });
 			}
 			myTeam = undefined;
+		});
+
+		socket.on('next-slide', (data, cb) => {
+			if (!myGame || myGame.host.id !== myUser.id)
+				return cb({
+					status: 'fail',
+					message: 'You are not hosting a game.',
+				});
+			if (myGame.advanceSlide()) {
+				return cb({
+					status: 'OK',
+					data: myGame.slides[myGame.currentSlide],
+				});
+			} else {
+				return cb({
+					status: 'fail',
+					message: 'You must wait until the timer ends to advance the deck.',
+				});
+			}
 		});
 
 		socket.on('disconnect', (reason) => {

@@ -960,7 +960,7 @@ addMatchingAnswer.addEventListener('click', handleAddMatchingAnswer);
 
 //music round controls/listeners
 const handleAudioRoundVideo = (e) => {
-	const result = getEmbeddedLink(e.target.value, 0);
+	const result = getEmbeddedLink(e.target.value, 0, false);
 	if (result.status === 'success') {
 		videoPreview.setAttribute('src', result.link);
 		videoPreview.classList.remove('invisible-div');
@@ -1095,7 +1095,7 @@ const handlePostVideo = (e) => {
 
 	if (!videoLink.value) return;
 
-	const res = getEmbeddedLink(videoLink.value, Math.max(0, startTime));
+	const res = getEmbeddedLink(videoLink.value, Math.max(0, startTime), false);
 	const frame = document.querySelector(
 		`.video-container > iframe[round="${e.target.getAttribute('round')}"]`
 	);

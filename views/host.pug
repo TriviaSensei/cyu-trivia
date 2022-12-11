@@ -44,10 +44,10 @@ block content
                 #timer.invisible-div 0:00
                 #game-carousel.carousel.slide(data-bs-ride="carousel" data-bs-interval="false" data-bs-touch="false")
                     .carousel-inner#game-carousel-inner 
-                    button.carousel-control-prev(type="button" data-bs-target="#game-carousel" data-bs-slide="prev")
+                    a.carousel-control-prev#slide-show-prev(type="button")
                         span.carousel-control-prev-icon(aria-hidden="true")
                         span.visually-hidden Previous
-                    button.carousel-control-next(type="button" data-bs-target="#game-carousel" data-bs-slide="next")
+                    a.carousel-control-next#slide-show-next(type="button")
                         span.carousel-control-next-icon(aria-hidden="true")
                         span.visually-hidden Next
         #game-control-container
