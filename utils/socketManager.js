@@ -40,6 +40,30 @@ const createSlides = (data, joinCode) => {
 			body: r.description,
 			newRound: true,
 			roundNumber: i + 1,
+			format: i !== 3 ? 'std' : r.format === 'questions' ? 'std' : r.format,
+			questionCount:
+				i !== 3 || r.format === 'questions'
+					? r.questions.length + (r.theme ? 1 : 0)
+					: r.format === 'list'
+					? r.answerCount
+					: r.matchingPairs.length,
+			matchingPrompts:
+				r.format === 'matching'
+					? r.matchingPairs.map((m) => {
+							return m.prompt;
+					  })
+					: [],
+			matchingBank:
+				r.format === 'matching'
+					? r.matchingPairs
+							.map((m) => {
+								return m.answer;
+							})
+							.concat(r.extraAnswers)
+					: [],
+			endBonus: i % 2 === 0,
+			endTheme: r.theme,
+			maxWager: i % 2 === 0 ? r.questions[r.questions.length - 1].value : 0,
 		});
 		if (i % 2 === 0) {
 			r.questions.forEach((q, j) => {
@@ -375,6 +399,75 @@ const socket = (http, server) => {
 		let myTeam;
 		let myGame;
 
+		const verifyHost = () => {
+			if (!myGame)
+				return {
+					status: 'fail',
+					message: 'You are not part of a game.',
+				};
+			if (myGame.host.id !== myUser.id) {
+				return {
+					status: 'fail',
+					message: 'You are not hosting a game.',
+				};
+			}
+			return {
+				status: 'OK',
+			};
+		};
+
+		const verifyCaptain = () => {
+			if (!myGame)
+				return {
+					status: 'fail',
+					message: 'You are not part of a game.',
+				};
+			if (!myTeam) {
+				return {
+					status: 'fail',
+					message: 'You are not part of a team.',
+				};
+			}
+			if (myTeam.captain.id !== myUser.id) {
+				return {
+					status: 'fail',
+					message: 'You are not the captain of this team.',
+				};
+			}
+			return {
+				status: 'OK',
+			};
+		};
+
+		const verifyGame = () => {
+			if (!myGame) {
+				return {
+					status: 'fail',
+					message: 'You are not part of a team.',
+				};
+			}
+			return {
+				status: 'OK',
+			};
+		};
+
+		const verifyTeam = () => {
+			if (!myGame)
+				return {
+					status: 'fail',
+					message: 'You are not part of a game.',
+				};
+			if (!myTeam) {
+				return {
+					status: 'fail',
+					message: 'You are not part of a team.',
+				};
+			}
+			return {
+				status: 'OK',
+			};
+		};
+
 		const sanitize = (data) => {
 			return data;
 			// if (Array.isArray(data)) {
@@ -522,8 +615,8 @@ const socket = (http, server) => {
 			if (myUser) {
 				myUser.connected = true;
 				myUser.lastDisconnect = undefined;
+				socket.join(uid);
 			}
-			socket.join(uid);
 		}
 
 		if (!myUser) {
@@ -547,17 +640,6 @@ const socket = (http, server) => {
 			socket.to(myGame.id).emit('user-reconnected', { id: myUser.id });
 			systemMsg(`${myUser.name} has reconnected`);
 
-			if (myUser.id !== myGame.host.id)
-				io.to(socket.id).emit('game-joined', {
-					...sanitize(myGame),
-					// slides: myGame.slides.slice(0, myGame.currentSlide + 1),
-					slides: myGame.slides,
-				});
-			else
-				io.to(socket.id).emit('game-started', {
-					newGame: sanitize(myGame),
-				});
-
 			myTeam = myGame.getTeamForPlayer(myUser.id);
 			if (myTeam) {
 				socket.join(myTeam.roomid);
@@ -573,6 +655,21 @@ const socket = (http, server) => {
 					myTeam.changeCaptain(true, myUser.id);
 				}
 			}
+
+			if (myUser.id !== myGame.host.id)
+				io.to(socket.id).emit('game-joined', {
+					...sanitize(myGame),
+					isCaptain: myTeam && myTeam.captain.id === myUser.id,
+					timeLeft: myGame.timer
+						? myGame.timer - Date.parse(new Date())
+						: undefined,
+					slides: myGame.slides.slice(0, myGame.currentSlide + 1),
+					// slides: myGame.slides,
+				});
+			else
+				io.to(socket.id).emit('game-started', {
+					newGame: sanitize(myGame),
+				});
 		}
 
 		// io.to(user.gameid).emit('')
@@ -595,7 +692,7 @@ const socket = (http, server) => {
 					return emitError('This game may not be started yet.');
 				}
 
-				myGame = new Game(myUser, randomCode(4));
+				myGame = new Game(myUser, randomCode(4), game.rounds.length);
 				console.log(`Starting game with join code ${myGame.joinCode}`);
 				while (getGame(myGame.joinCode)) {
 					myGame.joinCode = randomCode(4);
@@ -667,9 +764,9 @@ const socket = (http, server) => {
 			}
 			const message = replaceBrackets(data.message);
 
-			if (!myGame) {
-				return cb({ status: 'fail', message: 'Game not found.' });
-			}
+			const res = verifyGame();
+			if (res.status !== 'OK') return cb(res);
+
 			if (!myUser) {
 				return cb({ status: 'fail', message: 'User not found.' });
 			}
@@ -699,14 +796,11 @@ const socket = (http, server) => {
 			}
 			const message = replaceBrackets(data.message);
 
-			if (!myGame) {
-				return cb({ status: 'fail', message: 'Game not found.' });
-			}
+			const res = verifyTeam();
+			if (res.status !== 'OK') return cb(res);
+
 			if (!myUser) {
 				return cb({ status: 'fail', message: 'User not found.' });
-			}
-			if (!myTeam) {
-				return cb({ status: 'fail', message: 'Team not found.' });
 			}
 
 			const newMsg = myTeam.addChatMessage(myUser, message);
@@ -743,16 +837,12 @@ const socket = (http, server) => {
 				});
 
 			//ensure the user is part of a game
-			if (!myGame) {
-				return cb({
-					status: 'fail',
-					message: 'You are not part of a game.',
-				});
-			}
+			let res = verifyGame();
+			if (res.status !== 'OK') return cb(res);
 
 			//creating a team
 			if (!myTeam) {
-				myTeam = myGame.addTeam(new Team(name, myUser));
+				myTeam = myGame.addTeam(new Team(name, myUser, myGame.roundCount));
 				if (!myTeam) {
 					return cb({
 						status: 'fail',
@@ -768,6 +858,31 @@ const socket = (http, server) => {
 					players: sanitize(myTeam.members),
 				});
 
+				let roundIntro;
+
+				if (myGame.currentSlide >= 0) {
+					for (var i = myGame.currentSlide; i >= 0; i--) {
+						if (myGame.slides[i].newRound) {
+							roundIntro = {
+								...myGame.slides[i],
+								new: false,
+								clear: false,
+								header: null,
+								body: null,
+								footer: null,
+							};
+							break;
+						}
+					}
+					if (roundIntro) {
+						io.to(socket.id).emit('next-slide', {
+							isCaptain: true,
+							continueTimer: true,
+							slide: roundIntro,
+						});
+					}
+				}
+
 				io.to(myGame.id).emit('new-team', {
 					name: data.name,
 					id: myTeam.id,
@@ -775,13 +890,8 @@ const socket = (http, server) => {
 				});
 			} else {
 				//editing team name
-				//see if this also edits it in the game as well
-				if (myTeam.captain.id !== myUser.id) {
-					return cb({
-						status: 'fail',
-						message: 'Only the captain may change the team name.',
-					});
-				}
+				res = verifyCaptain();
+				if (res.status !== 'OK') return cb(res);
 
 				myTeam.name = name;
 				cb({
@@ -805,11 +915,10 @@ const socket = (http, server) => {
 					status: 'fail',
 					message: 'User not found.',
 				});
-			if (!myGame)
-				return cb({
-					status: 'fail',
-					message: 'You are not in a game.',
-				});
+
+			const res = verifyGame();
+			if (res.status !== 'OK') return cb(res);
+
 			if (myTeam)
 				return cb({
 					status: 'fail',
@@ -899,11 +1008,8 @@ const socket = (http, server) => {
 		});
 
 		socket.on('accept-teammate', (data) => {
-			if (!myTeam) return emitError('You are not in a game.');
-			if (!myUser) return emitError('User not found.');
-
-			if (myTeam.captain.id !== myUser.id)
-				return emitError('You are not the captain.');
+			const res = verifyCaptain();
+			if (res.status !== 'OK') return emitError(res.message);
 
 			if (
 				myTeam.members.find((m) => {
@@ -947,8 +1053,8 @@ const socket = (http, server) => {
 		});
 
 		socket.on('decline-teammate', (data) => {
-			if (myTeam.captain.id !== myUser.id)
-				return emitError('You are not the captain.');
+			const res = verifyCaptain();
+			if (res.status !== 'OK') return emitError(res.message);
 
 			const newPlayer = myTeam.cancelJoinRequest(data.id);
 			const dr = myTeam.deniedRequests.find((d) => {
@@ -1002,20 +1108,62 @@ const socket = (http, server) => {
 		});
 
 		socket.on('next-slide', (data, cb) => {
-			if (!myGame || myGame.host.id !== myUser.id)
-				return cb({
-					status: 'fail',
-					message: 'You are not hosting a game.',
-				});
+			const res = verifyHost();
+			if (res.status !== 'OK') return cb(res);
+
 			if (myGame.advanceSlide()) {
-				return cb({
+				cb({
 					status: 'OK',
 					data: myGame.slides[myGame.currentSlide],
+				});
+
+				myGame.players.forEach((p) => {
+					socket.to(p.id).emit('next-slide', {
+						isCaptain: myGame.teams.some((t) => {
+							return t.captain.id === p.id;
+						}),
+						slide: myGame.slides[myGame.currentSlide],
+					});
 				});
 			} else {
 				return cb({
 					status: 'fail',
 					message: 'You must wait until the timer ends to advance the deck.',
+				});
+			}
+		});
+
+		socket.on('update-answer', (data) => {
+			const res = verifyCaptain();
+			if (res.status !== 'OK') return emitError(res.message);
+			if (data.round !== myGame.currentRound)
+				return emitError('Incorrect round');
+
+			myTeam.updateResponse(myGame.currentRound, data.question, data.answer);
+
+			socket.to(myTeam.roomid).emit('update-answer', data);
+		});
+
+		socket.on('update-wager', (data) => {
+			const res = verifyCaptain();
+			if (res.status !== 'OK') return emitError(res.message);
+
+			myTeam.updateWager(myGame.currentRound, data.wager);
+			socket.to(myTeam.roomid).emit('update-wager', data);
+		});
+
+		socket.on('submit-answers', (data, cb) => {
+			const res = verifyCaptain();
+			if (res.status !== 'OK') return emitError(res.message);
+
+			if (!myTeam.setResponse(myGame.currentRound)) {
+				cb({
+					status: 'fail',
+					message: 'Your team has already submitted this round.',
+				});
+			} else {
+				cb({
+					status: 'OK',
 				});
 			}
 		});

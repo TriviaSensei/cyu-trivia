@@ -76,9 +76,33 @@
 	width: 100%;
 	height: 100%;
 	overflow-y: scroll;
+	display: flex;
+	flex-direction: column;
 }
 
-@media (pointer: fine) and (min-width: 1000px) {
+.team-answer-line {
+	display: flex;
+	margin: 5px;
+}
+
+.team-answer-line > span {
+	font-weight: bold;
+	margin: auto 5px;
+}
+.team-answer-line > input,
+.team-answer-line > .answer-display,
+.team-answer-line > button {
+	flex: 1;
+}
+
+.answer-display {
+	background-color: #ccc;
+	font-weight: bold;
+	color: black;
+	padding: 0 5px;
+}
+
+@media (min-width: 1000px) {
 	#team-tabs {
 		display: none;
 	}

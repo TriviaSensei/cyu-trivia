@@ -7,6 +7,8 @@ import { showMessage, hideMessage } from '../utils/messages.js';
 import { createChatMessage } from '../utils/chatMessage.js';
 import { withTimeout } from '../utils/socketTimeout.js';
 import { getElementArray } from '../utils/getElementArray.js';
+import { createSlide, modifySlide } from '../utils/slideshow.js';
+import { createElement } from '../utils/createElementFromSelector.js';
 
 const gameMessage = document.getElementById('game-message');
 
@@ -25,10 +27,54 @@ const nameChangeSpan = document.getElementById('name-change');
 const joinTeamModal = new bootstrap.Modal(
 	document.getElementById('join-team-modal')
 );
+const confirmSubmitModal = new bootstrap.Modal(
+	document.getElementById('confirm-submit-modal')
+);
+const submitAnswers = document.getElementById('confirm-submit');
+
 const teammateName = document.getElementById('new-teammate-name');
 const allowJoin = document.getElementById('confirm-teammate');
 const denyJoin = document.getElementById('deny-teammate');
 const reqTimeout = 30000;
+
+const myCarousel = document.querySelector('#game-carousel');
+const slideCarousel = new bootstrap.Carousel(myCarousel);
+const myCarouselInner = myCarousel.querySelector('.carousel-inner');
+
+const teamAnswerContainer = document.getElementById('team-answer-container');
+
+const timer = document.getElementById('timer');
+let timerInterval;
+let timeLeft;
+let currentRound;
+
+const getTimeString = (time) => {
+	return `${Math.floor(time / 60)}:${time % 60 < 10 ? '0' : ''}${time % 60}`;
+};
+
+const setTimer = (time) => {
+	timeLeft = Math.max(0, Math.floor(time));
+	console.log(`Setting timer to ${timeLeft}`);
+	timer.innerHTML = getTimeString(timeLeft);
+};
+
+const decrementTimer = () => {
+	timeLeft = Math.max(0, timeLeft - 1);
+	timer.innerHTML = getTimeString(timeLeft);
+};
+
+const startTimer = () => {
+	console.log('starting timer');
+	timer.classList.remove('invisible-div');
+	if (timerInterval) clearInterval(timerInterval);
+	timerInterval = setInterval(decrementTimer, 1000);
+};
+
+const stopTimer = () => {
+	console.log('stopping timer');
+	clearInterval(timerInterval);
+	timer.classList.add('invisible-div');
+};
 
 export const Play = (socket) => {
 	let myGame;
@@ -122,10 +168,207 @@ export const Play = (socket) => {
 		gameMessage.appendChild(span);
 	};
 
+	const handleAnswerChange = (e) => {
+		socket.emit('update-answer', {
+			round: currentRound - 1,
+			question: parseInt(e.target.getAttribute('data-question')),
+			answer: e.target.value,
+		});
+	};
+
+	const handleWagerChange = (e) => {
+		socket.emit('update-wager', {
+			round: currentRound - 1,
+			wager: parseInt(e.target.value),
+		});
+	};
+
+	const handleSubmitResponse = (e) => {
+		const rLabel = document.getElementById('round-no');
+		if (rLabel) rLabel.innerHTML = `${currentRound}`;
+
+		const ansReceipt = document.getElementById('answer-confirmation');
+		ansReceipt.innerHTML = '';
+
+		const lines = getElementArray(teamAnswerContainer, '.team-answer-line');
+		lines.forEach((l) => {
+			const sp = l.querySelector('span');
+			const inp = l.querySelector('input,select');
+			if (sp && inp) {
+				ansReceipt.innerHTML =
+					ansReceipt.innerHTML + sp.innerHTML + inp.value + '<br>';
+			}
+		});
+
+		confirmSubmitModal.show();
+	};
+
+	submitAnswers.addEventListener('click', (e) => {
+		socket.emit(
+			'submit-answers',
+			null,
+			withTimeout(
+				(data) => {
+					if (data.status !== 'OK') return showMessage('error', data.message);
+					showMessage('info', 'Successfully submitted answers.');
+					document.getElementById('submit').remove();
+					const lines = getElementArray(
+						teamAnswerContainer,
+						'.team-answer-line'
+					);
+					lines.forEach((l) => {
+						const inp = l.querySelector('input,select');
+						if (inp) {
+							inp.disabled = true;
+						}
+					});
+				},
+				() => {
+					showMessage('error', 'Request timed out - try again.');
+				},
+				3000
+			)
+		);
+	});
+
+	const handleNewSlide = (slideData, ...toSetActive) => {
+		let setActive = true;
+		if (toSetActive.length > 0) {
+			if (!toSetActive[0]) setActive = false;
+		}
+
+		const data = slideData.slide;
+
+		if (data.newRound) {
+			currentRound = data.roundNumber;
+			console.log(data);
+
+			teamAnswerContainer.innerHTML = '';
+
+			if (data.format === 'std' || data.format === 'list') {
+				for (var i = 0; i < data.questionCount; i++) {
+					const newDiv = createElement('.team-answer-line');
+					const newSpan = createElement('span');
+					newSpan.innerHTML =
+						i === data.questionCount - 1 && data.endBonus
+							? 'B.&nbsp;'
+							: data.endTheme
+							? 'Theme:&nbsp;'
+							: `${i + 1}.&nbsp;`;
+					const input = createElement(
+						`${slideData.isCaptain ? 'input' : '.answer-display'}#answer-${
+							i + 1
+						}`
+					);
+					if (slideData.isCaptain) {
+						input.setAttribute('type', 'text');
+						input.setAttribute('data-question', i);
+						input.addEventListener('keyup', handleAnswerChange);
+						input.addEventListener('change', handleAnswerChange);
+					}
+					newDiv.appendChild(newSpan);
+					newDiv.appendChild(input);
+					teamAnswerContainer.appendChild(newDiv);
+				}
+				if (data.endBonus) {
+					const newDiv = createElement('.team-answer-line');
+					const newSpan = createElement('span');
+					newSpan.innerHTML = 'Wager: ';
+					const input = createElement(
+						`${slideData.isCaptain ? 'input' : '.answer-display'}#wager`
+					);
+					if (slideData.isCaptain) {
+						input.setAttribute('type', 'number');
+						input.setAttribute('min', '0');
+						input.setAttribute('max', data.maxWager);
+						input.addEventListener('keyup', handleWagerChange);
+						input.addEventListener('change', handleWagerChange);
+					}
+					newDiv.appendChild(newSpan);
+					newDiv.appendChild(input);
+					teamAnswerContainer.appendChild(newDiv);
+				}
+			} else if (data.format === 'matching') {
+				data.matchingPrompts.forEach((p, j) => {
+					const newDiv = createElement('.team-answer-line');
+					const newSpan = createElement('span');
+					newSpan.innerHTML = p;
+					const input = createElement(`select#answer-${i + 1}`);
+					input.setAttribute('data-question', j);
+					const top = createElement('option');
+					top.setAttribute('value', '');
+					top.innerHTML = '[Select an option]';
+					input.appendChild(top);
+					data.matchingBank.forEach((a) => {
+						const opt = createElement('option');
+						opt.setAttribute('value', a);
+						opt.innerHTML = a;
+						input.appendChild(opt);
+					});
+					if (!slideData.isCaptain) {
+						input.setAttribute('disabled', true);
+					} else {
+						input.addEventListener('change', handleAnswerChange);
+					}
+					newDiv.appendChild(newSpan);
+					newDiv.appendChild(input);
+					teamAnswerContainer.appendChild(newDiv);
+				});
+			}
+
+			if (slideData.isCaptain) {
+				const newDiv = createElement('.team-answer-line');
+				const butt = createElement('button#submit');
+				butt.innerHTML = 'Submit';
+				butt.addEventListener('click', handleSubmitResponse);
+				newDiv.appendChild(butt);
+				teamAnswerContainer.appendChild(newDiv);
+			}
+		}
+
+		if (data.clear || data.new) {
+			const newSlide = createSlide(data);
+			myCarouselInner.appendChild(newSlide);
+
+			if (setActive) {
+				if (!myCarousel.querySelector('.carousel-item.active')) {
+					myCarousel
+						.querySelector('.carousel-item.active')
+						?.classList.remove('active');
+					newSlide.classList.add('active');
+				} else {
+					const len = myCarousel.querySelectorAll('.carousel-item').length;
+					slideCarousel.to(len - 1);
+				}
+			}
+			if (data.clear) {
+				getElementArray(myCarousel, '.carousel-item:not(:last-child)').forEach(
+					(item) => {
+						item.remove();
+					}
+				);
+			}
+		} else if (data.timer && !timerInterval) {
+			setTimer(data.timer * 60);
+			startTimer();
+		} else {
+			modifySlide(data);
+		}
+	};
+
 	socket.on('set-user-cookie', setUserCookie);
 
 	socket.on('game-joined', (data) => {
 		myGame = data;
+
+		data.slides.forEach((s) => {
+			handleNewSlide({ isCaptain: data.isCaptain, slide: s });
+		});
+
+		if (data.timeLeft) {
+			setTimer(Math.floor(data.timeLeft / 1000));
+			startTimer();
+		}
 
 		gameRoster.innerHTML = '';
 		const hbp = document.createElement('li');
@@ -426,6 +669,44 @@ export const Play = (socket) => {
 		});
 		const bp = teamRosterList.querySelector(`li.is-me[data-id="${myUser.id}"]`);
 		if (bp) bp.innerHTML = `${myUser.name} <span class="suffix">(C, Me)</span>`;
+	});
+
+	socket.on('next-slide', (data) => {
+		console.log(data);
+		if (!data.continueTimer) {
+			stopTimer();
+		}
+		if (Array.isArray(data.slide)) {
+			slide.forEach((d) => {
+				handleNewSlide({
+					isCaptain: data.isCaptain,
+					...d,
+				});
+			});
+			const count = myCarousel.querySelectorAll('.carousel-item').length;
+			slideCarousel.to(count - 1);
+			setTimeout(() => {
+				slideCarousel.to(1);
+			}, 600);
+		} else {
+			handleNewSlide(data);
+		}
+	});
+
+	socket.on('update-answer', (data) => {
+		console.log(data);
+		const el = document.getElementById(`answer-${data.question + 1}`);
+		if (el) {
+			el.innerHTML = data.answer;
+		}
+	});
+
+	socket.on('update-wager', (data) => {
+		console.log(data);
+		const el = document.getElementById(`wager`);
+		if (el) {
+			el.innerHTML = data.wager;
+		}
 	});
 
 	socket.on('set-team-name', (data) => {

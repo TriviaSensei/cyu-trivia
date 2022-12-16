@@ -84,8 +84,11 @@ exports.updateOne = (Model) =>
 				//remove this game from their list if they're not in the assigned hosts list for this request
 				hosts.forEach(async (h) => {
 					if (!req.body.assignedHosts.includes(h._id)) {
+						console.log(h.assignedGames);
 						h.assignedGames = h.assignedGames.filter((g) => {
-							return g.toString() !== req.params.id;
+							if (!g) return false;
+							console.log(g.toString(), req.params.id);
+							return g.toString() === req.params.id;
 						});
 						await h.save({ validateBeforeSave: false });
 					}
@@ -95,8 +98,12 @@ exports.updateOne = (Model) =>
 				req.body.assignedHosts.forEach(async (h) => {
 					const host = await User.findById(h);
 					if (host) {
+						host.assignedGames = host.assignedGames.filter((g) => {
+							return g;
+						});
 						if (
 							!host.assignedGames.some((g) => {
+								if (!g) return false;
 								return g._id.toString() === req.params.id;
 							})
 						) {

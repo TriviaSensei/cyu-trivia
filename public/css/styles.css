@@ -47,6 +47,10 @@ input {
 	font-weight: bold !important;
 }
 
+input {
+	background-color: #ccc !important;
+}
+
 #game-message {
 	z-index: 2000;
 }

@@ -1,0 +1,11 @@
+.modal.fade#confirm-submit-modal(tabindex="-1" aria-labelledby="confirm-submit-label" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false")
+    .modal-dialog.modal-dialog-centered
+        .modal-content#confirm-submit-modal-content
+            .modal-header
+                h5.modal-title#confirm-submit-label Confirm submit answers
+            .modal-body
+                p Are you sure you wish to submit answers for round #[span#round-no]? This cannot be undone. Your answers below: 
+                p#answer-confirmation
+            .modal-footer
+                button.btn.btn-warning#confirm-submit(type="button" data-bs-dismiss="modal") Yes
+                button.btn.btn-primary#cancel-submit(type="button" data-bs-dismiss="modal") No

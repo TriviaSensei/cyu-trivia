@@ -2,13 +2,20 @@ const { v4: uuidv4 } = require('uuid');
 const { reqTimeout } = require('../settings');
 
 module.exports = class Team {
-	constructor(name, captain) {
+	constructor(name, captain, roundCount) {
 		this.name = name;
 		this.id = uuidv4();
 		this.roomid = uuidv4();
 		this.members = [captain];
 		this.chat = [];
 		this.submissions = [];
+		for (var i = 0; i < roundCount; i++) {
+			this.submissions.push({
+				answers: [],
+				wager: 0,
+				final: false,
+			});
+		}
 		this.joinRequests = [];
 		this.deniedRequests = [];
 		this.captain = captain;
@@ -113,5 +120,32 @@ module.exports = class Team {
 		};
 		this.chat.push(toReturn);
 		return toReturn;
+	}
+
+	updateResponse(round, question, answer) {
+		if (round < this.submissions.length) {
+			if (!this.submissions[round].final) {
+				while (this.submissions[round].answers.length <= question) {
+					this.submissions[round].answers.push('');
+				}
+				this.submissions[round].answers[question] = answer;
+				console.log(this.submissions[round].answers);
+			}
+		}
+	}
+
+	updateWager(round, wager) {
+		if (round < this.submissions.length && !this.submissions[round].final) {
+			this.submissions[round].wager = wager;
+			console.log(this.submissions[round]);
+		}
+	}
+
+	setResponse(round) {
+		if (round < this.submissions.length) {
+			if (this.submissions[round].final) return false;
+			this.submissions[round].final = true;
+			return true;
+		}
 	}
 };

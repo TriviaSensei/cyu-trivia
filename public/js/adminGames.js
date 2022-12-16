@@ -806,6 +806,7 @@ const handleSave = (post) => {
 	const type = loadedGame ? 'PATCH' : 'POST';
 
 	handleRequest(str, type, game, handler);
+	console.log(game);
 };
 
 const handleClose = (e) => {

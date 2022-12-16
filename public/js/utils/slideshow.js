@@ -54,7 +54,7 @@ const createBody = (data) => {
 };
 
 const createFooter = (data) => {
-	const footer = createElement('.slide-footer emphasis');
+	const footer = createElement('.slide-footer.emphasis');
 	if (data.footer) {
 		footer.innerHTML = data.footer;
 	} else {
@@ -67,8 +67,8 @@ export const createSlide = (data) => {
 	const slide = createElement('.carousel-item');
 
 	const contents = createElement('.slide-contents');
-	const d1 = createElement('.flair-div d1');
-	const d2 = createElement('.flair-div d2');
+	const d1 = createElement('.flair-div.d1');
+	const d2 = createElement('.flair-div.d2');
 	contents.appendChild(d1);
 	contents.appendChild(d2);
 

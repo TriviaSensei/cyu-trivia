@@ -1,13 +1,15 @@
 const { v4: uuidv4 } = require('uuid');
 
 module.exports = class Game {
-	constructor(host, joinCode) {
+	constructor(host, joinCode, roundCount) {
 		this.id = uuidv4();
 		this.players = [];
 		this.teams = [];
 		this.slides = [];
 		this.joinCode = joinCode;
 		this.currentSlide = undefined;
+		this.currentRound = undefined;
+		this.roundCount = roundCount;
 		this.key = [];
 		this.chat = [];
 		this.host = host;
@@ -84,6 +86,12 @@ module.exports = class Game {
 
 		if (this.slides[this.currentSlide].timer) {
 			this.setTimer(this.slides[this.currentSlide].timer);
+		}
+
+		if (this.slides[this.currentSlide].newRound) {
+			this.currentRound === undefined
+				? (this.currentRound = 0)
+				: this.currentRound++;
 		}
 
 		return true;

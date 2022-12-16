@@ -6,6 +6,8 @@ import { getElementArray } from '../utils/getElementArray.js';
 import { hideMessage, showMessage } from '../utils/messages.js';
 import { createSlide, modifySlide } from '../utils/slideshow.js';
 import { withTimeout } from '../utils/socketTimeout.js';
+import { createElement } from '../utils/createElementFromSelector.js';
+
 const gameRoster = document.getElementById('game-roster-list');
 const chatContainer = document.querySelector('.chat-container');
 
@@ -56,8 +58,6 @@ const handleNewSlide = (data, ...toSetActive) => {
 	if (data.clear || data.new) {
 		const newSlide = createSlide(data);
 		myCarouselInner.appendChild(newSlide);
-
-		console.log(newSlide);
 
 		if (setActive) {
 			if (!myCarousel.querySelector('.carousel-item.active')) {

@@ -10,7 +10,6 @@ export const handleRequest = (
 	const str =
 		external.length > 0 && external[0] ? requestStr : `${srvr}${requestStr}`;
 	const req = new XMLHttpRequest();
-	// console.log(requestBody);
 	if (req.readyState === 0 || req.readyState === 4) {
 		req.open(requestType.toUpperCase(), str, true);
 		req.onreadystatechange = () => {
@@ -26,6 +25,7 @@ export const handleRequest = (
 		req.setRequestHeader('Content-type', 'application/json; charset=utf-8');
 		try {
 			if (requestBody) {
+				console.log(JSON.stringify(requestBody));
 				req.send(JSON.stringify(requestBody));
 			} else {
 				req.send(null);
