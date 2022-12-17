@@ -73,46 +73,17 @@ block content
                 .tab-pane.fade#grading(role="tabpanel" aria-labelledby="user-tab")
                     .tab-wrapper 
                         .tab-inner
-                            #grading-container
-                                p Grading
-                                p Grading
-                                p Grading
-                                p Grading
-                                p Grading
-                                p Grading
-                                p Grading
-                                p Grading
-                                p Grading
-                                p Grading
-                                p Grading
-                                p Grading
-                                p Grading
-                                p Grading
-                                p Grading
-                                p Grading
-                                p Grading
-                                p Grading
-                                p Grading
-                                p Grading
-                                p Grading
-                                p Grading
-                                p Grading
-                                p Grading
-                                p Grading
-                                p Grading
-                                p Grading
-                                p Grading
-                                p Grading
-                                p Grading
-                                p Grading
-                                p Grading
-                                p Grading
-                                p Grading
-                                p Grading
-                                p Grading
-                                p Grading
-                                p Grading
-                                p Grading
+                            #grading-controls
+                                select#round-selector
+                                    - let i = 0
+                                    - while (i<7)
+                                        option(value=`${i+1}`)= `Round ${i+1}`
+                                        - i++
+                                select#mode-selector
+                                    option(value="grading") Grading
+                                    option(value="adjust") Results/Adjustments
+                            .grading-container
+                                include host/gradingContainer
                     
 block scripts 
     script(src="/socket.io/socket.io.js")

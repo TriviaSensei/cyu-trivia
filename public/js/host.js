@@ -8,6 +8,12 @@ const chatMessage = document.getElementById('chat-message');
 const chatButton = document.getElementById('send-chat');
 const chatContainer = document.querySelector('.chat-container');
 
+const gradingContainer = document.querySelector('.grading-container');
+const roundSelector = document.getElementById('round-selector');
+const modeSelector = document.getElementById('mode-selector');
+const roundGradingInd = document.getElementById('round-grading-ind');
+const roundModeInd = document.getElementById('round-mode-ind');
+
 const socket = io();
 const host = Host(socket);
 
@@ -52,6 +58,24 @@ const handleSendChat = (e) => {
 	);
 };
 
+const changeGradingView = (e) => {
+	const selectedRound = roundSelector.value;
+	const selectedMode = modeSelector.value;
+
+	const currentView = gradingContainer.querySelector(
+		'.round-grading-container:not(.invisible-div)'
+	);
+
+	const newView = document.querySelector(`#${selectedMode}-${selectedRound}`);
+	if (newView && currentView) {
+		roundModeInd.innerHTML =
+			selectedMode === 'grading' ? 'Grading' : 'Adjustments';
+		roundGradingInd.innerHTML = selectedRound;
+		currentView.classList.add('invisible-div');
+		newView.classList.remove('invisible-div');
+	}
+};
+
 document.addEventListener('DOMContentLoaded', (e) => {
 	const startButtons = getElementArray(document, '.start-button');
 	startButtons.forEach((b) => {
@@ -64,6 +88,8 @@ document.addEventListener('DOMContentLoaded', (e) => {
 	});
 	chatMessage.addEventListener('keydown', handleSendChat);
 	chatButton.addEventListener('click', handleSendChat);
+	roundSelector.addEventListener('change', changeGradingView);
+	modeSelector.addEventListener('change', changeGradingView);
 });
 
 socket.on('error', (data) => {

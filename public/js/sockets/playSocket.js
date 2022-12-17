@@ -64,14 +64,12 @@ const decrementTimer = () => {
 };
 
 const startTimer = () => {
-	console.log('starting timer');
 	timer.classList.remove('invisible-div');
 	if (timerInterval) clearInterval(timerInterval);
 	timerInterval = setInterval(decrementTimer, 1000);
 };
 
 const stopTimer = () => {
-	console.log('stopping timer');
 	clearInterval(timerInterval);
 	timer.classList.add('invisible-div');
 };
@@ -184,6 +182,7 @@ export const Play = (socket) => {
 	};
 
 	const handleSubmitResponse = (e) => {
+		e.preventDefault();
 		const rLabel = document.getElementById('round-no');
 		if (rLabel) rLabel.innerHTML = `${currentRound}`;
 
@@ -244,7 +243,7 @@ export const Play = (socket) => {
 			console.log(data);
 
 			teamAnswerContainer.innerHTML = '';
-
+			const newForm = createElement('form');
 			if (data.format === 'std' || data.format === 'list') {
 				for (var i = 0; i < data.questionCount; i++) {
 					const newDiv = createElement('.team-answer-line');
@@ -268,7 +267,7 @@ export const Play = (socket) => {
 					}
 					newDiv.appendChild(newSpan);
 					newDiv.appendChild(input);
-					teamAnswerContainer.appendChild(newDiv);
+					newForm.appendChild(newDiv);
 				}
 				if (data.endBonus) {
 					const newDiv = createElement('.team-answer-line');
@@ -281,12 +280,13 @@ export const Play = (socket) => {
 						input.setAttribute('type', 'number');
 						input.setAttribute('min', '0');
 						input.setAttribute('max', data.maxWager);
+						input.setAttribute('required', true);
 						input.addEventListener('keyup', handleWagerChange);
 						input.addEventListener('change', handleWagerChange);
 					}
 					newDiv.appendChild(newSpan);
 					newDiv.appendChild(input);
-					teamAnswerContainer.appendChild(newDiv);
+					newForm.appendChild(newDiv);
 				}
 			} else if (data.format === 'matching') {
 				data.matchingPrompts.forEach((p, j) => {
@@ -312,7 +312,7 @@ export const Play = (socket) => {
 					}
 					newDiv.appendChild(newSpan);
 					newDiv.appendChild(input);
-					teamAnswerContainer.appendChild(newDiv);
+					newForm.appendChild(newDiv);
 				});
 			}
 
@@ -320,10 +320,12 @@ export const Play = (socket) => {
 				const newDiv = createElement('.team-answer-line');
 				const butt = createElement('button#submit');
 				butt.innerHTML = 'Submit';
-				butt.addEventListener('click', handleSubmitResponse);
+				butt.setAttribute('type', 'submit');
+				newForm.addEventListener('submit', handleSubmitResponse);
 				newDiv.appendChild(butt);
-				teamAnswerContainer.appendChild(newDiv);
+				newForm.appendChild(newDiv);
 			}
+			teamAnswerContainer.appendChild(newForm);
 		}
 
 		if (data.clear || data.new) {
@@ -672,7 +674,6 @@ export const Play = (socket) => {
 	});
 
 	socket.on('next-slide', (data) => {
-		console.log(data);
 		if (!data.continueTimer) {
 			stopTimer();
 		}

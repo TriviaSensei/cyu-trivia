@@ -96,7 +96,7 @@
 }
 
 .answer-display {
-	background-color: #ccc;
+	background-color: var(--gray-bg);
 	font-weight: bold;
 	color: black;
 	padding: 0 5px;

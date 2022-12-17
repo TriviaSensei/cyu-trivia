@@ -1,0 +1,9 @@
+h4 Round #[span#round-grading-ind 1] #[span#round-mode-ind Grading]
+.grader-container
+    - let j = 1
+    - while (j<=7)
+        div(id=`grading-${j}` data-round=`${j}` class=`round-grading-container ${j!==1 ? 'invisible-div':''}`)
+        .round-grading-container.invisible-div(id=`adjust-${j}`)
+        - j++
+button#save-grades Save
+

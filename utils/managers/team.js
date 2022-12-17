@@ -2,17 +2,21 @@ const { v4: uuidv4 } = require('uuid');
 const { reqTimeout } = require('../settings');
 
 module.exports = class Team {
-	constructor(name, captain, roundCount) {
+	constructor(name, captain, game) {
 		this.name = name;
 		this.id = uuidv4();
 		this.roomid = uuidv4();
 		this.members = [captain];
 		this.chat = [];
 		this.submissions = [];
-		for (var i = 0; i < roundCount; i++) {
+		this.game = game;
+		for (var i = 0; i < game.roundCount; i++) {
 			this.submissions.push({
 				answers: [],
 				wager: 0,
+				result: [],
+				adjustment: 0,
+				score: 0,
 				final: false,
 			});
 		}
@@ -129,7 +133,6 @@ module.exports = class Team {
 					this.submissions[round].answers.push('');
 				}
 				this.submissions[round].answers[question] = answer;
-				console.log(this.submissions[round].answers);
 			}
 		}
 	}
@@ -137,7 +140,6 @@ module.exports = class Team {
 	updateWager(round, wager) {
 		if (round < this.submissions.length && !this.submissions[round].final) {
 			this.submissions[round].wager = wager;
-			console.log(this.submissions[round]);
 		}
 	}
 
@@ -145,7 +147,15 @@ module.exports = class Team {
 		if (round < this.submissions.length) {
 			if (this.submissions[round].final) return false;
 			this.submissions[round].final = true;
+			this.game.addSubmission(round, this.submissions[round]);
 			return true;
 		}
+	}
+
+	getResponse(round) {
+		if (round < this.submissions.length) {
+			return this.submissions[round];
+		}
+		return null;
 	}
 };

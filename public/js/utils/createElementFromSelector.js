@@ -11,10 +11,12 @@
 export const createElement = (selector) => {
 	const names = selector.split(/\.|\#/);
 	let element;
+	let tagFound = false;
 	if (names.length === 0 || names[0] === '') {
 		element = document.createElement('div');
 	} else {
 		element = document.createElement(names[0]);
+		tagFound = true;
 	}
 	const idFinder = selector.split('#');
 	let tokens = [];
@@ -24,8 +26,8 @@ export const createElement = (selector) => {
 		tokens = idFinder[1].split('.').splice(0, 1);
 	}
 	tokens = idFinder[0].split('.').concat(tokens);
-	console.log(tokens);
-	tokens.forEach((t) => {
+	tokens.forEach((t, i) => {
+		if (i === 0 && tagFound) return;
 		if (t !== '') element.classList.add(t);
 	});
 

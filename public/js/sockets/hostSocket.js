@@ -46,8 +46,6 @@ const stopTimer = () => {
 };
 
 const handleNewSlide = (data, ...toSetActive) => {
-	console.log(data);
-
 	let setActive = true;
 	if (toSetActive.length > 0) {
 		if (!toSetActive[0]) setActive = false;
@@ -82,6 +80,187 @@ const handleNewSlide = (data, ...toSetActive) => {
 	} else {
 		modifySlide(data);
 	}
+};
+
+const uncheckRadios = (e) => {
+	const radios = getElementArray(
+		document,
+		`input[type="radio"][name="${e.target.name}"]`
+	);
+	radios.forEach((r) => {
+		r.checked = false;
+	});
+};
+
+const emptyBoxes = (e) => {
+	const box = document.querySelector(
+		`input[type="number"][name="${e.target.name}"]`
+	);
+	if (box) box.value = '';
+};
+
+const addAnswer = (r, q, ans, correct, partial, allowPartial) => {
+	const gradingDiv = document.querySelector(
+		`.round-grading-container[data-round="${r}"]`
+	);
+	if (!gradingDiv) return;
+
+	const qgc = gradingDiv.querySelector(
+		`.question-grading-container[data-question="${q}"]`
+	);
+	if (!qgc) return;
+	const noAns = qgc.querySelector('.no-answers');
+	if (noAns) noAns.remove();
+
+	if (
+		qgc.querySelector(
+			`.answer-row[data-question="${q}"][data-answer="${ans.toLowerCase()}"]`
+		)
+	)
+		return;
+	const newRow = createElement('.answer-row');
+	newRow.setAttribute('data-question', q);
+	newRow.setAttribute('data-answer', ans.toLowerCase());
+
+	const box = createElement('input.partial-credit');
+	box.setAttribute('type', 'number');
+	box.setAttribute('placeholder', 'Partial');
+	if (!allowPartial) {
+		box.disabled = true;
+	} else {
+		box.addEventListener('change', uncheckRadios);
+		if (partial > 0) box.value = partial;
+	}
+	const ansNo = qgc.querySelectorAll('.answer-row').length;
+	box.setAttribute('name', `answer-${r}-${q}-${ansNo + 1}`);
+
+	const ro1 = createElement('.radio-outer');
+	const wrc = createElement('label.radio-container');
+	const wr = createElement('input.wrong-radio');
+	wr.setAttribute('type', 'radio');
+	wr.setAttribute('name', `answer-${r}-${q}-${ansNo + 1}`);
+	wr.setAttribute('data-answer', ans.toLowerCase());
+	wr.addEventListener('click', emptyBoxes);
+	if (!correct && partial === 0) wr.checked = true;
+	const sp1 = createElement('span.checkmark');
+	wrc.appendChild(wr);
+	wrc.appendChild(sp1);
+	ro1.appendChild(wrc);
+
+	const ro2 = createElement('.radio-outer');
+	const rrc = createElement('label.radio-container');
+	const rr = createElement('input.right-radio');
+	rr.setAttribute('type', 'radio');
+	rr.setAttribute('name', `answer-${r}-${q}-${ansNo + 1}`);
+	rr.setAttribute('data-answer', ans.toLowerCase());
+	rr.addEventListener('click', emptyBoxes);
+	if (correct) rr.checked = true;
+	const sp2 = createElement('span.checkmark');
+	rrc.appendChild(rr);
+	rrc.appendChild(sp2);
+	ro2.appendChild(rrc);
+
+	const ansSpan = createElement('span.submitted-answer');
+	ansSpan.innerHTML = ans.toLowerCase();
+
+	newRow.appendChild(box);
+	newRow.appendChild(ro1);
+	newRow.appendChild(ro2);
+	newRow.appendChild(ansSpan);
+	qgc.appendChild(newRow);
+};
+
+const populateAnswers = (data) => {
+	//todo: populate for halftime list round or matching round
+	data.forEach((k, i) => {
+		const gradingDiv = document.querySelector(
+			`.round-grading-container[data-round="${i + 1}"]`
+		);
+		if (!gradingDiv) return;
+		if (k.format === 'questions' || k.format === 'audio') {
+			k.answers.forEach((a, j) => {
+				let qgc = gradingDiv.querySelector(
+					`.question-grading-container[data-question="${j + 1}"]`
+				);
+				if (!qgc) {
+					qgc = createElement('.question-grading-container');
+					qgc.setAttribute('data-question', j + 1);
+					const header = createElement('.answer-header');
+					header.innerHTML = `${a.question}. ${a.answer} (${a.value} pts.)`;
+					if (j === k.answers.length - 1) {
+						if (i % 2 === 0) {
+							header.innerHTML = `B. ${a.answer} (Wager 0-${a.value} pts.)`;
+						} else if (k.format === 'audio') {
+							header.innerHTML = `Theme. ${a.answer} (${a.value} pts.)`;
+						}
+					}
+					qgc.appendChild(header);
+				}
+				gradingDiv.appendChild(qgc);
+				if (a.submissions.length === 0) {
+					const newRow = createElement('.no-answers');
+					newRow.innerHTML = '(No answers submitted)';
+					qgc.appendChild(newRow);
+				} else console.log(a);
+				a.submissions.forEach((s) => {
+					// (r, q, ans, correct, partial, allowPartial)
+					addAnswer(
+						i + 1,
+						j + 1,
+						s.answer,
+						s.correct,
+						s.partial,
+						j !== k.answers.length - 1 || i % 2 !== 0
+					);
+					// if (
+					// 	qgc.querySelector(
+					// 		`.answer-row[data-question="${
+					// 			j + 1
+					// 		}"][data-answer="${s.answer.toLowerCase()}"]`
+					// 	)
+					// )
+					// 	return;
+					// const newRow = createElement('.answer-row');
+					// newRow.setAttribute('data-question', j + 1);
+					// newRow.setAttribute('data-answer', s.answer.toLowerCase());
+
+					// const box = createElement('input.partial-credit');
+					// box.setAttribute('type', 'number');
+					// if (j === k.answers.length - 1 && i % 2 === 0) {
+					// 	box.disabled = true;
+					// } else {
+					// 	box.addEventListener('change', uncheckRadios);
+					// 	if (s.partial > 0) box.value = s.partial;
+					// }
+					// box.setAttribute('name', `answer-${i}-${j}-${k}`);
+
+					// const wr = createElement('input.wrong-radio');
+					// wr.setAttribute('type', 'radio');
+					// wr.setAttribute('name', `answer-${i}-${j}-${k}`);
+					// wr.setAttribute('data-answer', s.answer.toLowerCase());
+					// wr.addEventListener('click', emptyBoxes);
+					// if (!s.correct && s.partial === 0) wr.checked = true;
+
+					// const rr = createElement('input.right-radio');
+					// rr.setAttribute('type', 'radio');
+					// rr.setAttribute('name', `answer-${i}-${j}-${k}`);
+					// rr.setAttribute('data-answer', s.answer.toLowerCase());
+					// rr.addEventListener('click', emptyBoxes);
+					// if (s.correct) rr.checked = true;
+
+					// const ansSpan = createElement('span.submitted-answer');
+					// ansSpan.innerHTML = s.answer.toLowerCase();
+
+					// newRow.appendChild(box);
+					// newRow.appendChild(wr);
+					// newRow.appendChild(rr);
+					// newRow.appendChild(ansSpan);
+					// qgc.appendChild(newRow);
+				});
+			});
+		} else {
+		}
+	});
 };
 
 export const Host = (socket) => {
@@ -141,7 +320,7 @@ export const Host = (socket) => {
 			gameRoster.appendChild(b);
 		});
 
-		console.log(currentSlides);
+		populateAnswers(data.newGame.key);
 
 		document.querySelector('.top-navbar').classList.add('invisible-div');
 		document.getElementById('assigned-games').classList.add('invisible-div');
@@ -193,6 +372,21 @@ export const Host = (socket) => {
 		const bps = getElementArray(document, `li[data-id="${data.id}"]`);
 		bps.forEach((b) => {
 			b.classList.remove('disconnected');
+		});
+	});
+
+	socket.on('new-response', (data) => {
+		console.log(data);
+		// (r, q, ans, correct, partial, allowPartial)
+
+		data.responses.forEach((r) => {
+			r.answers.forEach((a, q) => {
+				console.log(q, r.answers.length, data.round);
+				let allowPartial = false;
+				if (q !== r.answers.length - 1) allowPartial = true;
+				else if (data.round % 2 !== 0) allowPartial = true;
+				addAnswer(data.round, q + 1, a, false, 0, allowPartial);
+			});
 		});
 	});
 

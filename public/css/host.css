@@ -17,7 +17,7 @@ th {
 	width: 100%;
 	border-radius: 10px;
 	padding: 10px;
-	background-color: #ccc;
+	background-color: var(--gray-bg);
 	color: blue;
 	font-weight: bold;
 }
@@ -163,9 +163,190 @@ th {
 	font-weight: bold !important;
 }
 
-#grading-container {
+.grading-container {
 	flex: 1;
+	display: flex;
+	flex-direction: column;
+	overflow-y: hidden;
+}
+
+#grading-controls {
+	display: flex;
+}
+
+#grading select {
+	font-weight: bold;
+	padding: 5px;
+	background-color: var(--gray-bg);
+	margin: 5px;
+	flex: 1;
+}
+
+#grading select > option {
+	font-weight: bold;
+}
+
+.grader-container {
+	flex: 1;
+	margin-bottom: 5px;
+	overflow-y: hidden;
+}
+
+.round-grading-container {
 	overflow-y: scroll;
+	height: 100%;
+	width: 100%;
+}
+
+.question-grading-container {
+	display: flex;
+	flex-direction: column;
+	width: 100%;
+	margin: 20px 0;
+}
+
+.answer-header {
+	font-weight: bold;
+}
+
+.no-answers {
+	margin-left: 50px;
+}
+
+.answer-row {
+	margin-left: 20px;
+	width: min(100%, 400px);
+	display: flex;
+	flex-direction: row-reverse;
+	align-items: center;
+}
+
+.submitted-answer {
+	flex: 1;
+	text-align: right;
+	margin: 0 15px;
+}
+
+.radio-outer {
+	height: 100%;
+	padding: 15px;
+	display: flex;
+}
+
+.radio-container {
+	position: relative;
+	cursor: pointer;
+	margin: auto;
+	width: 25px;
+}
+
+/*hide the default radio button*/
+.radio-container > input {
+	position: absolute;
+	opacity: 0;
+	cursor: pointer;
+}
+
+/*custom radio button*/
+.checkmark {
+	position: absolute;
+	top: 50%;
+	left: 0;
+	height: 25px;
+	width: 25px;
+	background-color: #eee;
+	border-radius: 50%;
+	transform: translate(0, -50%);
+}
+
+/* On mouse-over, set a darker background color */
+.radio-container:hover input ~ .checkmark {
+	background-color: #ccc;
+}
+
+/* Create the indicator (the dot/circle - hidden when not checked) */
+.checkmark:after {
+	content: '';
+	position: absolute;
+	display: none;
+}
+
+/* On mouse-over, add the ghost checkmark */
+.radio-container:hover input ~ .checkmark:after {
+	display: block;
+	position: absolute;
+	font-weight: bolder;
+	left: 50%;
+	top: 50%;
+	-webkit-transform: translate(-50%, -50%);
+	-moz-transform: translate(-50%, -50%);
+	-ms-transform: translate(-50%, -50%);
+	transform: translate(-50%, -50%);
+}
+
+/* When the radio button is checked, add a colored background */
+.radio-container input.right-radio:checked ~ .checkmark {
+	background-color: #009900;
+}
+.radio-container input.wrong-radio:checked ~ .checkmark {
+	background-color: #990000;
+}
+
+/* Show the indicator when checked */
+.radio-container input:checked ~ .checkmark:after {
+	display: block;
+}
+
+/* Style the indicator (dot/circle) */
+.radio-container .checkmark:after {
+	color: white;
+	position: absolute;
+	font-weight: bold;
+	left: 50%;
+	top: 50%;
+	-webkit-transform: translate(-50%, -50%);
+	-moz-transform: translate(-50%, -50%);
+	-ms-transform: translate(-50%, -50%);
+	transform: translate(-50%, -50%);
+}
+.radio-container .right-radio ~ .checkmark:after {
+	content: '\2713';
+}
+
+.radio-container .wrong-radio ~ .checkmark:after {
+	content: '\2715';
+}
+
+.right-radio {
+	accent-color: #c4ffd0;
+	position: relative;
+	height: 25px;
+	width: 25px;
+}
+
+.wrong-radio {
+	accent-color: #ffbfbf;
+	position: relative;
+	height: 25px;
+	width: 25px;
+}
+
+.partial-credit {
+	accent-color: #feffa6;
+	width: 100px;
+	margin: 0 15px;
+}
+
+.wrong-radio:checked:after {
+	content: '\2715';
+	color: #990000;
+	font-weight: bold;
+}
+
+.right-radio:checked:after {
+	content: '\2713';
+	color: #006b14;
+	font-weight: bold;
 }
 
 .disconnected {

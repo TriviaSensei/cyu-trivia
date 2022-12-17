@@ -224,6 +224,10 @@ const createSlides = (data, joinCode) => {
 					clear: false,
 					header: `Round 2, Picture ${j + 1}`,
 					picture: q.link,
+				});
+				toReturn.push({
+					new: false,
+					clear: false,
 					footer: q.answer,
 				});
 			});
@@ -469,24 +473,25 @@ const socket = (http, server) => {
 		};
 
 		const sanitize = (data) => {
-			return data;
-			// if (Array.isArray(data)) {
-			// 	return data.map((d) => {
-			// 		return sanitize(d);
-			// 	});
-			// } else if ((typeof data).toString().toUpperCase() === 'OBJECT') {
-			// 	const props = Object.getOwnPropertyNames(data);
-			// 	let toReturn = {
-			// 		...data,
-			// 	};
-			// 	props.forEach((p) => {
-			// 		if (p === 'socket') toReturn[p] = undefined;
-			// 		else toReturn[p] = sanitize(data[p]);
-			// 	});
-			// 	return toReturn;
-			// } else {
-			// 	return data;
-			// }
+			if (Array.isArray(data)) {
+				return data.map((d) => {
+					return sanitize(d);
+				});
+			} else if ((typeof data).toString().toUpperCase() === 'OBJECT') {
+				if (!data) return null;
+				const props = Object.getOwnPropertyNames(data);
+				let toReturn = {
+					...data,
+				};
+				props.forEach((p) => {
+					if (p === 'socket') toReturn[p] = undefined;
+					else if (p === 'game') toReturn[p] = undefined;
+					else toReturn[p] = sanitize(data[p]);
+				});
+				return toReturn;
+			} else {
+				return data;
+			}
 		};
 
 		const emitError = (msg) => {
@@ -634,10 +639,9 @@ const socket = (http, server) => {
 		myGame = getGameForUser(myUser.id);
 
 		if (myGame) {
-			socket.join(myGame.id);
-
 			console.log(`${myUser.name} rejoining game ${myGame.id}`);
 			socket.to(myGame.id).emit('user-reconnected', { id: myUser.id });
+			socket.join(myGame.id);
 			systemMsg(`${myUser.name} has reconnected`);
 
 			myTeam = myGame.getTeamForPlayer(myUser.id);
@@ -655,8 +659,7 @@ const socket = (http, server) => {
 					myTeam.changeCaptain(true, myUser.id);
 				}
 			}
-
-			if (myUser.id !== myGame.host.id)
+			if (myUser.id !== myGame.host.id) {
 				io.to(socket.id).emit('game-joined', {
 					...sanitize(myGame),
 					isCaptain: myTeam && myTeam.captain.id === myUser.id,
@@ -666,10 +669,11 @@ const socket = (http, server) => {
 					slides: myGame.slides.slice(0, myGame.currentSlide + 1),
 					// slides: myGame.slides,
 				});
-			else
+			} else {
 				io.to(socket.id).emit('game-started', {
 					newGame: sanitize(myGame),
 				});
+			}
 		}
 
 		// io.to(user.gameid).emit('')
@@ -692,7 +696,7 @@ const socket = (http, server) => {
 					return emitError('This game may not be started yet.');
 				}
 
-				myGame = new Game(myUser, randomCode(4), game.rounds.length);
+				myGame = new Game(myUser, randomCode(4), { ...game._doc });
 				console.log(`Starting game with join code ${myGame.joinCode}`);
 				while (getGame(myGame.joinCode)) {
 					myGame.joinCode = randomCode(4);
@@ -842,7 +846,7 @@ const socket = (http, server) => {
 
 			//creating a team
 			if (!myTeam) {
-				myTeam = myGame.addTeam(new Team(name, myUser, myGame.roundCount));
+				myTeam = myGame.addTeam(new Team(name, myUser, myGame));
 				if (!myTeam) {
 					return cb({
 						status: 'fail',
@@ -1164,6 +1168,15 @@ const socket = (http, server) => {
 			} else {
 				cb({
 					status: 'OK',
+				});
+
+				io.to(myGame.host.id).emit('new-response', {
+					round: myGame.currentRound + 1,
+					format:
+						myGame.currentRound !== 3
+							? 'questions'
+							: myGame.gameData.rounds[3].format,
+					responses: myGame.getSubmissionsForRound(myGame.currentRound),
 				});
 			}
 		});
