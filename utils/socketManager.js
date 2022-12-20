@@ -149,7 +149,6 @@ const createSlides = (data, joinCode) => {
 			});
 		}
 
-		return;
 		//answers for rounds 1, 3, 5
 		if (i % 2 === 1) {
 			toReturn.push({
