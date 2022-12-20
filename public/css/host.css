@@ -215,10 +215,11 @@ th {
 
 .answer-row {
 	margin-left: 20px;
-	width: min(100%, 400px);
+	width: min(100%, 500px);
 	display: flex;
 	flex-direction: row-reverse;
 	align-items: center;
+	box-sizing: border-box;
 }
 
 .submitted-answer {
@@ -347,6 +348,10 @@ th {
 	content: '\2713';
 	color: #006b14;
 	font-weight: bold;
+}
+
+.new-list-response {
+	border: 2px solid orange;
 }
 
 .disconnected {

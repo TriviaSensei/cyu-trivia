@@ -39,19 +39,19 @@ module.exports = class Game {
 				}
 			} else if (r.format === 'list') {
 				toPush.format = 'list';
-				toPush.answers = r.answerList.map((a) => {
-					return {
-						answer: a,
-						correct: true,
-						value: r.pointsPerCorrect,
-						matches: [],
-					};
-				});
 				toPush.answers.push({
 					answer: '(Wrong)',
 					correct: false,
 					value: 0,
 					matches: [],
+				});
+				r.answerList.forEach((a) => {
+					toPush.answers.push({
+						answer: a,
+						correct: true,
+						value: r.pointsPerCorrect,
+						matches: [],
+					});
 				});
 			} else if (r.format === 'matching') {
 				toPush.format = 'matching';
@@ -79,13 +79,9 @@ module.exports = class Game {
 	}
 
 	addSubmission(rd, submission) {
-		console.log(rd);
-		console.log(submission);
 		if (rd >= this.key.length) return;
 
-		console.log(this.key[rd]);
-
-		if (rd !== 3 || game.rounds[rd].format === 'questions') {
+		if (rd !== 3 || this.gameData.rounds[rd].format === 'questions') {
 			this.key[rd].answers.forEach((a) => {
 				if (
 					!a.submissions.some((s) => {
@@ -100,9 +96,8 @@ module.exports = class Game {
 						partial: 0,
 					});
 				}
-				console.log(a);
 			});
-		} else if (game.rounds[rd].format === 'list') {
+		} else if (this.gameData.rounds[rd].format === 'list') {
 			submission.answers.forEach((s) => {
 				this.key[rd].answers.some((a) => {
 					if (s.toLowerCase() === a.answer.toLowerCase() || !a.correct) {
@@ -113,7 +108,10 @@ module.exports = class Game {
 					}
 				});
 			});
-		} else if (game.rounds[rd].format === 'matching') {
+			this.key[rd].answers.forEach((a) => {
+				console.log(a.answer, a.matches);
+			});
+		} else if (this.gameData.rounds[rd].format === 'matching') {
 			//we don't need to add submissions for matching rounds -
 			//there are a discrete set of possible answers for each one already,
 			//so the host just needs to set the correct answers and the system
@@ -193,7 +191,9 @@ module.exports = class Game {
 		*/
 		let keyMatch;
 		let hostMatch;
-		if (rd !== 3 || r.format === 'questions') {
+
+		const r = this.gameData.rounds[rd - 1];
+		if (rd !== 4 || r.format === 'questions') {
 			keyMatch = 'question';
 			hostMatch = 'submissions';
 		} else if (r.format === 'list') {
@@ -237,6 +237,7 @@ module.exports = class Game {
 		 */
 			keyMatch = 'answer';
 			hostMatch = 'matches';
+			console.log(key);
 		} else if (r.format === 'matching') {
 			/*
 		Matching round:
@@ -267,6 +268,144 @@ module.exports = class Game {
 			if (!k) return;
 			a[hostMatch] = k[hostMatch];
 		});
+
+		const roundKey = this.getKeyForRound(rd);
+		console.log('Key:');
+		console.log(roundKey);
+
+		if (rd !== 4 || r.format === 'questions') {
+			//for each team,
+			this.teams.forEach((t) => {
+				//find their submission for this round
+				t.submissions.some((s) => {
+					if (s.round === rd) {
+						//reset the score
+						s.score = 0;
+						s.result = [];
+						//for each answer...
+						s.answers.forEach((ans, q) => {
+							//look it up in the key
+							const k = roundKey.answers.find((a) => {
+								return a.question === q + 1;
+							});
+							/**
+							 * {
+							 * 		question: 1,
+							 * 		answer: 'Ans',
+							 * 		value: 2,
+							 * 		submissions: [{
+							 * 			{
+							 * 				answer: 'ans',
+							 * 				correct: true,
+							 * 				partial: 0
+							 * 			},...
+							 * 		}]
+							 * }
+							 */
+							const toPush = k.submissions.find((s2) => {
+								return s2.answer.toLowerCase() === ans.toLowerCase();
+							}) || {
+								answer: ans,
+								correct: false,
+								partial: 0,
+							};
+							s.result.push(toPush);
+							//calculate the score
+							if (toPush.correct) {
+								if (q === s.answers.length - 1 && rd % 2 === 1) {
+									s.score = s.score + s.wager;
+								} else {
+									s.score = s.score + k.value;
+								}
+							} else if (toPush.partial > 0) {
+								s.score = s.score + toPush.partial;
+							} else {
+								if (q === s.answers.length - 1) {
+									s.score = s.score - s.wager;
+								}
+							}
+						});
+						return true;
+					}
+				});
+			});
+		} else if (r.format === 'list') {
+			this.teams.forEach((t) => {
+				t.submissions.some((s) => {
+					if (s.round === rd) {
+						s.result = [];
+						s.score = 0;
+
+						s.answers.forEach((ans) => {
+							const match = roundKey.answers.find((k) => {
+								return k.matches.some((m) => {
+									return m.toLowerCase() === ans.toLowerCase();
+								});
+							});
+							if (!match) {
+								s.result.push({
+									answer: ans,
+									match: '(Wrong)',
+									score: 0,
+								});
+							} else {
+								if (
+									!s.result.find((r) => {
+										return r.match === match.answer;
+									})
+								) {
+									s.result.push({
+										answer: ans,
+										match: match.answer,
+										score: match.value,
+									});
+									s.score = s.score + match.value;
+								} else {
+									s.result.push({
+										answer: ans,
+										match: match.answer,
+										score: 0,
+									});
+								}
+							}
+						});
+
+						console.log(s);
+						return true;
+					}
+				});
+			});
+		} else if (r.format === 'matching') {
+			this.teams.forEach((t) => {
+				t.submissions.some((s) => {
+					if (s.round === rd) {
+						s.result = [];
+						s.score = 0;
+
+						s.answers.forEach((ans) => {
+							if (
+								!s.result.find((r) => {
+									return r.prompt === ans.prompt;
+								})
+							) {
+								const match = roundKey.answers.find((a) => {
+									return a.prompt === ans.prompt && a.answer === ans.answer;
+								});
+								s.result.push({
+									prompt: ans.prompt,
+									answer: ans.answer,
+									score: match ? match.value : 0,
+								});
+								if (match) s.score = s.score + match.value;
+							}
+						});
+
+						return true;
+					}
+				});
+			});
+		}
+
 		return this.getKeyForRound(rd);
 	}
 

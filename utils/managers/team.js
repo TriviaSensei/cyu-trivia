@@ -12,6 +12,7 @@ module.exports = class Team {
 		this.game = game;
 		for (var i = 0; i < game.roundCount; i++) {
 			this.submissions.push({
+				round: i + 1,
 				answers: [],
 				wager: 0,
 				result: [],
@@ -139,7 +140,8 @@ module.exports = class Team {
 
 	updateWager(round, wager) {
 		if (round < this.submissions.length && !this.submissions[round].final) {
-			this.submissions[round].wager = wager;
+			const maxWager = round % 2 === 0 ? (round === 6 ? 20 : 10) : 0;
+			this.submissions[round].wager = Math.min(wager, maxWager);
 		}
 	}
 

@@ -2,7 +2,7 @@ import { Host } from './sockets/hostSocket.js';
 import { getElementArray } from './utils/getElementArray.js';
 import { showMessage } from './utils/messages.js';
 import { createChatMessage } from './utils/chatMessage.js';
-import { withTimeout } from './utils/socketTimeout.js';
+import { withTimeout, timeoutMessage } from './utils/socketTimeout.js';
 
 const chatMessage = document.getElementById('chat-message');
 const chatButton = document.getElementById('send-chat');
@@ -13,6 +13,7 @@ const roundSelector = document.getElementById('round-selector');
 const modeSelector = document.getElementById('mode-selector');
 const roundGradingInd = document.getElementById('round-grading-ind');
 const roundModeInd = document.getElementById('round-mode-ind');
+const saveGrades = document.getElementById('save-grades');
 
 const socket = io();
 const host = Host(socket);
@@ -50,9 +51,7 @@ const handleSendChat = (e) => {
 					chatContainer.scrollTop = chatContainer.scrollHeight;
 				}
 			},
-			() => {
-				showMessage('error', 'Message timed out - try again', 1000);
-			},
+			timeoutMessage('Message timed out - try again'),
 			1000
 		)
 	);
@@ -76,6 +75,106 @@ const changeGradingView = (e) => {
 	}
 };
 
+const handleSaveGrades = (e) => {
+	const round = parseInt(roundSelector.value);
+	const mode = modeSelector.value;
+
+	if (mode === 'grading') {
+		const gd = document.getElementById(`grading-${round}`);
+		if (!gd) return;
+		const format = gd.getAttribute('data-format');
+		if (!format) return;
+
+		let toSend;
+		if (format === 'questions') {
+			const qgcs = getElementArray(gd, '.question-grading-container');
+			toSend = {
+				round,
+				key: [],
+			};
+			qgcs.forEach((q) => {
+				let toPush = {
+					question: parseInt(q.getAttribute('data-question')),
+					submissions: [],
+				};
+				const aDivs = getElementArray(q, '.answer-row');
+				aDivs.forEach((a) => {
+					const rr = a.querySelector('.right-radio');
+					const part = a.querySelector('.partial-credit');
+					let newAns = {
+						answer: a.getAttribute('data-answer'),
+						correct: rr && rr.checked,
+						partial: part ? parseInt(part.value) || 0 : 0,
+					};
+					toPush.submissions.push(newAns);
+				});
+				toSend.key.push(toPush);
+			});
+		} else if (format === 'list') {
+			toSend = {
+				round,
+				key: [],
+			};
+			const rows = getElementArray(gd, '.answer-row');
+			rows.forEach((r) => {
+				const sel = r.querySelector('select');
+				if (!sel) return;
+				const val = sel.value;
+
+				if (
+					!toSend.key.some((v) => {
+						if (v.answer === val) {
+							v.matches.push(r.getAttribute('data-answer'));
+							return true;
+						}
+					})
+				) {
+					toSend.key.push({
+						answer: val,
+						matches: [r.getAttribute('data-answer')],
+					});
+				}
+			});
+			console.log(toSend);
+		} else if (format === 'matching') {
+			toSend = {
+				round,
+				key: [],
+			};
+			const rows = getElementArray(gd, '.answer-row');
+			rows.forEach((r) => {
+				const sel = r.querySelector('select');
+				if (!sel) return;
+				const val = sel.value;
+
+				toSend.key.push({
+					prompt: r.getAttribute('data-prompt'),
+					answer: val,
+				});
+			});
+		}
+
+		if (!toSend) return;
+
+		socket.emit(
+			'grade-round',
+			toSend,
+			withTimeout(
+				(data) => {
+					if (data.status !== 'OK') {
+						showMessage('error', data.message || 'Something went wrong');
+					} else {
+						showMessage('info', 'Key saved.');
+						console.log(data.result);
+					}
+				},
+				timeoutMessage('Request timed out. Try again.'),
+				3000
+			)
+		);
+	}
+};
+
 document.addEventListener('DOMContentLoaded', (e) => {
 	const startButtons = getElementArray(document, '.start-button');
 	startButtons.forEach((b) => {
@@ -90,6 +189,7 @@ document.addEventListener('DOMContentLoaded', (e) => {
 	chatButton.addEventListener('click', handleSendChat);
 	roundSelector.addEventListener('change', changeGradingView);
 	modeSelector.addEventListener('change', changeGradingView);
+	saveGrades.addEventListener('click', handleSaveGrades);
 });
 
 socket.on('error', (data) => {

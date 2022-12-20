@@ -149,6 +149,7 @@ const createSlides = (data, joinCode) => {
 			});
 		}
 
+		return;
 		//answers for rounds 1, 3, 5
 		if (i % 2 === 1) {
 			toReturn.push({
@@ -659,6 +660,14 @@ const socket = (http, server) => {
 					myTeam.changeCaptain(true, myUser.id);
 				}
 			}
+			let currentSlides = [];
+			for (var i = 0; i <= myGame.currentSlide; i++) {
+				if (myGame.slides[i].clear) {
+					currentSlides = [];
+				}
+				currentSlides.push(myGame.slides[i]);
+			}
+			console.log(currentSlides);
 			if (myUser.id !== myGame.host.id) {
 				io.to(socket.id).emit('game-joined', {
 					...sanitize(myGame),
@@ -666,12 +675,19 @@ const socket = (http, server) => {
 					timeLeft: myGame.timer
 						? myGame.timer - Date.parse(new Date())
 						: undefined,
-					slides: myGame.slides.slice(0, myGame.currentSlide + 1),
+					// slides: myGame.slides.slice(0, myGame.currentSlide + 1),
 					// slides: myGame.slides,
+					slides: currentSlides,
 				});
 			} else {
 				io.to(socket.id).emit('game-started', {
-					newGame: sanitize(myGame),
+					newGame: {
+						...sanitize(myGame),
+						slides: currentSlides,
+						timeLeft: myGame.timer
+							? myGame.timer - Date.parse(new Date())
+							: undefined,
+					},
 				});
 			}
 		}
@@ -715,7 +731,10 @@ const socket = (http, server) => {
 				console.log(`${myUser.name} has started game ${myGame.id}`);
 
 				io.to(myUser.id).emit('game-started', {
-					newGame: sanitize(myGame),
+					newGame: {
+						...sanitize(myGame),
+						slides: myGame.slides.slice(0, 1),
+					},
 				});
 
 				io.emit('live-now', {
@@ -1120,7 +1139,6 @@ const socket = (http, server) => {
 					status: 'OK',
 					data: myGame.slides[myGame.currentSlide],
 				});
-
 				myGame.players.forEach((p) => {
 					socket.to(p.id).emit('next-slide', {
 						isCaptain: myGame.teams.some((t) => {
@@ -1170,15 +1188,26 @@ const socket = (http, server) => {
 					status: 'OK',
 				});
 
+				const format =
+					myGame.currentRound !== 3
+						? 'questions'
+						: myGame.gameData.rounds[3].format;
 				io.to(myGame.host.id).emit('new-response', {
 					round: myGame.currentRound + 1,
-					format:
-						myGame.currentRound !== 3
-							? 'questions'
-							: myGame.gameData.rounds[3].format,
+					format,
 					responses: myGame.getSubmissionsForRound(myGame.currentRound),
+					key: myGame.key[myGame.currentRound],
 				});
 			}
+		});
+
+		socket.on('grade-round', (data, cb) => {
+			const res = verifyHost();
+			if (res.status !== 'OK') return cb(res);
+
+			const result = myGame.gradeRound(data.round, data.key);
+
+			cb({ status: 'OK', result });
 		});
 
 		socket.on('disconnect', (reason) => {

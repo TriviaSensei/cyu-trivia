@@ -71,6 +71,7 @@ const startTimer = () => {
 
 const stopTimer = () => {
 	clearInterval(timerInterval);
+	timerInterval = undefined;
 	timer.classList.add('invisible-div');
 };
 
@@ -235,12 +236,10 @@ export const Play = (socket) => {
 		if (toSetActive.length > 0) {
 			if (!toSetActive[0]) setActive = false;
 		}
-
 		const data = slideData.slide;
 
 		if (data.newRound) {
 			currentRound = data.roundNumber;
-			console.log(data);
 
 			teamAnswerContainer.innerHTML = '';
 			const newForm = createElement('form');
@@ -272,7 +271,7 @@ export const Play = (socket) => {
 				if (data.endBonus) {
 					const newDiv = createElement('.team-answer-line');
 					const newSpan = createElement('span');
-					newSpan.innerHTML = 'Wager: ';
+					newSpan.innerHTML = `Wager (0-${data.maxWager}): `;
 					const input = createElement(
 						`${slideData.isCaptain ? 'input' : '.answer-display'}#wager`
 					);
@@ -326,6 +325,7 @@ export const Play = (socket) => {
 				newForm.appendChild(newDiv);
 			}
 			teamAnswerContainer.appendChild(newForm);
+			teamAnswerContainer.scrollTop = 0;
 		}
 
 		if (data.clear || data.new) {
@@ -363,6 +363,7 @@ export const Play = (socket) => {
 	socket.on('game-joined', (data) => {
 		myGame = data;
 
+		console.log(data);
 		data.slides.forEach((s) => {
 			handleNewSlide({ isCaptain: data.isCaptain, slide: s });
 		});
@@ -678,10 +679,11 @@ export const Play = (socket) => {
 			stopTimer();
 		}
 		if (Array.isArray(data.slide)) {
-			slide.forEach((d) => {
+			console.log(data.slide);
+			data.slide.forEach((d) => {
 				handleNewSlide({
 					isCaptain: data.isCaptain,
-					...d,
+					slide: d,
 				});
 			});
 			const count = myCarousel.querySelectorAll('.carousel-item').length;

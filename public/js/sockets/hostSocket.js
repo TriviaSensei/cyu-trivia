@@ -5,7 +5,7 @@ import { setUserCookie, getCookie } from '../utils/cookie.js';
 import { getElementArray } from '../utils/getElementArray.js';
 import { hideMessage, showMessage } from '../utils/messages.js';
 import { createSlide, modifySlide } from '../utils/slideshow.js';
-import { withTimeout } from '../utils/socketTimeout.js';
+import { withTimeout, timeoutMessage } from '../utils/socketTimeout.js';
 import { createElement } from '../utils/createElementFromSelector.js';
 
 const gameRoster = document.getElementById('game-roster-list');
@@ -26,6 +26,7 @@ const getTimeString = (time) => {
 
 const setTimer = (time) => {
 	timeLeft = Math.max(0, Math.floor(time));
+	console.log(`setting time left to ${timeLeft}`);
 	timer.innerHTML = getTimeString(timeLeft);
 };
 
@@ -58,13 +59,14 @@ const handleNewSlide = (data, ...toSetActive) => {
 		myCarouselInner.appendChild(newSlide);
 
 		if (setActive) {
-			if (!myCarousel.querySelector('.carousel-item.active')) {
-				myCarousel
-					.querySelector('.carousel-item.active')
-					?.classList.remove('active');
-				newSlide.classList.add('active');
+			const activeSlide = myCarousel.querySelector('.carousel-item.active');
+			// if (activeSlide) activeSlide.classList.remove('active');
+			// newSlide.classList.add('active');
+			if (activeSlide) {
+				const len = myCarousel.querySelectorAll('.carousel-item').length;
+				slideCarousel.to(len - 1);
 			} else {
-				slideCarousel.next();
+				newSlide.classList.add('active');
 			}
 		}
 		if (data.clear) {
@@ -170,6 +172,55 @@ const addAnswer = (r, q, ans, correct, partial, allowPartial) => {
 	qgc.appendChild(newRow);
 };
 
+const addListAnswers = (r, answers, key) => {
+	const gradingDiv = document.querySelector(
+		`.round-grading-container[data-round="${r}"]`
+	);
+	if (!gradingDiv) return;
+
+	answers.forEach((a) => {
+		if (a.trim().length === 0) return;
+		const ar = gradingDiv.querySelector(
+			`.answer-row[data-answer="${a.toLowerCase()}"]`
+		);
+		if (ar) return;
+		const newRow = createElement('.answer-row.new-list-response');
+		newRow.setAttribute('data-answer', a.toLowerCase());
+		newRow.addEventListener('click', (e) => {
+			e.target.closest('.answer-row').classList.remove('new-list-response');
+		});
+		const dd = createElement('select');
+		key.forEach((k) => {
+			const op = createElement('option');
+			op.setAttribute('value', k.answer);
+			op.innerHTML = k.answer;
+			dd.appendChild(op);
+		});
+		dd.addEventListener('change', (e) => {
+			e.target.closest('.answer-row').classList.remove('new-list-response');
+		});
+
+		const ansSpan = createElement('span.submitted-answer');
+		ansSpan.innerHTML = a;
+
+		newRow.appendChild(dd);
+		newRow.appendChild(ansSpan);
+
+		const existingAnswers = getElementArray(gradingDiv, '.answer-row');
+
+		if (
+			!existingAnswers.some((e) => {
+				if (a < e.getAttribute('data-answer')) {
+					gradingDiv.insertBefore(newRow, e);
+					return true;
+				}
+			})
+		) {
+			gradingDiv.appendChild(newRow);
+		}
+	});
+};
+
 const populateAnswers = (data) => {
 	//todo: populate for halftime list round or matching round
 	data.forEach((k, i) => {
@@ -212,53 +263,53 @@ const populateAnswers = (data) => {
 						s.partial,
 						j !== k.answers.length - 1 || i % 2 !== 0
 					);
-					// if (
-					// 	qgc.querySelector(
-					// 		`.answer-row[data-question="${
-					// 			j + 1
-					// 		}"][data-answer="${s.answer.toLowerCase()}"]`
-					// 	)
-					// )
-					// 	return;
-					// const newRow = createElement('.answer-row');
-					// newRow.setAttribute('data-question', j + 1);
-					// newRow.setAttribute('data-answer', s.answer.toLowerCase());
-
-					// const box = createElement('input.partial-credit');
-					// box.setAttribute('type', 'number');
-					// if (j === k.answers.length - 1 && i % 2 === 0) {
-					// 	box.disabled = true;
-					// } else {
-					// 	box.addEventListener('change', uncheckRadios);
-					// 	if (s.partial > 0) box.value = s.partial;
-					// }
-					// box.setAttribute('name', `answer-${i}-${j}-${k}`);
-
-					// const wr = createElement('input.wrong-radio');
-					// wr.setAttribute('type', 'radio');
-					// wr.setAttribute('name', `answer-${i}-${j}-${k}`);
-					// wr.setAttribute('data-answer', s.answer.toLowerCase());
-					// wr.addEventListener('click', emptyBoxes);
-					// if (!s.correct && s.partial === 0) wr.checked = true;
-
-					// const rr = createElement('input.right-radio');
-					// rr.setAttribute('type', 'radio');
-					// rr.setAttribute('name', `answer-${i}-${j}-${k}`);
-					// rr.setAttribute('data-answer', s.answer.toLowerCase());
-					// rr.addEventListener('click', emptyBoxes);
-					// if (s.correct) rr.checked = true;
-
-					// const ansSpan = createElement('span.submitted-answer');
-					// ansSpan.innerHTML = s.answer.toLowerCase();
-
-					// newRow.appendChild(box);
-					// newRow.appendChild(wr);
-					// newRow.appendChild(rr);
-					// newRow.appendChild(ansSpan);
-					// qgc.appendChild(newRow);
 				});
 			});
-		} else {
+		} else if (k.format === 'list') {
+			console.log(k);
+			const ansList = k.answers.map((a) => {
+				return a.answer;
+			});
+			gradingDiv.innerHTML = '';
+
+			k.answers.forEach((a) => {
+				a.matches.forEach((m) => {
+					const ar = gradingDiv.querySelector(
+						`.answer-row[data-answer="${m.toLowerCase()}"]`
+					);
+					if (ar) return;
+					const newRow = createElement('.answer-row');
+					newRow.setAttribute('data-answer', m.toLowerCase());
+
+					const dd = createElement('select');
+					ansList.forEach((item) => {
+						const op = createElement('option');
+						op.setAttribute('value', item);
+						if (item === a.answer) op.setAttribute('selected', true);
+						op.innerHTML = item;
+						dd.appendChild(op);
+					});
+
+					const ansSpan = createElement('span.submitted-answer');
+					ansSpan.innerHTML = m;
+
+					newRow.appendChild(dd);
+					newRow.appendChild(ansSpan);
+
+					const existingAnswers = getElementArray(gradingDiv, '.answer-row');
+
+					if (
+						!existingAnswers.some((e) => {
+							if (m.toLowerCase() < e.getAttribute('data-answer')) {
+								gradingDiv.insertBefore(newRow, e);
+								return true;
+							}
+						})
+					) {
+						gradingDiv.appendChild(newRow);
+					}
+				});
+			});
 		}
 	});
 };
@@ -292,12 +343,7 @@ export const Host = (socket) => {
 			}, 10);
 		}
 
-		let currentSlides = data.newGame.slides.slice(
-			0,
-			data.newGame.currentSlide + 1
-		);
-
-		currentSlides.forEach((s) => {
+		data.newGame.slides.forEach((s) => {
 			if (Array.isArray(s)) {
 				s.forEach((s2) => {
 					handleNewSlide(s2);
@@ -306,6 +352,11 @@ export const Host = (socket) => {
 				handleNewSlide(s);
 			}
 		});
+
+		if (data.newGame.timeLeft) {
+			setTimer(Math.floor(data.newGame.timeLeft / 1000));
+			startTimer();
+		}
 
 		gameRoster.innerHTML = '';
 		const me = document.createElement('li');
@@ -376,18 +427,28 @@ export const Host = (socket) => {
 	});
 
 	socket.on('new-response', (data) => {
-		console.log(data);
 		// (r, q, ans, correct, partial, allowPartial)
+		const gd = document.getElementById(`grading-${data.round}`);
+		if (gd) gd.setAttribute('data-format', data.format);
 
-		data.responses.forEach((r) => {
-			r.answers.forEach((a, q) => {
-				console.log(q, r.answers.length, data.round);
-				let allowPartial = false;
-				if (q !== r.answers.length - 1) allowPartial = true;
-				else if (data.round % 2 !== 0) allowPartial = true;
-				addAnswer(data.round, q + 1, a, false, 0, allowPartial);
+		if (data.format === 'questions') {
+			data.responses.forEach((r) => {
+				r.answers.forEach((a, q) => {
+					let allowPartial = false;
+					if (q !== r.answers.length - 1) allowPartial = true;
+					else if (data.round % 2 === 0) allowPartial = true;
+					console.log(
+						`Round: ${data.round}, Q${q}, allow partial: ${allowPartial}`
+					);
+					addAnswer(data.round, q + 1, a, false, 0, allowPartial);
+				});
 			});
-		});
+		} else if (data.format === 'list') {
+			console.log(data);
+			data.responses.forEach((r) => {
+				addListAnswers(data.round, r.answers, data.key.answers);
+			});
+		}
 	});
 
 	ssNext.addEventListener('click', (e) => {
@@ -416,7 +477,6 @@ export const Host = (socket) => {
 				withTimeout(
 					(res) => {
 						if (res.status === 'OK') {
-							console.log(res.data);
 							if (Array.isArray(res.data)) {
 								res.data.forEach((d) => {
 									handleNewSlide(d);
@@ -431,9 +491,7 @@ export const Host = (socket) => {
 							showMessage('error', res.message);
 						}
 					},
-					() => {
-						showMessage('error', res.message);
-					},
+					timeoutMessage('Request timed out - try again.'),
 					1000
 				)
 			);

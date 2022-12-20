@@ -1,3 +1,5 @@
+import { showMessage } from './messages.js';
+
 export const withTimeout = (onSuccess, onTimeout, timeout) => {
 	let called = false;
 
@@ -12,5 +14,11 @@ export const withTimeout = (onSuccess, onTimeout, timeout) => {
 		called = true;
 		clearTimeout(timer);
 		onSuccess.apply(this, args);
+	};
+};
+
+export const timeoutMessage = (msg) => {
+	return () => {
+		showMessage('error', msg);
 	};
 };
