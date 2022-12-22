@@ -9,6 +9,7 @@ import { withTimeout } from '../utils/socketTimeout.js';
 import { getElementArray } from '../utils/getElementArray.js';
 import { createSlide, modifySlide } from '../utils/slideshow.js';
 import { createElement } from '../utils/createElementFromSelector.js';
+import { generateScoreboard } from '../utils/scoreboard.js';
 
 const gameMessage = document.getElementById('game-message');
 
@@ -54,7 +55,6 @@ const getTimeString = (time) => {
 
 const setTimer = (time) => {
 	timeLeft = Math.max(0, Math.floor(time));
-	console.log(`Setting timer to ${timeLeft}`);
 	timer.innerHTML = getTimeString(timeLeft);
 };
 
@@ -176,6 +176,11 @@ export const Play = (socket) => {
 	};
 
 	const handleWagerChange = (e) => {
+		if (parseInt(e.target.value) > parseInt(e.target.getAttribute('max')))
+			e.target.value = parseInt(e.target.getAttribute('max'));
+		else if (parseInt(e.target.value) < parseInt(e.target.getAttribute('min')))
+			e.target.value = parseInt(e.target.getAttribute('min'));
+
 		socket.emit('update-wager', {
 			round: currentRound - 1,
 			wager: parseInt(e.target.value),
@@ -239,7 +244,7 @@ export const Play = (socket) => {
 		const data = slideData.slide;
 
 		if (data.newRound) {
-			currentRound = data.roundNumber;
+			currentRound = data.round;
 
 			teamAnswerContainer.innerHTML = '';
 			const newForm = createElement('form');
@@ -350,9 +355,24 @@ export const Play = (socket) => {
 					}
 				);
 			}
+			if (data.scores) {
+				const activeSlide = myCarousel.querySelector('.carousel-item.active');
+				if (activeSlide) {
+					generateScoreboard(
+						activeSlide.querySelector('.slide-body'),
+						data.scores
+					);
+				}
+			}
 		} else if (data.timer && !timerInterval) {
 			setTimer(data.timer * 60);
 			startTimer();
+			showMessage(
+				'info',
+				`Answers will auto-submit in ${data.timer} minute${
+					data.timer === 1 ? '' : 's'
+				}.`
+			);
 		} else {
 			modifySlide(data);
 		}
@@ -370,6 +390,10 @@ export const Play = (socket) => {
 
 		if (data.timeLeft) {
 			setTimer(Math.floor(data.timeLeft / 1000));
+			showMessage(
+				`info`,
+				`Answers will auto-submit in ${getTimeString(data.timeLeft)}.`
+			);
 			startTimer();
 		}
 
@@ -678,6 +702,7 @@ export const Play = (socket) => {
 		if (!data.continueTimer) {
 			stopTimer();
 		}
+		console.log(data);
 		if (Array.isArray(data.slide)) {
 			console.log(data.slide);
 			data.slide.forEach((d) => {

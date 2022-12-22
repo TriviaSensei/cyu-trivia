@@ -79,6 +79,8 @@ const handleSaveGrades = (e) => {
 	const round = parseInt(roundSelector.value);
 	const mode = modeSelector.value;
 
+	console.log('hi');
+
 	if (mode === 'grading') {
 		const gd = document.getElementById(`grading-${round}`);
 		if (!gd) return;
@@ -86,6 +88,7 @@ const handleSaveGrades = (e) => {
 		if (!format) return;
 
 		let toSend;
+		console.log(format);
 		if (format === 'questions') {
 			const qgcs = getElementArray(gd, '.question-grading-container');
 			toSend = {
@@ -154,6 +157,7 @@ const handleSaveGrades = (e) => {
 			});
 		}
 
+		console.log(toSend);
 		if (!toSend) return;
 
 		socket.emit(

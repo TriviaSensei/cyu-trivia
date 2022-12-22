@@ -147,11 +147,21 @@ module.exports = class Team {
 
 	setResponse(round) {
 		if (round < this.submissions.length) {
-			if (this.submissions[round].final) return false;
+			if (this.submissions[round].final)
+				return {
+					status: 'fail',
+					message: 'This round has already been submitted.',
+				};
 			this.submissions[round].final = true;
 			this.game.addSubmission(round, this.submissions[round]);
-			return true;
+			return {
+				status: 'OK',
+			};
 		}
+		return {
+			status: 'fail',
+			message: 'Invalid round number',
+		};
 	}
 
 	getResponse(round) {

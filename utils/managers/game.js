@@ -17,6 +17,7 @@ module.exports = class Game {
 			let toPush = {
 				round: i + 1,
 				answers: [],
+				saved: false,
 				format: 'questions',
 			};
 			if (i !== 3 || r.format === 'questions') {
@@ -237,7 +238,6 @@ module.exports = class Game {
 		 */
 			keyMatch = 'answer';
 			hostMatch = 'matches';
-			console.log(key);
 		} else if (r.format === 'matching') {
 			/*
 		Matching round:
@@ -268,10 +268,14 @@ module.exports = class Game {
 			if (!k) return;
 			a[hostMatch] = k[hostMatch];
 		});
+		this.key.some((k) => {
+			if (k.round === rd) {
+				k.saved = true;
+				return true;
+			}
+		});
 
 		const roundKey = this.getKeyForRound(rd);
-		console.log('Key:');
-		console.log(roundKey);
 
 		if (rd !== 4 || r.format === 'questions') {
 			//for each team,
@@ -369,8 +373,6 @@ module.exports = class Game {
 								}
 							}
 						});
-
-						console.log(s);
 						return true;
 					}
 				});
@@ -407,6 +409,24 @@ module.exports = class Game {
 		}
 
 		return this.getKeyForRound(rd);
+	}
+
+	getScoresAfterRound(rd) {
+		return this.teams
+			.map((t) => {
+				return {
+					name: t.name,
+					id: t.id,
+					roomid: t.roomid,
+					score: t.submissions.reduce((p, c) => {
+						if (c.round <= rd) return p + c.score + c.adjustment;
+						else return p;
+					}, 0),
+				};
+			})
+			.sort((a, b) => {
+				return b.score - a.score;
+			});
 	}
 
 	containsPlayer(id) {
@@ -471,7 +491,39 @@ module.exports = class Game {
 
 	advanceSlide() {
 		if (this.timer && new Date() < this.timer && process.env.LOCAL !== 'true')
-			return false;
+			return {
+				status: 'fail',
+				message: `You must wait ${Math.floor(
+					(this.timer - new Date()) / 1000
+				)} seconds before continuing.`,
+			};
+
+		if (this.currentSlide >= this.slides.length - 1) {
+			return {
+				status: 'fail',
+				message: 'You have reached the end of the deck.',
+			};
+		}
+
+		if (this.slides[this.currentSlide + 1].mode === 'scores') {
+			let failure;
+			if (
+				!this.key.every((k, i) => {
+					if (i > this.currentRound || k.saved) return true;
+					failure = i;
+					return false;
+				})
+			) {
+				return {
+					status: 'fail',
+					message: `You have not saved grades for round ${failure + 1}`,
+				};
+			} else {
+				this.slides[this.currentSlide + 1].scores = this.getScoresAfterRound(
+					this.currentRound + 1
+				);
+			}
+		}
 
 		this.currentSlide === undefined
 			? (this.currentSlide = 0)
@@ -487,7 +539,20 @@ module.exports = class Game {
 				: this.currentRound++;
 		}
 
-		return true;
+		return { status: 'OK', slide: this.slides[this.currentSlide] };
+	}
+
+	setAllAnswers(rd) {
+		if (rd <= 0) return;
+		console.log(`Pulling answers for round ${rd}`);
+		this.teams.forEach((t) => {
+			t.submissions.some((s) => {
+				if (s.round === rd) {
+					s.final = true;
+					return true;
+				}
+			});
+		});
 	}
 
 	getTeamForPlayer(id) {

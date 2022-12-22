@@ -39,7 +39,7 @@ const createSlides = (data, joinCode) => {
 			header: `Round ${i + 1}`,
 			body: r.description,
 			newRound: true,
-			roundNumber: i + 1,
+			round: i + 1,
 			format: i !== 3 ? 'std' : r.format === 'questions' ? 'std' : r.format,
 			questionCount:
 				i !== 3 || r.format === 'questions'
@@ -142,13 +142,14 @@ const createSlides = (data, joinCode) => {
 			toReturn.push({
 				new: true,
 				clear: true,
+				pullAnswers: true,
+				round: i + 1,
 				header: 'Stand by',
-				videoLink: r.video,
+				videoLink: r.video || '',
 				videoStart: r.videoStart || 0,
 				autoplay: true,
 			});
 		}
-
 		//answers for rounds 1, 3, 5
 		if (i % 2 === 1) {
 			toReturn.push({
@@ -235,7 +236,9 @@ const createSlides = (data, joinCode) => {
 			toReturn.push({
 				new: true,
 				clear: true,
-				type: 'scores',
+				header: `Scores`,
+				mode: 'scores',
+				scores: [],
 			});
 		} else if (i === 3) {
 			//answers for rounds 4
@@ -296,7 +299,9 @@ const createSlides = (data, joinCode) => {
 			toReturn.push({
 				new: true,
 				clear: true,
-				type: 'scores',
+				header: 'Scores',
+				mode: 'scores',
+				scores: [],
 			});
 		} else if (i === 5) {
 			//answers for round 6
@@ -336,13 +341,16 @@ const createSlides = (data, joinCode) => {
 			toReturn.push({
 				new: true,
 				clear: true,
-				type: 'scores',
+				header: 'Scores',
+				mode: 'scores',
+				scores: [],
 			});
 		} else if (i === 6) {
 			toReturn.push({
 				new: true,
 				clear: true,
-				type: 'scores',
+				mode: 'scores',
+				scores: [],
 			});
 		}
 	});
@@ -1133,25 +1141,45 @@ const socket = (http, server) => {
 			const res = verifyHost();
 			if (res.status !== 'OK') return cb(res);
 
-			if (myGame.advanceSlide()) {
-				cb({
-					status: 'OK',
-					data: myGame.slides[myGame.currentSlide],
-				});
-				myGame.players.forEach((p) => {
-					socket.to(p.id).emit('next-slide', {
-						isCaptain: myGame.teams.some((t) => {
-							return t.captain.id === p.id;
-						}),
-						slide: myGame.slides[myGame.currentSlide],
-					});
-				});
-			} else {
+			const adv = myGame.advanceSlide();
+			if (adv.status !== 'OK') {
 				return cb({
 					status: 'fail',
-					message: 'You must wait until the timer ends to advance the deck.',
+					message: adv.message,
 				});
 			}
+
+			cb({
+				status: 'OK',
+				data: adv.slide,
+			});
+			if (adv.slide.newRound || adv.slide.pullAnswers) {
+				myGame.setAllAnswers(adv.slide.round - 1);
+			}
+			myGame.players.forEach((p) => {
+				const theirTeam = myGame.getTeamForPlayer(p.id);
+
+				socket.to(p.id).emit('next-slide', {
+					isCaptain: myGame.teams.some((t) => {
+						return t.captain.id === p.id;
+					}),
+					slide: Array.isArray(adv.slide)
+						? adv.slide
+						: {
+								...adv.slide,
+								scores: adv.slide.scores
+									? adv.slide.scores.map((s) => {
+											return {
+												...s,
+												id: '',
+												roomid: '',
+												myTeam: theirTeam && theirTeam.id === s.id,
+											};
+									  })
+									: null,
+						  },
+				});
+			});
 		});
 
 		socket.on('update-answer', (data) => {
@@ -1177,15 +1205,13 @@ const socket = (http, server) => {
 			const res = verifyCaptain();
 			if (res.status !== 'OK') return emitError(res.message);
 
-			if (!myTeam.setResponse(myGame.currentRound)) {
-				cb({
-					status: 'fail',
-					message: 'Your team has already submitted this round.',
-				});
+			console.log(`${myTeam.name} submitting round ${myGame.currentRound + 1}`);
+
+			const submit = myTeam.setResponse(myGame.currentRound);
+			if (submit.status !== 'OK') {
+				cb(submit);
 			} else {
-				cb({
-					status: 'OK',
-				});
+				cb(submit);
 
 				const format =
 					myGame.currentRound !== 3
@@ -1203,6 +1229,8 @@ const socket = (http, server) => {
 		socket.on('grade-round', (data, cb) => {
 			const res = verifyHost();
 			if (res.status !== 'OK') return cb(res);
+
+			console.log(data);
 
 			const result = myGame.gradeRound(data.round, data.key);
 

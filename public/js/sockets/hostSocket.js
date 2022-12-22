@@ -7,7 +7,7 @@ import { hideMessage, showMessage } from '../utils/messages.js';
 import { createSlide, modifySlide } from '../utils/slideshow.js';
 import { withTimeout, timeoutMessage } from '../utils/socketTimeout.js';
 import { createElement } from '../utils/createElementFromSelector.js';
-
+import { generateScoreboard } from '../utils/scoreboard.js';
 const gameRoster = document.getElementById('game-roster-list');
 const chatContainer = document.querySelector('.chat-container');
 
@@ -26,7 +26,6 @@ const getTimeString = (time) => {
 
 const setTimer = (time) => {
 	timeLeft = Math.max(0, Math.floor(time));
-	console.log(`setting time left to ${timeLeft}`);
 	timer.innerHTML = getTimeString(timeLeft);
 };
 
@@ -75,6 +74,16 @@ const handleNewSlide = (data, ...toSetActive) => {
 					item.remove();
 				}
 			);
+		}
+
+		if (data.scores) {
+			const activeSlide = myCarousel.querySelector('.carousel-item.active');
+			if (activeSlide) {
+				generateScoreboard(
+					activeSlide.querySelector('.slide-body'),
+					data.scores
+				);
+			}
 		}
 	} else if (data.timer) {
 		setTimer(data.timer * 60);
@@ -357,6 +366,12 @@ export const Host = (socket) => {
 			setTimer(Math.floor(data.newGame.timeLeft / 1000));
 			startTimer();
 		}
+
+		data.newGame.gameData.rounds.forEach((r, i) => {
+			const rgc = document.getElementById(`grading-${i + 1}`);
+			if (!rgc) return;
+			rgc.setAttribute('data-format', r.format || 'questions');
+		});
 
 		gameRoster.innerHTML = '';
 		const me = document.createElement('li');
