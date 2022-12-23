@@ -33,24 +33,29 @@ block modals
     include admin/modals/confirmDeleteGame
     include admin/modals/autopopulate
     include admin/modals/assignHost
+    include admin/modals/createVenue
 
 block content 
     #admin-console
         ul.nav.nav-tabs.nav-fill#admin-tabs(role="tablist")
             -if (user.role === 'owner')
                 li.nav-item(role="presentation")
-                    button.nav-link#user-tab(data-bs-toggle="tab" data-bs-target="#users" type="button" role="tab" aria-controls="users" aria-selected="false") Users
+                    button.nav-link.active#user-tab(data-bs-toggle="tab" data-bs-target="#users" type="button" role="tab" aria-controls="users" aria-selected="true") Users
                 li.nav-item(role="presentation")
-                    button.nav-link.active#game-tab(data-bs-toggle="tab" data-bs-target="#games" type="button" role="tab" aria-controls="games" aria-selected="true") Games
+                    button.nav-link#game-tab(data-bs-toggle="tab" data-bs-target="#games" type="button" role="tab" aria-controls="games" aria-selected="false") Games
+                li.nav-item(role="presentation")
+                    button.nav-link#venue-tab(data-bs-toggle="tab" data-bs-target="#venues" type="button" role="tab" aria-controls="venues" aria-selected="false") Venues
             -else
                 li.nav-item(role="presentation")
                     button.nav-link.active#game-tab(data-bs-toggle="tab" data-bs-target="#games" type="button" role="tab" aria-controls="games" aria-selected="true") Games                
         .tab-content#admin-tabs-content 
             -if (user.role === 'owner')
-                .tab-pane.fade#users(role="tabpanel" aria-labelledby="user-tab")  
+                .tab-pane.fade.show.active#users(role="tabpanel" aria-labelledby="user-tab")  
                     include admin/users
-                .tab-pane.fade.show.active#games(role="tabpanel" aria-labelledby="game-tab")
+                .tab-pane.fade#games(role="tabpanel" aria-labelledby="game-tab")
                     include admin/games
+                .tab-pane.fade#venues(role="tabpanel" aria-labelledby="venue-tab")
+                    include admin/venues
             -else
                 .tab-pane.fade.show.active#games(role="tabpanel" aria-labelledby="game-tab")
                     include admin/games

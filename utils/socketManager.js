@@ -150,6 +150,7 @@ const createSlides = (data, joinCode) => {
 				autoplay: true,
 			});
 		}
+
 		//answers for rounds 1, 3, 5
 		if (i % 2 === 1) {
 			toReturn.push({
@@ -852,7 +853,7 @@ const socket = (http, server) => {
 
 		socket.on('set-team-name', (data, cb) => {
 			if (filter.isProfane(data.name)) {
-				cb({
+				return cb({
 					status: 'fail',
 					message: 'Watch your language.',
 				});
@@ -1188,7 +1189,11 @@ const socket = (http, server) => {
 			if (data.round !== myGame.currentRound)
 				return emitError('Incorrect round');
 
-			myTeam.updateResponse(myGame.currentRound, data.question, data.answer);
+			myTeam.updateResponse(
+				myGame.currentRound,
+				data.question,
+				data.answer.trim()
+			);
 
 			socket.to(myTeam.roomid).emit('update-answer', data);
 		});

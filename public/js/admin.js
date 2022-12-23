@@ -1,5 +1,5 @@
 import { showMessage, hideMessage } from './utils/messages.js';
-import { handleRequest } from './utils/requestHandler.js';
+import { handleMultiRequest, handleRequest } from './utils/requestHandler.js';
 
 const createUserModal = new bootstrap.Modal(
 	document.getElementById('create-user-modal')
@@ -18,8 +18,21 @@ const userListContainer = document.getElementById('user-table-container');
 const loadingDiv = document.getElementById('loading-div');
 const createUserButton = document.getElementById('create-new-user');
 
+const createVenueModal = new bootstrap.Modal(
+	document.getElementById('create-venue-modal')
+);
+const createVenueButton = document.getElementById('confirm-create');
+const createVenueForm = document.getElementById('new-venue-modal-form');
+const vName = document.getElementById('venue-name');
+const vDescription = document.getElementById('venue-description');
+const vGameTimes = document.getElementById('venue-game-times');
+const vAddress = document.getElementById('venue-address');
+const vPhoto = document.getElementById('venue-photo');
+
 let action = undefined;
 let uid = undefined;
+let venueAction = undefined;
+let vid = undefined;
 
 const setUID = (e) => {
 	const button = e.target.closest('button');
@@ -227,6 +240,25 @@ if (createUserModal && createUserForm) {
 				handler
 			);
 		}
+	});
+}
+
+if (createVenueModal && createVenueForm) {
+	createVenueForm.addEventListener('submit', (e) => {
+		e.preventDefault();
+		const formData = new FormData(createVenueForm);
+		console.log(formData);
+
+		const handler = (res) => {
+			if (res.status === 'success') {
+				showMessage('info', 'Successfully created venue.');
+			} else {
+				showMessage('error', 'Something went wrong');
+			}
+		};
+
+		showMessage('info', 'Creating...', 1000);
+		handleMultiRequest('/api/v1/venues', 'POST', formData, handler);
 	});
 }
 

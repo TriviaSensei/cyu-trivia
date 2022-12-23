@@ -425,7 +425,7 @@ module.exports = class Game {
 				};
 			})
 			.sort((a, b) => {
-				return b.score - a.score;
+				return a.score - b.score;
 			});
 	}
 

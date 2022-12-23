@@ -51,6 +51,20 @@ exports.AWSUpload = catchAsync(async (req, res, next) => {
 	});
 });
 
+// exports.AWSGet = catchAsync(async (req, res, next) => {
+// 	const params = {
+// 		Bucket: process.env.AWS_BUCKET,
+// 		MaxKeys: 10000,
+// 	};
+
+// 	const data = await s3.listObjects(params).promise();
+
+// 	res.status(200).json({
+// 		status: 'success',
+// 		data,
+// 	});
+// });
+
 exports.assignHost = catchAsync(async (req, res, next) => {
 	const game = await Game.findById(req.params.id);
 	const user = await User.findById(req.params.uid);

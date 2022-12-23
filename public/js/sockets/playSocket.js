@@ -333,6 +333,8 @@ export const Play = (socket) => {
 			teamAnswerContainer.scrollTop = 0;
 		}
 
+		console.log(data);
+
 		if (data.clear || data.new) {
 			const newSlide = createSlide(data);
 			myCarouselInner.appendChild(newSlide);
@@ -356,7 +358,8 @@ export const Play = (socket) => {
 				);
 			}
 			if (data.scores) {
-				const activeSlide = myCarousel.querySelector('.carousel-item.active');
+				const activeSlide = myCarousel.querySelector('.carousel-item');
+				console.log(activeSlide);
 				if (activeSlide) {
 					generateScoreboard(
 						activeSlide.querySelector('.slide-body'),

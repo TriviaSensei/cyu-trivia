@@ -182,6 +182,17 @@ a:visited {
 .modal-content {
 	border: 2px solid yellow;
 	background-color: var(--color-3);
+	max-height: 80vh;
+}
+
+.modal-body {
+	overflow-y: scroll;
+}
+
+textarea {
+	background-color: #ccc;
+	font-weight: bold;
+	width: 100%;
 }
 
 .banner {
@@ -482,7 +493,7 @@ li.navlink {
 	padding: 10% 5% 10% 14%;
 	display: flex;
 	flex-direction: column;
-	font-size: min(16px, 1rem);
+	font-size: min(12px, 0.8rem);
 }
 
 .slide-contents > div {
@@ -592,6 +603,10 @@ li.navlink {
 			justify-content: space-between;
 			column-gap: 20px;
 		}
+	}
+
+	.carousel-item > .slide-contents {
+		font-size: min(16px, 1rem);
 	}
 
 	.section-content-media {

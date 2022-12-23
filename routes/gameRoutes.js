@@ -4,6 +4,8 @@ const authController = require('../controllers/authController');
 
 const router = express.Router();
 
+// router.route('/awsget').get(gameController.AWSGet);
+
 //logged in users only for game routes
 router.use(authController.protect);
 

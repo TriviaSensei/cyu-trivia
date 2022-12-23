@@ -1,0 +1,36 @@
+.modal.fade#create-venue-modal(tabindex="-1" aria-labelledby="create-venue-label" aria-hidden="true")
+    .modal-dialog.modal-dialog-centered
+        .modal-content#create-venue-modal-content
+            .modal-header
+                h5.modal-title#create-venue-label Create New venue
+                button.btn-close(type="button" data-bs-dismiss="modal" aria-label="Close")
+            .modal-body
+                form#new-venue-modal-form
+                    input#edit-venue-id(type='hidden' value='')
+                    label.form-label(for="name") Venue Name:
+                    .input-group.mb-3
+                        input.form-control#venue-name(type="text" name="name" placeholder="Name" required)            
+                    label.form-label(for="lname") Description:
+                    .input-group.mb-3
+                        textarea#venue-description(type="text" name="description" placeholder="Description" required)
+                    label.form-label(for="gameTime") Game Times:
+                    .input-group.mb-3
+                        input.form-control#venue-game-times(type="text" name="gameTime" placeholder="Game Times" required)
+                    label.form-label(for="address") Address:
+                    .input-group.mb-3
+                        input.form-control#venue-address(type="text" name="address" placeholder="Address" required)
+                    label.form-label(for="photo") Photo:
+                    .input-group.mb-3
+                        input.form-control#venue-photo(type="file" name="venue-photo" accept="image/*")
+                    .form-label Public? 
+                    .input-group.mb-3
+                        .form-check.form-check-inline
+                            label.form-check-label(for="public-radio") Yes
+                            input.form-check-input#public-radio(type="radio" name="public" value="yes" checked)
+                        .form-check.form-check-inline
+                            label.form-check-label(for="private-radio") No
+                            input.form-check-input#private-radio(type="radio" name="public" value="no")
+
+            .modal-footer
+                button.btn.btn-secondary#cancel-create(type="button" data-bs-dismiss="modal") Cancel
+                button.btn.btn-primary#confirm-create(type="submit" form="new-venue-modal-form") Add

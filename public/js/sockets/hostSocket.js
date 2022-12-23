@@ -76,8 +76,10 @@ const handleNewSlide = (data, ...toSetActive) => {
 			);
 		}
 
+		console.log(data);
 		if (data.scores) {
-			const activeSlide = myCarousel.querySelector('.carousel-item.active');
+			const activeSlide = myCarousel.querySelector('.carousel-item');
+			console.log(activeSlide);
 			if (activeSlide) {
 				generateScoreboard(
 					activeSlide.querySelector('.slide-body'),
@@ -120,18 +122,22 @@ const addAnswer = (r, q, ans, correct, partial, allowPartial) => {
 		`.question-grading-container[data-question="${q}"]`
 	);
 	if (!qgc) return;
+
+	const dataAns = ans.toLowerCase().trim();
+	if (dataAns.length === 0) return;
+
 	const noAns = qgc.querySelector('.no-answers');
 	if (noAns) noAns.remove();
 
 	if (
 		qgc.querySelector(
-			`.answer-row[data-question="${q}"][data-answer="${ans.toLowerCase()}"]`
+			`.answer-row[data-question="${q}"][data-answer="${dataAns}"]`
 		)
 	)
 		return;
 	const newRow = createElement('.answer-row');
 	newRow.setAttribute('data-question', q);
-	newRow.setAttribute('data-answer', ans.toLowerCase());
+	newRow.setAttribute('data-answer', dataAns);
 
 	const box = createElement('input.partial-credit');
 	box.setAttribute('type', 'number');
@@ -150,7 +156,7 @@ const addAnswer = (r, q, ans, correct, partial, allowPartial) => {
 	const wr = createElement('input.wrong-radio');
 	wr.setAttribute('type', 'radio');
 	wr.setAttribute('name', `answer-${r}-${q}-${ansNo + 1}`);
-	wr.setAttribute('data-answer', ans.toLowerCase());
+	wr.setAttribute('data-answer', dataAns);
 	wr.addEventListener('click', emptyBoxes);
 	if (!correct && partial === 0) wr.checked = true;
 	const sp1 = createElement('span.checkmark');
@@ -163,7 +169,7 @@ const addAnswer = (r, q, ans, correct, partial, allowPartial) => {
 	const rr = createElement('input.right-radio');
 	rr.setAttribute('type', 'radio');
 	rr.setAttribute('name', `answer-${r}-${q}-${ansNo + 1}`);
-	rr.setAttribute('data-answer', ans.toLowerCase());
+	rr.setAttribute('data-answer', dataAns);
 	rr.addEventListener('click', emptyBoxes);
 	if (correct) rr.checked = true;
 	const sp2 = createElement('span.checkmark');
@@ -172,7 +178,7 @@ const addAnswer = (r, q, ans, correct, partial, allowPartial) => {
 	ro2.appendChild(rrc);
 
 	const ansSpan = createElement('span.submitted-answer');
-	ansSpan.innerHTML = ans.toLowerCase();
+	ansSpan.innerHTML = dataAns;
 
 	newRow.appendChild(box);
 	newRow.appendChild(ro1);
@@ -194,7 +200,7 @@ const addListAnswers = (r, answers, key) => {
 		);
 		if (ar) return;
 		const newRow = createElement('.answer-row.new-list-response');
-		newRow.setAttribute('data-answer', a.toLowerCase());
+		newRow.setAttribute('data-answer', a.toLowerCase().trim());
 		newRow.addEventListener('click', (e) => {
 			e.target.closest('.answer-row').classList.remove('new-list-response');
 		});
@@ -452,14 +458,10 @@ export const Host = (socket) => {
 					let allowPartial = false;
 					if (q !== r.answers.length - 1) allowPartial = true;
 					else if (data.round % 2 === 0) allowPartial = true;
-					console.log(
-						`Round: ${data.round}, Q${q}, allow partial: ${allowPartial}`
-					);
 					addAnswer(data.round, q + 1, a, false, 0, allowPartial);
 				});
 			});
 		} else if (data.format === 'list') {
-			console.log(data);
 			data.responses.forEach((r) => {
 				addListAnswers(data.round, r.answers, data.key.answers);
 			});
