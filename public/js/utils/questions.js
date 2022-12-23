@@ -31,7 +31,7 @@ export const questions = [
 	},
 	{
 		value: 8,
-		text: '**Name the K-Pop group** who, with their recent release of "Between 1&2", achieved a top three album in the U.S. for the second time (becoming the first female K-Pop act to do so), and, in 2020, charted on the Billboard 200 for the second time with "Eyes Wide Open".',
+		text: '**Name the group** who, with their release of "Between 1&2", achieved a top three album in the U.S. for the second time (becoming the first female K-Pop act to do so), and, in 2020, hit the Billboard 200 for the second time with "Eyes Wide Open".',
 		answer: 'TWICE',
 	},
 	{
