@@ -252,8 +252,12 @@ if (createVenueModal && createVenueForm) {
 		const handler = (res) => {
 			if (res.status === 'success') {
 				showMessage('info', 'Successfully created venue.');
+				[vName, vDescription, vGameTimes, vAddress, vPhoto].forEach((el) => {
+					el.value = '';
+				});
+				createVenueModal.hide();
 			} else {
-				showMessage('error', 'Something went wrong');
+				showMessage('error', res.message, 1000);
 			}
 		};
 

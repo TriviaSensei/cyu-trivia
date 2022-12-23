@@ -16,7 +16,7 @@ const venueSchema = new mongoose.Schema({
 		unique: true,
 		trim: true,
 		minlength: [1, 'You must specify a name.'],
-		maxlength: [100, 'The maximum length is 100 characters'],
+		maxlength: [500, 'The maximum length is 100 characters'],
 	},
 	gameTime: {
 		type: String,

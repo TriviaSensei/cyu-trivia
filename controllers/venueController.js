@@ -28,7 +28,6 @@ const upload = multer({
 exports.uploadImages = upload.fields([{ name: 'venue-photo', maxCount: 1 }]);
 
 exports.AWSUpload = catchAsync(async (req, res, next) => {
-	console.log(req.files);
 	const fileExtension = req.files['venue-photo'][0].mimetype.split('/')[1];
 	const filename = `${uuidV4()}.${fileExtension}`;
 
