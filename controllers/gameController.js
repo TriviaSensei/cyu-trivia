@@ -11,6 +11,8 @@ const { resolve } = require('path');
 const AppError = require('../utils/appError');
 const { default: mongoose } = require('mongoose');
 const deleteTimeout = 5 * 60 * 1000;
+const sharp = require('sharp');
+const maxImageHeight = 200;
 
 const s3 = new S3({
 	accessKeyId: process.env.AWS_KEY,
@@ -28,7 +30,7 @@ const multerFilter = (req, file, cb) => {
 const upload = multer({
 	storage: multerStorage,
 	fileFilter: multerFilter,
-	limits: { fileSize: 1024 * 1024 },
+	limits: { fileSize: 10 * 1024 * 1024 },
 });
 
 exports.uploadImages = upload.fields([{ name: 'pictures', maxCount: 1 }]);
@@ -37,10 +39,19 @@ exports.AWSUpload = catchAsync(async (req, res, next) => {
 	const fileExtension = req.files.pictures[0].mimetype.split('/')[1];
 	const filename = `${uuidV4()}.${fileExtension}`;
 
+	const metadata = await sharp(req.files['venue-photo'][0].buffer).metadata();
+
+	const resizedBuffer =
+		metadata.height > maxImageHeight
+			? await sharp(req.files['venue-photo'][0].buffer)
+					.resize({ height: maxImageHeight })
+					.toBuffer()
+			: undefined;
+
 	const params = {
 		Bucket: process.env.AWS_BUCKET,
 		Key: filename,
-		Body: req.files.pictures[0].buffer,
+		Body: resizedBuffer || req.files['venue-photo'][0].buffer,
 	};
 
 	const data = await s3.upload(params).promise();

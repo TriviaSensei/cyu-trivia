@@ -1,5 +1,6 @@
 const catchAsync = require('../utils/catchAsync');
 const Game = require('../models/gameModel');
+const Venue = require('../models/venueModel');
 
 exports.httpsRedirect = (req, res, next) => {
 	// console.log(req.header('x-forwarded-proto'));
@@ -33,14 +34,38 @@ exports.loginRedirect = catchAsync(async (req, res, next) => {
 exports.getHomepage = catchAsync(async (req, res, next) => {
 	// 2) build template
 
-	if (req.params.id) {
-		console.log(req.params.id);
-	}
+	const venues = await Venue.find({ public: true });
+
+	const toSend = venues.map((v) => {
+		let address = v.address;
+		while (address.indexOf(' ') >= 0) {
+			address = address.replace(' ', '+');
+		}
+		const src = `https://www.google.com/maps/embed/v1/place?key=${process.env.GMAP_API_KEY}&q=${address}`;
+
+		return {
+			...v.toJSON(),
+			src,
+		};
+	});
+
+	// toSend.push({
+	// 	name: 'Test game',
+	// 	description: 'This is a test game.',
+	// 	gameTime: 'Every monday, 8PM ET',
+	// 	public: true,
+	// 	address: '1600 Pennsylvania Ave. Washington, DC',
+	// 	photo:
+	// 		'https://cyutrivia.s3.amazonaws.com/e635166f-a786-4b43-9422-8c124f3b9c0a.png',
+	// 	src: `https://www.google.com/maps/embed/v1/place?key=${process.env.GMAP_API_KEY}&q=1600+Pennsylvania+Ave.+Washington,+DC`,
+	// });
+	console.log(toSend);
 
 	// 3) render template using tour data from (1)
 	// this will look in the /views (set in app.js) folder for 'overview.pug' (pug engine also specified in app.js)
 	res.status(200).render('home', {
 		title: 'Home',
+		venues: toSend,
 	});
 });
 

@@ -5,6 +5,9 @@ const Venue = require('../models/venueModel');
 const S3 = require('aws-sdk/clients/s3');
 const { v4: uuidV4 } = require('uuid');
 const multer = require('multer');
+const sharp = require('sharp');
+
+const maxImageHeight = 200;
 
 const s3 = new S3({
 	accessKeyId: process.env.AWS_KEY,
@@ -22,7 +25,7 @@ const multerFilter = (req, file, cb) => {
 const upload = multer({
 	storage: multerStorage,
 	fileFilter: multerFilter,
-	limits: { fileSize: 1024 * 1024 },
+	limits: { fileSize: 10 * 1024 * 1024 },
 });
 
 exports.uploadImages = upload.fields([{ name: 'venue-photo', maxCount: 1 }]);
@@ -31,10 +34,19 @@ exports.AWSUpload = catchAsync(async (req, res, next) => {
 	const fileExtension = req.files['venue-photo'][0].mimetype.split('/')[1];
 	const filename = `${uuidV4()}.${fileExtension}`;
 
+	const metadata = await sharp(req.files['venue-photo'][0].buffer).metadata();
+
+	const resizedBuffer =
+		metadata.height > maxImageHeight
+			? await sharp(req.files['venue-photo'][0].buffer)
+					.resize({ height: maxImageHeight })
+					.toBuffer()
+			: undefined;
+
 	const params = {
 		Bucket: process.env.AWS_BUCKET,
 		Key: filename,
-		Body: req.files['venue-photo'][0].buffer,
+		Body: resizedBuffer || req.files['venue-photo'][0].buffer,
 	};
 
 	const data = await s3.upload(params).promise();

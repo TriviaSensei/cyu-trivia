@@ -17,6 +17,10 @@ block navbar_content
 	li.navlink(data-target="samples")
 		a 
 			div Samples
+	- if (venues.length > 0)
+		li.navlink(data-target="where")
+			a 
+				div Venues
 	li.navlink(data-target="contact")
 		a 
 			div Contact
@@ -30,6 +34,9 @@ block mobilemenu
 		a Services
 	.navlink(data-target="samples")
 		a Samples
+	- if (venues.length > 0)
+		.navlink(data-target="where")
+			a Venues
 	.navlink(data-target="contact")
 		a Contact
 
@@ -101,6 +108,25 @@ block content
 								span.carousel-control-next-icon(aria-hidden="true")
 								span.visually-hidden Next
 					p Wildcard - a quick, usually themed round with a random format
+	- if (venues.length > 0)
+		#venues.body-section(name="where")
+			.section-title Where to Play
+			#venue-list.section-content
+				- i = 0
+				each venue in venues 
+					.venue-container 
+						.venue-info 
+							- if (venue.website)
+								p #[a(href=`${venue.website}` target="_blank") #[strong= venue.name]]
+							- else
+								p #[strong= venue.name]
+							p #[strong Where: ] #[span= venue.address]
+							p #[strong When: ] #[span= venue.gameTime]
+							p= venue.description 
+						iframe(referrerpolicy="no-referrer-when-downgrade" src=`${venue.src}`)
+					- if (i !== venues.length-1)
+						hr(size="5")
+					- i++
 	#contact.body-section(name="contact")
 		.section-title Contact
 		.contact-container.form-container
@@ -118,7 +144,7 @@ block content
 						input.form-control#subject(type="subject" placeholder="Subject" required)
 					.mb-3
 						label.form-label(for="message") Your message
-						textarea.form-control#message(required rows="6")
+						textarea#message(required rows="6" placeholder="Your message")
 					.mb-3(style="width: 100%; display: flex")
 						button.send-button Send		
 	include _footer

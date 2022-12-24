@@ -561,7 +561,7 @@ li.navlink {
 .form-container {
 	padding: 10px;
 }
-.form-container input,
+/* .form-container input,
 .form-container textarea {
 	background-color: #444444;
 	color: white;
@@ -571,6 +571,28 @@ li.navlink {
 .form-container textarea:focus {
 	background-color: #444444;
 	color: white;
+} */
+
+#venue-list {
+	display: flex;
+	flex-direction: column;
+}
+
+#venue-list > .venue-container {
+	display: flex;
+	flex-direction: column;
+	width: 100%;
+	margin: 30px;
+}
+
+.venue-container > .venue-info {
+	flex: 1;
+	margin: 10px;
+}
+
+hr {
+	width: 50%;
+	border-top: 3px dotted yellow;
 }
 
 @media (pointer: fine) {
@@ -602,6 +624,19 @@ li.navlink {
 			grid-template-columns: repeat(3, 1fr);
 			justify-content: space-between;
 			column-gap: 20px;
+		}
+
+		#venue-list > .venue-container {
+			flex-direction: row;
+		}
+		#venue-list > .venue-container:nth-child(4n + 3) {
+			flex-direction: row-reverse;
+		}
+		.venue-container > iframe {
+			width: 50%;
+		}
+		hr {
+			width: 30%;
 		}
 	}
 

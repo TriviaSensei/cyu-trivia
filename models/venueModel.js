@@ -39,9 +39,9 @@ const venueSchema = new mongoose.Schema({
 		minlength: [1, 'You must specify an address.'],
 		maxlength: [100, 'The maximum length is 100 characters'],
 	},
-	photo: {
+	website: {
 		type: String,
-		trim: true,
+		maxlength: [200, 'The maximum length is 200 characters'],
 	},
 });
 
