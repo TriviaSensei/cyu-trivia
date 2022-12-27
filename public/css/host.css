@@ -99,6 +99,10 @@ th {
 	flex-direction: column;
 }
 
+#game-roster-list > li {
+	cursor: pointer;
+}
+
 .chat-container {
 	flex: 1;
 	display: flex;

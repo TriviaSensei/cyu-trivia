@@ -17,6 +17,14 @@ const myCarouselInner = myCarousel.querySelector('.carousel-inner');
 const ssNext = document.getElementById('slide-show-next');
 const ssPrev = document.getElementById('slide-show-prev');
 const timer = document.getElementById('timer');
+
+const userInfoModal = new bootstrap.Modal(
+	document.getElementById('user-info-modal')
+);
+const userInfoName = document.getElementById('user-info-name');
+const userInfoTeam = document.getElementById('user-info-team');
+const userInfoConnected = document.getElementById('user-info-connected');
+
 let timerInterval;
 let timeLeft;
 
@@ -432,6 +440,25 @@ export const Host = (socket) => {
 		bp.setAttribute('data-id', data.id);
 		bp.innerHTML = `${data.name}`;
 		gameRoster.appendChild(bp);
+		bp.addEventListener('click', (e) => {
+			socket.emit(
+				'get-user-info',
+				{
+					id: e.target.getAttribute('data-id'),
+				},
+				withTimeout(
+					(res) => {
+						if (res.status !== 'OK') return showMessage('error', res.message);
+						userInfoName.innerHTML = res.data.name;
+						userInfoTeam.innerHTML = res.data.team;
+						userInfoConnected.innerHTML = res.data.connected ? 'Yes' : 'No';
+						userInfoModal.show();
+					},
+					timeoutMessage('Request timed out - please try again'),
+					3000
+				)
+			);
+		});
 	});
 
 	socket.on('user-disconnected', (data) => {

@@ -1,0 +1,13 @@
+.modal.fade#user-info-modal(tabindex="-1" aria-labelledby="user-info-label" aria-hidden="true")
+    .modal-dialog.modal-dialog-centered
+        .modal-content#user-info-modal-content
+            .modal-header
+                h5.modal-title#user-info-label User Info
+            .modal-body
+                p #[strong Name:&nbsp;] #[span#user-info-name]
+                p #[strong Team:&nbsp;] #[span#user-info-team]
+                p #[strong Connected:&nbsp;] #[span#user-info-connected]
+            .modal-footer
+                button.btn.btn-primary(type="button" data-bs-dismiss="modal") Close
+                button.btn.btn-warning#kick-player(type="button") Kick and ban 
+

@@ -861,6 +861,11 @@ const socket = (http, server) => {
 					status: 'fail',
 					message: 'Watch your language.',
 				});
+			} else if (data.name === '(None)') {
+				return cb({
+					status: 'fail',
+					message: 'That team name is not allowed.',
+				});
 			}
 
 			const name = replaceBrackets(data.name);
@@ -1283,6 +1288,33 @@ const socket = (http, server) => {
 				myGame.removePlayer(myUser.id);
 				myGame = undefined;
 			}
+		});
+
+		socket.on('get-user-info', (data, cb) => {
+			const res = verifyHost();
+			if (res.status !== 'OK') return cb(res);
+
+			const team = myGame.getTeamForPlayer(data.id);
+			const user = users.find((u) => {
+				return u.id === data.id;
+			});
+
+			if (!user) {
+				return cb({
+					status: 'fail',
+					message: 'User not found',
+				});
+			}
+
+			cb({
+				status: 'OK',
+				data: {
+					...user,
+					id: '',
+					socketid: '',
+					team: team ? team.name : '(None)',
+				},
+			});
 		});
 
 		socket.on('disconnect', (reason) => {
