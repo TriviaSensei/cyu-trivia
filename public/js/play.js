@@ -120,7 +120,6 @@ const handleCreateAction = (e) => {
 		createTeamHeader.innerHTML = 'Edit Team Name';
 		confirmCreateTeam.innerHTML = 'Edit';
 	}
-	console.log(action);
 	teamNameModal.show();
 };
 

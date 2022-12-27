@@ -456,7 +456,7 @@ const socket = (http, server) => {
 			if (!myGame) {
 				return {
 					status: 'fail',
-					message: 'You are not part of a team.',
+					message: 'You are not in a game.',
 				};
 			}
 			return {
@@ -629,13 +629,17 @@ const socket = (http, server) => {
 			if (myUser) {
 				myUser.connected = true;
 				myUser.lastDisconnect = undefined;
+				myUser.socketid = socket.id;
 				socket.join(uid);
 			}
 		}
 
 		if (!myUser) {
 			console.log(`...not found...creating new user.`);
-			myUser = new User(loggedInUser ? loggedInUser.displayName : '');
+			myUser = new User(
+				loggedInUser ? loggedInUser.displayName : '',
+				socket.id
+			);
 			users.push(myUser);
 			socket.join(myUser.id);
 		}
@@ -1240,6 +1244,45 @@ const socket = (http, server) => {
 			const result = myGame.gradeRound(data.round, data.key);
 
 			cb({ status: 'OK', result });
+		});
+
+		socket.on('end-game', async (data, cb) => {
+			const res = verifyHost();
+			if (res.status !== 'OK') return cb(res);
+			//host triggers ending the game
+			io.to(myGame.id).emit('game-ended', null);
+
+			myGame.teams.forEach(async (t) => {
+				const teamSockets = await io.in(t.roomid).fetchSockets();
+				teamSockets.forEach((s) => {
+					s.leave(t.roomid);
+				});
+			});
+
+			const sockets = await io.in(myGame.id).fetchSockets();
+			sockets.forEach((s) => {
+				s.leave(myGame.id);
+			});
+
+			games = games.filter((g) => {
+				return g.id !== myGame.id;
+			});
+			myGame = undefined;
+
+			cb({ status: 'OK' });
+		});
+
+		socket.on('leave-game', (data) => {
+			if (myTeam) {
+				socket.leave(myTeam.roomid);
+				myTeam.removePlayer(myUser.id);
+				myTeam = undefined;
+			}
+			if (myGame) {
+				socket.leave(myGame.id);
+				myGame.removePlayer(myUser.id);
+				myGame = undefined;
+			}
 		});
 
 		socket.on('disconnect', (reason) => {

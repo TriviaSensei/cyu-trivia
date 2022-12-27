@@ -243,6 +243,7 @@ const populateAnswers = (data) => {
 			`.round-grading-container[data-round="${i + 1}"]`
 		);
 		if (!gradingDiv) return;
+		gradingDiv.innerHTML = '';
 		if (k.format === 'questions' || k.format === 'audio') {
 			k.answers.forEach((a, j) => {
 				let qgc = gradingDiv.querySelector(

@@ -1,0 +1,10 @@
+.modal.fade#end-game-modal(tabindex="-1" aria-labelledby="end-game-label" aria-hidden="true")
+    .modal-dialog.modal-dialog-centered
+        .modal-content#end-game-modal-content
+            .modal-header
+                h5.modal-title#end-game-label End game?
+            .modal-body
+                p Are you sure you want to end this game? This cannot be undone, and if you have not completed the last round, the results will not be saved.
+            .modal-footer
+                button.btn.btn-primary#confirm-end-game(type="button" data-bs-dismiss="modal") Yes
+                button.btn.btn-secondary(type="button" data-bs-dismiss="modal") No

@@ -22,6 +22,10 @@ block navbar_content
             .navlink-inner
                 p Logout
 
+block modals
+    include host/modals/endGameModal
+
+
 block content
     #assigned-games
         h3.page-title Your assigned games
@@ -64,6 +68,7 @@ block content
                                 #game-roster 
                                     p In this room:
                                     ul#game-roster-list
+                                    button#end-game(data-bs-toggle="modal" data-bs-target="#end-game-modal") End Game
                                 #game-chat-wrapper
                                     .chat-container
                                     .input-group

@@ -22,6 +22,8 @@ const teamSetup = document.querySelector('.team-setup');
 const teamContainer = document.querySelector('.team-container');
 const teamRosterList = document.getElementById('team-roster-list');
 const teamNameLabel = document.getElementById('team-roster-name');
+const teamNameEntry = document.getElementById('team-name-entry');
+
 const teamChat = document.getElementById('team-chat-container');
 const nameChangeSpan = document.getElementById('name-change');
 
@@ -742,5 +744,20 @@ export const Play = (socket) => {
 
 	socket.on('set-team-name', (data) => {
 		teamNameLabel.innerHTML = data.name;
+	});
+
+	socket.on('game-ended', (data) => {
+		showMessage('info', 'The host has ended the game.', 1000);
+		socket.emit('leave-game', null);
+		document.querySelector('.top-navbar').classList.remove('invisible-div');
+		document.getElementById('join-div').classList.remove('invisible-div');
+		document.getElementById('game-container').classList.add('invisible-div');
+		mainContent.classList.remove('top-unset');
+		mainContent.classList.remove('h-100');
+		slideShowContainer.classList.add('invisible-div');
+		teamSetup.classList.remove('invisible-div');
+		teamContainer.classList.add('invisible-div');
+		teamNameLabel.innerHTML = '';
+		teamNameEntry.value = '';
 	});
 };
