@@ -57,25 +57,36 @@ const handleSendChat = (e) => {
 		e.key.toUpperCase() !== 'RETURN'
 	)
 		return;
-
-	if (e.target.value.trim() === '') return;
+	if (
+		(e.target === chatMessage || e.target === chatButton) &&
+		chatMessage.value.trim() === ''
+	)
+		return;
+	if (
+		(e.target === teamChatMessage || e.target === teamChatButton) &&
+		teamChatMessage.value.trim === ''
+	)
+		return;
 
 	e.preventDefault();
 
 	let chatBox;
 	let event;
-	if (e.target === chatMessage) {
+	let messageBox;
+	if (e.target === chatMessage || e.target === chatButton) {
 		event = 'game-chat';
 		chatBox = gameChat;
+		messageBox = chatMessage;
 	} else {
 		event = 'team-chat';
 		chatBox = teamChat;
+		messageBox = teamChatMessage;
 	}
 
 	socket.emit(
 		event,
 		{
-			message: e.target.value,
+			message: messageBox.value,
 		},
 		withTimeout(
 			(data) => {
@@ -203,6 +214,7 @@ window.addEventListener('load', (e) => {
 	joinForm.addEventListener('submit', handleJoin);
 	chatMessage.addEventListener('keydown', handleSendChat);
 	chatButton.addEventListener('click', handleSendChat);
+	teamChatButton.addEventListener('click', handleSendChat);
 	teamChatMessage.addEventListener('keydown', handleSendChat);
 	createTeamButton.addEventListener('click', handleCreateAction);
 	changeTeamName.addEventListener('click', handleCreateAction);

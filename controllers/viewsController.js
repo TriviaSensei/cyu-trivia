@@ -59,7 +59,6 @@ exports.getHomepage = catchAsync(async (req, res, next) => {
 	// 		'https://cyutrivia.s3.amazonaws.com/e635166f-a786-4b43-9422-8c124f3b9c0a.png',
 	// 	src: `https://www.google.com/maps/embed/v1/place?key=${process.env.GMAP_API_KEY}&q=1600+Pennsylvania+Ave.+Washington,+DC`,
 	// });
-	console.log(toSend);
 
 	// 3) render template using tour data from (1)
 	// this will look in the /views (set in app.js) folder for 'overview.pug' (pug engine also specified in app.js)
