@@ -855,6 +855,15 @@ const socket = (http, server) => {
 			});
 		});
 
+		socket.on('remove-message', (data, cb) => {
+			const res = verifyHost();
+			if (res.status !== 'OK') return cb(res);
+
+			myGame.removeChatMessage(data.id);
+			socket.to(myGame.id).emit('remove-message', { id: data.id });
+			cb({ status: 'OK', id: data.id });
+		});
+
 		socket.on('set-team-name', (data, cb) => {
 			if (filter.isProfane(data.name)) {
 				return cb({

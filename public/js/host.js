@@ -18,6 +18,7 @@ const roundGradingInd = document.getElementById('round-grading-ind');
 const roundModeInd = document.getElementById('round-mode-ind');
 const saveGrades = document.getElementById('save-grades');
 const endGame = document.getElementById('confirm-end-game');
+const removeChatButton = document.getElementById('remove-chat-button');
 
 const socket = io();
 const host = Host(socket);
@@ -205,6 +206,42 @@ const handleEndGame = (e) => {
 	);
 };
 
+const promptRemoveMessage = (e) => {
+	removeChatButton.setAttribute('data-id', '');
+	if (!e.target.classList.contains('chat-message')) {
+		removeChatButton.classList.add('invisible-div');
+		return;
+	}
+	const container = e.target.closest('.chat-message-container');
+	if (!container || !container.classList.contains('from-other')) {
+		removeChatButton.classList.add('invisible-div');
+		return;
+	}
+	removeChatButton.style.top = `${e.pageY}px`;
+	removeChatButton.style.left = `${e.pageX}px`;
+	removeChatButton.setAttribute('data-id', e.target.getAttribute('data-id'));
+	removeChatButton.classList.remove('invisible-div');
+};
+
+const removeChatMessage = (e) => {
+	if (e.target.getAttribute('data-id') === '') return;
+
+	socket.emit(
+		'remove-message',
+		{ id: e.target.getAttribute('data-id') },
+		withTimeout(
+			(res) => {
+				if (res.status !== 'OK') return showMessage('error', res.message);
+				if (document.getElementById(res.id)) {
+					document.getElementById(res.id).remove();
+				}
+			},
+			timeoutMessage('Request timed out - please try again'),
+			3000
+		)
+	);
+};
+
 document.addEventListener('DOMContentLoaded', (e) => {
 	const startButtons = getElementArray(document, '.start-button');
 	startButtons.forEach((b) => {
@@ -221,6 +258,8 @@ document.addEventListener('DOMContentLoaded', (e) => {
 	modeSelector.addEventListener('change', changeGradingView);
 	saveGrades.addEventListener('click', handleSaveGrades);
 	endGame.addEventListener('click', handleEndGame);
+	document.addEventListener('click', promptRemoveMessage);
+	removeChatButton.addEventListener('click', removeChatMessage);
 });
 
 socket.on('error', (data) => {

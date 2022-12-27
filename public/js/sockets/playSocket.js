@@ -746,6 +746,18 @@ export const Play = (socket) => {
 		teamNameLabel.innerHTML = data.name;
 	});
 
+	socket.on('remove-message', (data) => {
+		const container = document.getElementById(data.id);
+		if (!container) return;
+		const msg = container.querySelector('.chat-message');
+		if (!msg) return;
+
+		msg.innerHTML = '(Message removed by host)';
+		setTimeout(() => {
+			container.remove();
+		}, 1000);
+	});
+
 	socket.on('game-ended', (data) => {
 		showMessage('info', 'The host has ended the game.', 1000);
 		socket.emit('leave-game', null);

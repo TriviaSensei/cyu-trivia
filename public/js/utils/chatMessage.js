@@ -22,10 +22,10 @@ export const createChatMessage = (id, message, name, ...from) => {
 	const msg = document.createElement('div');
 	msg.classList.add('chat-message');
 	msg.innerHTML = message;
-
+	msg.setAttribute('data-id', id);
 	n.appendChild(msg);
-
-	n.setAttribute('id', `msg-${id}`);
+	n.setAttribute('data-id', id);
+	n.setAttribute('id', id);
 
 	return n;
 };

@@ -572,6 +572,12 @@ module.exports = class Game {
 		return toReturn;
 	}
 
+	removeChatMessage(id) {
+		this.chat = this.chat.filter((c) => {
+			return c.mid !== id;
+		});
+	}
+
 	setTimer(minutes) {
 		this.timer = Date.parse(new Date()) + minutes * 60 * 1000;
 	}

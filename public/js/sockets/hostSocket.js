@@ -10,6 +10,7 @@ import { createElement } from '../utils/createElementFromSelector.js';
 import { generateScoreboard } from '../utils/scoreboard.js';
 const gameRoster = document.getElementById('game-roster-list');
 const chatContainer = document.querySelector('.chat-container');
+const chatMenu = document.getElementById('chat-menu');
 
 const myCarousel = document.querySelector('#game-carousel');
 const slideCarousel = new bootstrap.Carousel(myCarousel);
@@ -360,6 +361,7 @@ export const Host = (socket) => {
 						: 'other',
 					m.isHost ? 'host' : null
 				);
+
 				chatContainer.appendChild(newMessage);
 			});
 			setTimeout(() => {
@@ -414,7 +416,6 @@ export const Host = (socket) => {
 	});
 
 	socket.on('game-chat', (data) => {
-		console.log(data);
 		let newMessage;
 		if (data.isSystem)
 			newMessage = createChatMessage(
@@ -424,6 +425,7 @@ export const Host = (socket) => {
 				'system'
 			);
 		else newMessage = createChatMessage(data.id, data.message, data.from);
+
 		chatContainer.appendChild(newMessage);
 		chatContainer.scrollTop = chatContainer.scrollHeight;
 	});
