@@ -412,6 +412,10 @@ const socket = (http, server) => {
 		let myTeam;
 		let myGame;
 
+		if (games.length > 0) {
+			io.to(socket.id).emit('live-now', { live: true });
+		}
+
 		const verifyHost = () => {
 			if (!myGame)
 				return {
