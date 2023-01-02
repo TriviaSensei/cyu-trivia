@@ -77,6 +77,8 @@ module.exports = class Game {
 		this.chat = [];
 		this.host = host;
 		this.timer = undefined;
+		this.bannedList = [];
+		this.active = true;
 	}
 
 	addSubmission(rd, submission) {
@@ -580,5 +582,15 @@ module.exports = class Game {
 
 	setTimer(minutes) {
 		this.timer = Date.parse(new Date()) + minutes * 60 * 1000;
+	}
+
+	banPlayer(player) {
+		this.bannedList.push(player);
+	}
+
+	isBanned(player) {
+		return this.bannedList.some((p) => {
+			return p.id === player.id || p.address === player.address;
+		});
 	}
 };

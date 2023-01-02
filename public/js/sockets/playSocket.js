@@ -758,9 +758,7 @@ export const Play = (socket) => {
 		}, 1000);
 	});
 
-	socket.on('game-ended', (data) => {
-		showMessage('info', 'The host has ended the game.', 1000);
-		socket.emit('leave-game', null);
+	const returnToLobby = () => {
 		document.querySelector('.top-navbar').classList.remove('invisible-div');
 		document.getElementById('join-div').classList.remove('invisible-div');
 		document.getElementById('game-container').classList.add('invisible-div');
@@ -771,5 +769,19 @@ export const Play = (socket) => {
 		teamContainer.classList.add('invisible-div');
 		teamNameLabel.innerHTML = '';
 		teamNameEntry.value = '';
+	};
+
+	socket.on('game-ended', (data) => {
+		showMessage('info', 'The host has ended the game.', 1000);
+		socket.emit('leave-game', null);
+		gameChat.innerHTML = '';
+		teamChat.innerHTML = '';
+		returnToLobby();
+	});
+
+	socket.on('kicked', (data) => {
+		showMessage('error', 'You have been kicked from the game.');
+		socket.emit('leave-game', null);
+		returnToLobby();
 	});
 };

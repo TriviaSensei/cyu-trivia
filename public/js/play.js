@@ -1,7 +1,7 @@
 import { Play } from './sockets/playSocket.js';
 import { getElementArray } from './utils/getElementArray.js';
 import { showMessage } from './utils/messages.js';
-import { withTimeout } from './utils/socketTimeout.js';
+import { withTimeout, timeoutMessage } from './utils/socketTimeout.js';
 import { createChatMessage } from './utils/chatMessage.js';
 
 const name = document.getElementById('name');
@@ -177,12 +177,26 @@ const handleTeamName = (e) => {
 
 const handleJoin = (e) => {
 	e.preventDefault();
-	showMessage('info', 'Attempting to join game...');
+	const joinTimeout = 3000;
+	showMessage('info', 'Attempting to join game...', joinTimeout);
 	myName = name.value;
-	socket.emit('join-game', {
-		name: name.value,
-		joinCode: code.value,
-	});
+	socket.emit(
+		'join-game',
+		{
+			name: name.value,
+			joinCode: code.value,
+		},
+		withTimeout(
+			(data) => {
+				if (data.status !== 'OK') {
+					return showMessage('error', data.message);
+				}
+				showMessage('info', 'Successfully joined game');
+			},
+			timeoutMessage('Unable to join game.'),
+			joinTimeout
+		)
+	);
 };
 
 const resolveJoinRequest = (e) => {

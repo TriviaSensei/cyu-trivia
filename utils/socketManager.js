@@ -553,11 +553,11 @@ const socket = (http, server) => {
 			myUser.lastDisconnect = new Date();
 
 			//notify myGame and myTeam that user has disconnected
-			if (myGame) {
+			if (myGame && !myGame.isBanned(myUser)) {
 				systemMsg(`${myUser.name} has disconnected.`);
 				io.to(myGame.id).emit('user-disconnected', { id: myUser.id });
 			}
-			if (myTeam) {
+			if (myTeam && !myGame.isBanned(myUser)) {
 				systemMsg(`${myUser.name} has disconnected.`, true);
 			}
 
@@ -638,7 +638,8 @@ const socket = (http, server) => {
 			console.log(`...not found...creating new user.`);
 			myUser = new User(
 				loggedInUser ? loggedInUser.displayName : '',
-				socket.id
+				socket.id,
+				socket.handshake.address
 			);
 			users.push(myUser);
 			socket.join(myUser.id);
@@ -723,8 +724,7 @@ const socket = (http, server) => {
 				if (new Date() <= game.date && process.env.LOCAL !== 'true') {
 					return emitError('This game may not be started yet.');
 				}
-
-				myGame = new Game(myUser, randomCode(4), { ...game._doc });
+				myGame = new Game(myUser, randomCode(4), game.toJSON());
 				console.log(`Starting game with join code ${myGame.joinCode}`);
 				while (getGame(myGame.joinCode)) {
 					myGame.joinCode = randomCode(4);
@@ -757,20 +757,47 @@ const socket = (http, server) => {
 			}
 		});
 
-		socket.on('join-game', (data) => {
+		socket.on('join-game', (data, cb) => {
 			if (filter.isProfane(data.name)) {
-				return emitError('Watch your language');
+				return cb({ status: 'fail', message: 'Watch your language' });
 			}
 
-			if (myGame) return;
+			if (myGame) {
+				if (!myGame.active) {
+					myGame = undefined;
+					myTeam = undefined;
+				} else if (
+					myGame.isBanned({
+						id: myUser.id,
+						address: socket.handshake.address,
+					})
+				) {
+					return cb({
+						status: 'fail',
+						message: 'You are banned from this game.',
+					});
+				} else return;
+			}
 
 			myGame = getGame(data.joinCode);
-
 			if (!myGame) {
-				return emitError('Game not found.');
+				return cb({
+					status: 'fail',
+					message: 'Game not found.',
+				});
 			}
+			if (
+				myGame.isBanned({
+					id: myUser.id,
+					address: socket.handshake.address,
+				})
+			)
+				return cb({
+					status: 'fail',
+					message: 'You are banned from this game.',
+				});
 
-			myGame.players.push(myUser);
+			myGame.addPlayer(myUser);
 
 			myUser.name = data.name;
 
@@ -784,6 +811,7 @@ const socket = (http, server) => {
 			systemMsg(`${data.name} has joined the game.`);
 
 			const toSend = sanitize(myGame);
+			cb({ status: 'OK' });
 			io.to(socket.id).emit('game-joined', {
 				...toSend,
 				slides: myGame.slides.slice(0, myGame.currentSlide + 1),
@@ -1279,7 +1307,11 @@ const socket = (http, server) => {
 			});
 
 			games = games.filter((g) => {
-				return g.id !== myGame.id;
+				if (g.id === myGame.id) {
+					g.active = false;
+					return false;
+				}
+				return true;
 			});
 			myGame = undefined;
 
@@ -1324,6 +1356,46 @@ const socket = (http, server) => {
 					team: team ? team.name : '(None)',
 				},
 			});
+		});
+
+		socket.on('kick-user', async (data, cb) => {
+			const res = verifyHost();
+			if (res.status !== 'OK') {
+				return cb(res);
+			}
+			const userSocketArr = await io.in(data.id).fetchSockets();
+			if (!userSocketArr || userSocketArr.length !== 1) return;
+			const userSocket = userSocketArr[0];
+			const user = getUser(data.id);
+			const team = myGame.getTeamForPlayer(data.id);
+
+			myGame.removePlayer(data.id);
+			if (team) team.removePlayer(data.id);
+
+			if (userSocket) {
+				io.to(userSocket.id).emit('kicked', null);
+				if (team) userSocket.leave(team.roomId);
+				userSocket.leave(myGame.id);
+				myGame.banPlayer({
+					id: data.id,
+					address: userSocket.handshake.address,
+				});
+				if (user) {
+					systemMsg(`User ${user.name || user.id} has been kicked.`);
+					socket.to(myGame.id).emit('user-disconnected', { id: data.id });
+					if (team) {
+						systemMsg(`User ${user.name || user.id} has been kicked.`);
+					}
+				}
+				return cb({
+					status: 'OK',
+				});
+			} else {
+				return cb({
+					status: 'fail',
+					message: 'User not found',
+				});
+			}
 		});
 
 		socket.on('disconnect', (reason) => {

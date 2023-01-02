@@ -11,6 +11,8 @@ const chatMessage = document.getElementById('chat-message');
 const chatButton = document.getElementById('send-chat');
 const chatContainer = document.querySelector('.chat-container');
 
+const gameRosterList = document.getElementById('game-roster-list');
+
 const gradingContainer = document.querySelector('.grading-container');
 const roundSelector = document.getElementById('round-selector');
 const modeSelector = document.getElementById('mode-selector');
@@ -19,6 +21,16 @@ const roundModeInd = document.getElementById('round-mode-ind');
 const saveGrades = document.getElementById('save-grades');
 const endGame = document.getElementById('confirm-end-game');
 const removeChatButton = document.getElementById('remove-chat-button');
+const confirmKickButton = document.getElementById('confirm-remove-user');
+
+const userInfoModal = new bootstrap.Modal(
+	document.getElementById('user-info-modal')
+);
+const removeUserModal = new bootstrap.Modal(
+	document.getElementById('remove-user-modal')
+);
+
+let userKicked = false;
 
 const socket = io();
 const host = Host(socket);
@@ -34,7 +46,6 @@ const handleSendChat = (e) => {
 	if (chatMessage.value.trim() === '') return;
 
 	e.preventDefault();
-	console.log('hi');
 	socket.emit(
 		'game-chat',
 		{
@@ -189,6 +200,9 @@ const handleEndGame = (e) => {
 					return showMessage('error', res.message);
 				}
 				showMessage('info', 'Game ended.');
+				if (chatContainer) {
+					chatContainer.innerHTML = '';
+				}
 				document.querySelector('.top-navbar').classList.remove('invisible-div');
 				document
 					.getElementById('assigned-games')
@@ -242,6 +256,36 @@ const removeChatMessage = (e) => {
 	);
 };
 
+const handleKickUser = (e) => {
+	const id = e.target.getAttribute('data-id');
+	if (id) {
+		socket.emit(
+			'kick-user',
+			{
+				id,
+			},
+			withTimeout(
+				(data) => {
+					if (data.status !== 'OK') {
+						return showMessage('error', data.message || 'Something went wrong');
+					}
+					showMessage('info', 'User kicked');
+					userKicked = true;
+					removeUserModal.hide();
+					if (gameRosterList) {
+						const els = getElementArray(gameRosterList, `[data-id="${id}"]`);
+						els.forEach((el) => {
+							el.remove();
+						});
+					}
+				},
+				timeoutMessage('Request timed out - please try again'),
+				3000
+			)
+		);
+	}
+};
+
 document.addEventListener('DOMContentLoaded', (e) => {
 	const startButtons = getElementArray(document, '.start-button');
 	startButtons.forEach((b) => {
@@ -260,6 +304,15 @@ document.addEventListener('DOMContentLoaded', (e) => {
 	endGame.addEventListener('click', handleEndGame);
 	document.addEventListener('click', promptRemoveMessage);
 	removeChatButton.addEventListener('click', removeChatMessage);
+	confirmKickButton.addEventListener('click', handleKickUser);
+	document.addEventListener('hidden.bs.modal', (e) => {
+		if (e.target.getAttribute('id') === 'remove-user-modal') {
+			if (!userKicked) {
+				userInfoModal.show();
+			}
+			userKicked = false;
+		}
+	});
 });
 
 socket.on('error', (data) => {

@@ -1,0 +1,10 @@
+.modal.fade#remove-user-modal(tabindex="-1" aria-labelledby="remove-user-label" aria-hidden="true")
+    .modal-dialog.modal-dialog-centered
+        .modal-content#remove-user-modal-content
+            .modal-header
+                h5.modal-title#remove-user-label Kick user?
+            .modal-body
+                p Are you sure you wish to kick #[span#kick-user-name insertusernamehere]? This cannot be undone, and this user will no longer be able to join this game.
+            .modal-footer
+                button.btn.btn-primary#confirm-remove-user(type="button") Yes
+                button.btn.btn-secondary(type="button" data-bs-dismiss="modal") No

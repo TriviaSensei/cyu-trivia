@@ -22,12 +22,16 @@ const timer = document.getElementById('timer');
 const userInfoModal = new bootstrap.Modal(
 	document.getElementById('user-info-modal')
 );
+
 const userInfoName = document.getElementById('user-info-name');
 const userInfoTeam = document.getElementById('user-info-team');
 const userInfoConnected = document.getElementById('user-info-connected');
-
+const confirmKickButton = document.getElementById('confirm-remove-user');
+const kickName = document.getElementById('kick-user-name');
 let timerInterval;
 let timeLeft;
+
+let kickId;
 
 const getTimeString = (time) => {
 	return `${Math.floor(time / 60)}:${time % 60 < 10 ? '0' : ''}${time % 60}`;
@@ -443,10 +447,17 @@ export const Host = (socket) => {
 		bp.innerHTML = `${data.name}`;
 		gameRoster.appendChild(bp);
 		bp.addEventListener('click', (e) => {
+			const id = e.target.getAttribute('data-id');
+			if (confirmKickButton) {
+				confirmKickButton.setAttribute('data-id', id);
+				if (kickName) {
+					kickName.innerHTML = data.name;
+				}
+			}
 			socket.emit(
 				'get-user-info',
 				{
-					id: e.target.getAttribute('data-id'),
+					id,
 				},
 				withTimeout(
 					(res) => {
