@@ -181,6 +181,65 @@ const handleSaveGrades = (e) => {
 					} else {
 						showMessage('info', 'Key saved.');
 						console.log(data.result);
+						const adjc = document.querySelector(
+							`.adjustment-container[data-round="${data.result.round}"]`
+						);
+						if (!adjc) return;
+
+						if (data.result.format === 'questions') {
+							const rows = getElementArray(adjc, `tbody > .adjustment-row`);
+							rows.forEach((r) => {
+								const cells = getElementArray(r, '.result-cell');
+								let score = 0;
+								cells.forEach((c) => {
+									c.classList.remove('incorrect', 'correct', 'partial');
+									const qNo = parseInt(c.getAttribute('data-question'));
+									const ans = c.getAttribute('data-answer')
+										? c.getAttribute('data-answer').toLowerCase().trim()
+										: '';
+									if (
+										!data.result.answers[qNo - 1].submissions.some((s) => {
+											if (s.answer.trim() === ans) {
+												let points;
+												if (s.partial) {
+													points = s.partial;
+													c.classList.add('partial');
+												} else if (s.correct) {
+													points = c.getAttribute('data-wager')
+														? parseInt(c.getAttribute('data-wager'))
+														: data.result.answers[qNo - 1].value;
+													c.classList.add('correct');
+												} else {
+													points = c.getAttribute('data-wager')
+														? -parseInt(c.getAttribute('data-wager'))
+														: 0;
+													c.classList.add('incorrect');
+												}
+												c.innerHTML = points;
+												score = score + points;
+												return true;
+											}
+										})
+									) {
+										let points = c.getAttribute('data-wager')
+											? -parseInt(c.getAttribute('data-wager'))
+											: 0;
+										c.classList.add('incorrect');
+										c.innerHTML = points;
+										score = score + points;
+									}
+								});
+								const sumCell = r.querySelector('.total-cell');
+								const adjInput = r.querySelector('input[type="number"]');
+								if (sumCell) {
+									const adj = adjInput ? parseInt(adjInput.value) : 0;
+									sumCell.innerHTML = score + adj;
+									sumCell.setAttribute('data-score', score);
+								}
+							});
+						} else if (data.result.format === 'list') {
+						} else if (data.result.format === 'matching') {
+						}
 					}
 				},
 				timeoutMessage('Request timed out. Try again.'),

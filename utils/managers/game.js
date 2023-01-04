@@ -120,6 +120,10 @@ module.exports = class Game {
 			//so the host just needs to set the correct answers and the system
 			//will look for exact matches.
 		}
+
+		if (this.getKeyForRound(rd)) {
+			this.gradeRound(rd, this.getKeyForRound(rd).answers);
+		}
 	}
 
 	/*
@@ -137,7 +141,8 @@ module.exports = class Game {
 		return this.teams
 			.map((t) => {
 				const resp = t.getResponse(rd);
-				if (resp.final) return { name: t.name, answers: resp.answers };
+				if (resp.final)
+					return { name: t.name, id: t.id, answers: resp.answers };
 				else return null;
 			})
 			.filter((r) => {
@@ -151,8 +156,7 @@ module.exports = class Game {
 		});
 	}
 
-	gradeRound(rd, key) {
-		/*
+	/*
 		Standard rounds:
 		Key: 
 		{
@@ -192,15 +196,7 @@ module.exports = class Game {
 			}
 		]
 		*/
-		let keyMatch;
-		let hostMatch;
-
-		const r = this.gameData.rounds[rd - 1];
-		if (rd !== 4 || r.format === 'questions') {
-			keyMatch = 'question';
-			hostMatch = 'submissions';
-		} else if (r.format === 'list') {
-			/*
+	/*
 		List rounds:
 		Key: 
 		{
@@ -238,10 +234,7 @@ module.exports = class Game {
 			}...
 		]
 		 */
-			keyMatch = 'answer';
-			hostMatch = 'matches';
-		} else if (r.format === 'matching') {
-			/*
+	/*
 		Matching round:
 		Key: [
 			{
@@ -259,6 +252,18 @@ module.exports = class Game {
 			}, ...
 		]
 		*/
+	gradeRound(rd, key) {
+		let keyMatch;
+		let hostMatch;
+
+		const r = this.gameData.rounds[rd - 1];
+		if (rd !== 4 || r.format === 'questions') {
+			keyMatch = 'question';
+			hostMatch = 'submissions';
+		} else if (r.format === 'list') {
+			keyMatch = 'answer';
+			hostMatch = 'matches';
+		} else if (r.format === 'matching') {
 			keyMatch = 'prompt';
 			hostMatch = 'answer';
 		}

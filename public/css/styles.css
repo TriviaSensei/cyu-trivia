@@ -317,9 +317,9 @@ li.navlink {
 	margin: auto;
 }
 
-.navlink-inner {
+/* .navlink-inner {
 	padding: 15px;
-}
+} */
 .navlink-inner,
 .navlink-inner > p {
 	margin: auto;

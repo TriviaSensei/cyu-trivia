@@ -684,7 +684,6 @@ const socket = (http, server) => {
 				}
 				currentSlides.push(myGame.slides[i]);
 			}
-			console.log(currentSlides);
 			if (myUser.id !== myGame.host.id) {
 				io.to(socket.id).emit('game-joined', {
 					...sanitize(myGame),
@@ -1273,9 +1272,17 @@ const socket = (http, server) => {
 						? 'questions'
 						: myGame.gameData.rounds[3].format;
 				io.to(myGame.host.id).emit('new-response', {
+					id: myTeam.id,
 					round: myGame.currentRound + 1,
 					format,
 					responses: myGame.getSubmissionsForRound(myGame.currentRound),
+					results: myGame.teams.map((t) => {
+						return {
+							name: t.name,
+							id: t.id,
+							submissions: t.submissions,
+						};
+					}),
 					key: myGame.key[myGame.currentRound],
 				});
 			}
@@ -1288,6 +1295,11 @@ const socket = (http, server) => {
 			console.log(data);
 
 			const result = myGame.gradeRound(data.round, data.key);
+			console.log('Key:');
+			console.log(data.key);
+			console.log('------');
+			console.log('Game key:');
+			console.log(myGame.getKeyForRound(data.round));
 
 			cb({ status: 'OK', result });
 		});

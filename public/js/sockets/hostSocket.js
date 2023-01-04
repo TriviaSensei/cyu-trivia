@@ -31,8 +31,6 @@ const kickName = document.getElementById('kick-user-name');
 let timerInterval;
 let timeLeft;
 
-let kickId;
-
 const getTimeString = (time) => {
 	return `${Math.floor(time / 60)}:${time % 60 < 10 ? '0' : ''}${time % 60}`;
 };
@@ -89,10 +87,8 @@ const handleNewSlide = (data, ...toSetActive) => {
 			);
 		}
 
-		console.log(data);
 		if (data.scores) {
 			const activeSlide = myCarousel.querySelector('.carousel-item');
-			console.log(activeSlide);
 			if (activeSlide) {
 				generateScoreboard(
 					activeSlide.querySelector('.slide-body'),
@@ -281,7 +277,7 @@ const populateAnswers = (data) => {
 					const newRow = createElement('.no-answers');
 					newRow.innerHTML = '(No answers submitted)';
 					qgc.appendChild(newRow);
-				} else console.log(a);
+				}
 				a.submissions.forEach((s) => {
 					// (r, q, ans, correct, partial, allowPartial)
 					addAnswer(
@@ -343,6 +339,59 @@ const populateAnswers = (data) => {
 	});
 };
 
+const adjustScore = (e) => {
+	const adj = parseInt(e.target.value);
+	if (isNaN(adj)) return;
+
+	const sumCell = e.target.closest('tr').querySelector('.total-cell');
+	if (!sumCell) return;
+	const base = parseInt(sumCell.getAttribute('data-score'));
+	if (isNaN(base)) return;
+
+	sumCell.innerHTML = base + adj;
+};
+
+const createResultRows = (data) => {
+	const adjs = getElementArray(document, '.res-table > tbody');
+	adjs.forEach((a, j) => {
+		const hr = a.closest('table').querySelector('thead > tr');
+		const newRow = createElement('tr');
+		newRow.classList.add('adjustment-row');
+		newRow.setAttribute('data-round', a.getAttribute('data-round'));
+		newRow.setAttribute('data-id', data.id);
+
+		const nameCell = createElement('td');
+		nameCell.classList.add('team-header');
+		nameCell.innerHTML = `<span class="team-name">${data.name}</span>&nbsp;<span class="team-status">❌</span>`;
+		newRow.appendChild(nameCell);
+
+		for (var i = 0; i < hr.cells.length - 3; i++) {
+			const newCell = createElement('td');
+			newCell.innerHTML = '0';
+			newCell.classList.add('result-cell', 'incorrect');
+			newCell.setAttribute('title', `Answer: [Blank]`);
+			newCell.setAttribute('data-question', i + 1);
+			newRow.appendChild(newCell);
+		}
+
+		const adjCell = createElement('td');
+		adjCell.classList.add('adjustment-cell');
+		const adj = createElement('input');
+		adj.setAttribute('type', 'number');
+		adj.value = 0;
+		adj.addEventListener('change', adjustScore);
+		adjCell.appendChild(adj);
+		newRow.appendChild(adjCell);
+
+		const sumCell = createElement('td');
+		sumCell.innerHTML = '0';
+		sumCell.classList.add('total-cell');
+		newRow.appendChild(sumCell);
+
+		a.appendChild(newRow);
+	});
+};
+
 export const Host = (socket) => {
 	socket.on('set-user-cookie', setUserCookie);
 
@@ -390,8 +439,75 @@ export const Host = (socket) => {
 
 		data.newGame.gameData.rounds.forEach((r, i) => {
 			const rgc = document.getElementById(`grading-${i + 1}`);
-			if (!rgc) return;
-			rgc.setAttribute('data-format', r.format || 'questions');
+			if (rgc) rgc.setAttribute('data-format', r.format || 'questions');
+
+			const rac = document.getElementById(`adjust-${i + 1}`);
+			if (rac) {
+				rac.innerHTML = '';
+				const resTable = createElement('table.res-table');
+				const head = createElement('thead');
+
+				const bod = createElement('tbody');
+				bod.setAttribute('id', `adj-table-${i + 1}`);
+				bod.setAttribute('data-round', i + 1);
+
+				const hr = createElement('tr.adjustment-row');
+				const teamHeader = createElement('th.team-header');
+				teamHeader.innerHTML = 'Team';
+				hr.appendChild(teamHeader);
+
+				if (i !== 3 || r.format === 'questions') {
+					r.questions.forEach((q, j) => {
+						const newCell = createElement('th.result-cell');
+						newCell.setAttribute('title', `Answer: ${i !== 5 ? q.answer : q}`);
+						newCell.innerHTML =
+							i % 2 === 0 && j === r.questions.length - 1 ? 'W' : `${j + 1}`;
+						newCell.setAttribute(
+							'data-wager',
+							i % 2 === 0 && j === r.questions.length - 1
+						);
+						newCell.setAttribute('data-value', q.value || r.pointsPerCorrect);
+						hr.appendChild(newCell);
+					});
+					if (r.theme && r.themePoints) {
+						const newCell = createElement('th.result-cell');
+						newCell.setAttribute('title', `Answer: ${r.theme}`);
+						newCell.innerHTML = 'Th';
+						newCell.setAttribute('data-wager', false);
+						newCell.setAttribute('data-value', r.themePoints);
+						hr.appendChild(newCell);
+					}
+				} else if (r.format === 'matching') {
+					r.matchingPairs.forEach((m, j) => {
+						const newCell = createElement('th.result-cell');
+						newCell.setAttribute(
+							'title',
+							`Prompt: ${m.prompt}\nAnswer: ${m.answer}`
+						);
+						newCell.innerHTML = `${j + 1}`;
+						hr.appendChild(newCell);
+					});
+				} else if (r.format === 'list') {
+					for (var j = 0; j < r.answerCount; j++) {
+						const newCell = createElement('th.result-cell');
+						newCell.innerHTML = `${j + 1}`;
+						hr.appendChild(newCell);
+					}
+				} else return;
+
+				const ac = createElement('th.adjustment-cell');
+				ac.innerHTML = 'Adj';
+				hr.appendChild(ac);
+
+				const tc = createElement('th.total-cell');
+				tc.innerHTML = '&#931;';
+				hr.appendChild(tc);
+
+				head.appendChild(hr);
+				resTable.appendChild(head);
+				resTable.appendChild(bod);
+				rac.appendChild(resTable);
+			}
 		});
 
 		gameRoster.innerHTML = '';
@@ -408,6 +524,80 @@ export const Host = (socket) => {
 		});
 
 		populateAnswers(data.newGame.key);
+
+		data.newGame.teams.forEach((t) => {
+			createResultRows({
+				name: t.name,
+				id: t.id,
+			});
+			t.submissions.forEach((s, i) => {
+				if (!s.final) return;
+
+				const ar = document.querySelector(
+					`.adjustment-row[data-round="${i + 1}"][data-id="${t.id}"]`
+				);
+				if (!ar) {
+					console.log(
+						`.adjustment-row[data-round="${i + 1}"][data-id="${
+							t.id
+						}"] not found`
+					);
+					return;
+				}
+
+				const th = ar.querySelector('.team-header');
+				if (th)
+					th.innerHTML = `<span class="team-name">${t.name}</span>&nbsp;<span class="team-status">✅</span>`;
+				//in the adjustment row...
+				const resCells = getElementArray(ar, '.result-cell');
+				const headerCells = getElementArray(
+					ar.closest('table').querySelector('thead > tr'),
+					'.result-cell'
+				);
+				resCells.forEach((r, j) => {
+					//populate the scores for each question, and color the cell accordingly
+					//set the titles to the answers given by that team
+					r.setAttribute('title', `Answer: ${s.answers[j] || '[Blank]'}`);
+					r.setAttribute('data-answer', s.answers[j]);
+					const res = s.result[j].partial
+						? 'partial'
+						: s.result[j].correct
+						? 'correct'
+						: 'incorrect';
+					if (res === 'partial') {
+						r.innerHTML = s.result[j].partial;
+						r.classList.remove('incorrect');
+						r.classList.add('partial');
+					} else if (res === 'correct') {
+						//set the wager if it exists
+						if (headerCells[j].getAttribute('data-wager') === 'false')
+							r.innerHTML = headerCells[j].getAttribute('data-value');
+						else {
+							r.innerHTML = s.wager;
+							r.setAttribute('data-wager', s.wager);
+						}
+						r.classList.remove('incorrect');
+						r.classList.add('correct');
+					} else {
+						if (headerCells[j].getAttribute('data-wager') === 'true') {
+							r.innerHTML = `-${s.wager}`;
+							r.setAttribute('data-wager', s.wager);
+						}
+					}
+				});
+
+				const adjInput = ar.querySelector('input[type="number"]');
+				if (adjInput) {
+					adjInput.value = s.adjustment;
+				}
+
+				const sumCell = ar.querySelector('.total-cell');
+				if (sumCell) {
+					sumCell.innerHTML = s.score;
+					sumCell.setAttribute('data-score', s.score - s.adjustment);
+				}
+			});
+		});
 
 		document.querySelector('.top-navbar').classList.add('invisible-div');
 		document.getElementById('assigned-games').classList.add('invisible-div');
@@ -488,6 +678,10 @@ export const Host = (socket) => {
 		});
 	});
 
+	socket.on('new-team', (data) => {
+		createResultRows(data);
+	});
+
 	socket.on('new-response', (data) => {
 		// (r, q, ans, correct, partial, allowPartial)
 		const gd = document.getElementById(`grading-${data.round}`);
@@ -507,6 +701,70 @@ export const Host = (socket) => {
 				addListAnswers(data.round, r.answers, data.key.answers);
 			});
 		}
+
+		//mark the team as having submitted the round in the res/adj section
+		const adjc = document.querySelector(
+			`.adjustment-container[data-round="${data.round}"]`
+		);
+		if (!adjc) return;
+
+		const row = adjc.querySelector(`tr.adjustment-row[data-id="${data.id}"]`);
+		if (!row) return;
+
+		const sp = row.querySelector('span.team-status');
+		if (sp) sp.innerHTML = '✅';
+
+		console.log(data);
+		//set the cell titles to the answers given
+		data.responses.some((r) => {
+			if (r.id === data.id) {
+				const row = document.querySelector(
+					`.adjustment-row[data-round="${data.round}"][data-id="${data.id}"]`
+				);
+				if (!row) {
+					return true;
+				}
+				r.answers.forEach((a, i) => {
+					const cell = row.querySelector(
+						`.result-cell[data-question="${i + 1}"]`
+					);
+					if (cell) {
+						cell.setAttribute('title', `Answer: ${a || '[Blank]'}`);
+						cell.setAttribute('data-answer', a);
+					}
+				});
+				return true;
+			}
+		});
+		data.results.some((r) => {
+			if (r.id === data.id) {
+				const wager = r.submissions[data.round - 1].wager;
+				if (wager) {
+					const row = document.querySelector(
+						`.adjustment-row[data-round="${data.round}"][data-id="${data.id}"]`
+					);
+					if (row) {
+						const cell = row.querySelector(
+							`.result-cell[data-question="${
+								r.submissions[data.round - 1].answers.length
+							}"]`
+						);
+						if (cell) {
+							cell.innerHTML = `-${wager}`;
+							cell.setAttribute('data-wager', wager);
+							const sumCell = row.querySelector('.total-cell');
+							if (sumCell) {
+								sumCell.innerHTML = `-${wager}`;
+								sumCell.setAttribute('data-score', -wager);
+							}
+						}
+					}
+				}
+				return true;
+			}
+		});
+		//set the values/colors of the cells if they match any graded answers
+		//set the sum of the scores
 	});
 
 	ssNext.addEventListener('click', (e) => {

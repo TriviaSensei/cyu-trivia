@@ -170,4 +170,10 @@ module.exports = class Team {
 		}
 		return null;
 	}
+
+	setAdjustment(round, adj) {
+		if (round >= 0 && round < this.submissions.length) {
+			this.submissions[round].adjustment = adj;
+		}
+	}
 };
