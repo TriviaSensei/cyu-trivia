@@ -14,7 +14,7 @@ module.exports = class Team {
 			this.submissions.push({
 				round: i + 1,
 				answers: [],
-				wager: 0,
+				wager: undefined,
 				result: [],
 				adjustment: 0,
 				score: 0,
@@ -24,6 +24,7 @@ module.exports = class Team {
 		this.joinRequests = [];
 		this.deniedRequests = [];
 		this.captain = captain;
+		this.active = true;
 	}
 
 	containsPlayer(id) {

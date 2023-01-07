@@ -30,7 +30,7 @@ block modals
 block content
     #assigned-games
         h3.page-title Your assigned games
-        table 
+        table.game-table
             thead
                 tr 
                     th Title 
@@ -42,12 +42,15 @@ block content
                         td= game.title 
                         td= game.date.toDateString()
                         td 
-                            button.start-button(data-id=`${game._id}`) Start
+                            button.start-button(data-id=`${game._id}` class="start-button invisible-block" disabled) Start
     #hosting-container.invisible-div
         button#remove-chat-button.invisible-div Remove Message
         #slideshow-outer.w-75.invisible-div
             .slideshow-container.w-100.ratio(style="--bs-aspect-ratio: 75%;")
                 #timer.invisible-div 0:00
+                .popout-container
+                    button#popout-button(title="Pop out" alt="Pop out")
+                        img(src="/img/popout.svg")
                 #game-carousel.carousel.slide(data-bs-ride="carousel" data-bs-interval="false" data-bs-touch="false")
                     .carousel-inner#game-carousel-inner 
                     a.carousel-control-prev#slide-show-prev(type="button")

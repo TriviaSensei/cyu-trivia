@@ -698,6 +698,10 @@ footer {
 	display: none !important;
 }
 
+.invisible-block {
+	opacity: 0 !important;
+}
+
 .btn-close {
 	background: transparent url('/img/close.svg') center/1em auto no-repeat;
 }

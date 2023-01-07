@@ -467,6 +467,22 @@ export const Play = (socket) => {
 					teamChat.scrollTop = teamChat.scrollHeight;
 				}, 10);
 			}
+
+			if (data.submissions) {
+				data.submissions.answers.forEach((a, i) => {
+					console.log(typeof a);
+					if ((typeof a).toLowerCase() === 'string') {
+						const inp = document.querySelector(`input[data-question="${i}"]`);
+						if (inp) {
+							inp.value = a;
+						}
+					}
+				});
+				const wag = document.getElementById('wager');
+				if (wag && data.submissions.wager >= 0) {
+					wag.value = data.submissions.wager;
+				}
+			}
 		}
 
 		myUser = myGame.players.find((p) => {

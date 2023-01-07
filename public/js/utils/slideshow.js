@@ -84,12 +84,52 @@ export const createSlide = (data) => {
 	return slide;
 };
 
-export const modifySlide = (data) => {
-	const carousel = document.getElementById('game-carousel');
-	const currentSlide = carousel.querySelector(
-		'.carousel-item:last-child .slide-contents'
-	);
+export const createPictureSlide = (data) => {
+	const len = data.length;
+	if (len > 10 || len === 0) return null;
 
+	const slide = createElement('.carousel-item');
+	const contents = createElement('.picture-slide-contents');
+	const d1 = createElement('.flair-div.d1');
+	const d2 = createElement('.flair-div.d2');
+	contents.appendChild(d1);
+	contents.appendChild(d2);
+
+	const header = createHeader({
+		header: `Round ${data[0].round} - Pictures\n${data[0].desc}`,
+	});
+	contents.appendChild(header);
+
+	const body = createElement('.slide-body');
+	const rows = Math.floor((len - 1) / 5) + 1;
+	for (var i = 0; i < rows; i++) {
+		for (var j = 0; j < 5; j++) {
+			const ind = i * 5 + j;
+			if (ind >= len) break;
+			const d = createElement('div');
+			const fillDiv = createElement('.fill-container');
+			const img = createElement('img');
+			img.setAttribute('src', data[ind].picture);
+			d.appendChild(fillDiv);
+			fillDiv.appendChild(img);
+			body.appendChild(d);
+		}
+
+		for (var j = 0; j < 5; j++) {
+			const ind = i * 5 + j;
+			if (ind >= len) break;
+			const d = createElement('.pic-label');
+			d.innerHTML = ind + 1;
+			body.appendChild(d);
+		}
+	}
+	contents.appendChild(body);
+
+	slide.appendChild(contents);
+	return slide;
+};
+
+export const modifySlide = (currentSlide, data) => {
 	if (!currentSlide) return;
 
 	const header = currentSlide.querySelector('.slide-header');

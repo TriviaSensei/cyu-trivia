@@ -472,19 +472,17 @@ module.exports = class Game {
 	removeTeam(id) {
 		let toReturn = false;
 
-		this.teams = this.teams.filter((t) => {
+		this.teams.some((t) => {
 			if (t.id === id) {
 				if (
 					!t.members.some((m) => {
 						return m.connected;
 					})
 				) {
-					toReturn = true;
-					return false;
+					t.active = false;
 				}
 				return true;
 			}
-			return true;
 		});
 
 		return toReturn;
@@ -560,6 +558,34 @@ module.exports = class Game {
 				}
 			});
 		});
+	}
+
+	setAdjustment(teamId, round, adjustment) {
+		const team = this.teams.find((t) => {
+			return t.id === teamId;
+		});
+		if (!team)
+			return {
+				status: 'fail',
+				message: 'Team not found',
+			};
+
+		if (round > this.roundCount)
+			return {
+				status: 'fail',
+				message: 'Invalid round',
+			};
+
+		if (isNaN(adjustment))
+			return {
+				status: 'fail',
+				message: 'Invalid adjustment',
+			};
+
+		team.setAdjustment(round - 1, adjustment);
+		return {
+			status: 'OK',
+		};
 	}
 
 	getTeamForPlayer(id) {

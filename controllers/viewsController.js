@@ -144,3 +144,9 @@ exports.getHost = catchAsync(async (req, res, next) => {
 		data,
 	});
 });
+
+exports.getSlideShow = catchAsync(async (req, res, next) => {
+	res.status(200).render('host/slideshow', {
+		title: 'Host',
+	});
+});

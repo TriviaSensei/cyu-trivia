@@ -3,6 +3,7 @@ import { getElementArray } from './utils/getElementArray.js';
 import { showMessage } from './utils/messages.js';
 import { createChatMessage } from './utils/chatMessage.js';
 import { withTimeout, timeoutMessage } from './utils/socketTimeout.js';
+import { createElement } from './utils/createElementFromSelector.js';
 
 const mainContent = document.querySelector('.main-content');
 const slideShowContainer = document.querySelector('#slideshow-outer');
@@ -185,9 +186,9 @@ const handleSaveGrades = (e) => {
 							`.adjustment-container[data-round="${data.result.round}"]`
 						);
 						if (!adjc) return;
+						const rows = getElementArray(adjc, `tbody > .adjustment-row`);
 
 						if (data.result.format === 'questions') {
-							const rows = getElementArray(adjc, `tbody > .adjustment-row`);
 							rows.forEach((r) => {
 								const cells = getElementArray(r, '.result-cell');
 								let score = 0;
@@ -215,7 +216,11 @@ const handleSaveGrades = (e) => {
 														: 0;
 													c.classList.add('incorrect');
 												}
-												c.innerHTML = points;
+												const cont = c.querySelector('.score-container');
+												if (cont) cont.innerHTML = points;
+												else {
+													c.innerHTML = `<div class="score-container">${points}</div>`;
+												}
 												score = score + points;
 												return true;
 											}
@@ -238,11 +243,107 @@ const handleSaveGrades = (e) => {
 								}
 							});
 						} else if (data.result.format === 'list') {
+							rows.forEach((r) => {
+								const cells = getElementArray(r, '.result-cell');
+								let score = 0;
+								let answers = [];
+								cells.forEach((c) => {
+									c.classList.remove(
+										'incorrect',
+										'correct',
+										'partial',
+										'duplicate'
+									);
+									const ans = (c.getAttribute('data-answer') || '')
+										.toLowerCase()
+										.trim();
+									const match = data.result.answers.find((a) => {
+										return a.matches.some((m) => {
+											return m.toLowerCase().trim() === ans;
+										});
+									});
+									let cont = c.querySelector('.score-container');
+									if (!cont) {
+										cont = createElement('.score-container');
+										cont.innerHTML = 0;
+										c.innerHTML = '';
+										c.appendChild(cont);
+									}
+									if (match) {
+										if (match.correct) {
+											if (!answers.includes(match.answer)) {
+												answers.push(match.answer);
+												c.classList.add('correct');
+												cont.innerHTML = match.value;
+												score = score + match.value;
+											} else {
+												c.classList.add('duplicate');
+												cont.innerHTML = '0';
+											}
+										} else {
+											c.classList.add('incorrect');
+											cont.innerHTML = '0';
+										}
+									} else {
+										c.classList.add('incorrect');
+										cont.innerHTML = '0';
+									}
+								});
+								const sumCell = r.querySelector('.total-cell');
+								const adjInput = r.querySelector('input[type="number"]');
+								if (sumCell) {
+									let cont = sumCell.querySelector('.score-container');
+									if (!cont) {
+										cont = createElement('.score-container');
+										sumCell.innerHTML = '';
+										sumCell.appendChild(cont);
+									}
+									const adj = adjInput ? parseInt(adjInput.value) : 0;
+									cont.innerHTML = score + adj;
+									sumCell.setAttribute('data-score', score);
+								}
+							});
 						} else if (data.result.format === 'matching') {
 						}
 					}
 				},
 				timeoutMessage('Request timed out. Try again.'),
+				3000
+			)
+		);
+	} else if (mode === 'adjust') {
+		const ad = document.getElementById(`adjust-${round}`);
+		if (!ad) return;
+
+		const toSend = [];
+		const adjs = getElementArray(ad, '.adjustment-cell > input');
+		adjs.forEach((a) => {
+			const row = a.closest('tr');
+			if (!row) return;
+			const teamId = row.getAttribute('data-id');
+			const adjustment = parseInt(a.value);
+			if (teamId && !isNaN(adjustment)) {
+				toSend.push({
+					teamId,
+					round,
+					adjustment,
+				});
+			}
+		});
+		socket.emit(
+			'set-adjustment',
+			{
+				adjustments: toSend,
+			},
+			withTimeout(
+				(data) => {
+					if (data.status !== 'OK') {
+						showMessage('error', data.message);
+					} else {
+						showMessage('info', 'Successfully saved adjustments');
+					}
+				},
+				timeoutMessage('Request timed out - please try again'),
 				3000
 			)
 		);

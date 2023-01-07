@@ -7,8 +7,8 @@
 	font-weight: bold;
 }
 
-td,
-th {
+.game-table td,
+.game-table th {
 	padding-left: 10px;
 	padding-right: 10px;
 }
@@ -231,7 +231,7 @@ th {
 
 .team-header {
 	width: 35%;
-	max-width: 50%;
+	max-width: 35%;
 	text-align: center;
 }
 
@@ -257,6 +257,19 @@ tbody .team-header {
 	flex: 1;
 }
 
+.res-table td {
+	display: flex;
+}
+
+.res-table td > * {
+	margin: auto;
+}
+
+.team-removed {
+	color: gray;
+	text-decoration-line: line-through;
+}
+
 .correct {
 	background-color: #009900;
 }
@@ -267,6 +280,11 @@ tbody .team-header {
 
 .partial {
 	background-color: #737500;
+}
+
+.duplicate {
+	background-color: unset;
+	text-decoration-line: line-through;
 }
 
 .adjustment-cell,
@@ -472,4 +490,40 @@ tbody .team-header {
 
 .disconnected {
 	color: lightgrey;
+}
+
+.popout-container {
+	display: none;
+}
+
+.popout-container button {
+	width: 100%;
+	height: 100%;
+	border-radius: 5px;
+}
+
+.popout-container > button > img {
+	width: 100%;
+	height: 100%;
+}
+
+@media (pointer: fine) {
+	.popout-container {
+		display: unset;
+		background-color: white;
+		position: absolute;
+		border-radius: 5px;
+		top: unset;
+		left: unset;
+		bottom: 0;
+		right: 0;
+		z-index: 2;
+		opacity: 0.1;
+		max-width: 50px;
+		max-height: 50px;
+	}
+
+	.popout-container:hover {
+		opacity: 0.5;
+	}
 }

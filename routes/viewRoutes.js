@@ -24,6 +24,12 @@ router.get(
 	authController.restrictTo('admin', 'owner'),
 	viewsController.getHost
 );
+router.get(
+	'/slideshow/',
+	authController.protect,
+	authController.restrictTo('admin', 'owner'),
+	viewsController.getSlideShow
+);
 
 // router.get('*', (req, res, next) => {
 // 	res.redirect('/login');

@@ -31,6 +31,12 @@ const createSlides = (data, joinCode) => {
 			header: 'Rules',
 			body: "1. Don't cheat\n2. Don't cheat\n3. Keep answers out of the public chat\n4. Challenges welcome\n5. Host decisions are final.",
 		},
+		{
+			new: true,
+			clear: true,
+			header: 'Rounds',
+			body: '1, 3, 5, 7: General Knowledge\n2. Picture 📷\n4. Wildcard 🂡\n6. Music 🎵',
+		},
 	];
 	data.rounds.forEach((r, i) => {
 		toReturn.push({
@@ -91,6 +97,8 @@ const createSlides = (data, joinCode) => {
 					new: true,
 					clear: false,
 					header: `Round 2, Picture ${j + 1}`,
+					round: 2,
+					desc: r.description,
 					picture: q.link,
 				});
 			});
@@ -565,7 +573,7 @@ const socket = (http, server) => {
 				systemMsg(`${myUser.name} has disconnected.`, true);
 			}
 
-			//set timer to remove player from list of players
+			//set timer to remove player from list of players, and from the team
 			setTimeout(() => {
 				users = users.filter((u) => {
 					//do nothing if I'm connected, I haven't disconnected,
@@ -587,6 +595,11 @@ const socket = (http, server) => {
 							//remove my player from the list in my team, if I have a team
 							if (myTeam) {
 								myTeam.removePlayer(myUser.id);
+								if (myTeam.members.length === 0) {
+									myGame.removeTeam(myTeam.id);
+									console.log(myGame.teams);
+									io.to(myGame.id).emit('remove-team', { id: myTeam.id });
+								}
 							}
 						}
 						return false;
@@ -651,7 +664,7 @@ const socket = (http, server) => {
 
 		console.log(`\tID: ${myUser.id}`);
 
-		io.to(socket.id).emit('set-user-cookie', { id: myUser.id });
+		io.to(socket.id).emit('connection-made', { id: myUser.id });
 
 		//rejoin the team and game chat if they were part of one already
 		myGame = getGameForUser(myUser.id);
@@ -685,8 +698,37 @@ const socket = (http, server) => {
 				currentSlides.push(myGame.slides[i]);
 			}
 			if (myUser.id !== myGame.host.id) {
+				const toSend = sanitize(myGame);
+				let teams = toSend.teams.filter((t) => {
+					return t.active;
+				});
 				io.to(socket.id).emit('game-joined', {
-					...sanitize(myGame),
+					...toSend,
+					gameData: undefined,
+					host: {
+						...toSend.host,
+						socketid: undefined,
+						address: undefined,
+					},
+					bannedList: undefined,
+					id: undefined,
+					key: undefined,
+					teams: teams.map((t) => {
+						return {
+							name: t.name,
+							id: t.id,
+							members: t.members.map((m) => {
+								return {
+									id: m.id,
+									name: m.name,
+								};
+							}),
+							captain: {
+								id: t.captain.id,
+								name: t.captain.name,
+							},
+						};
+					}),
 					isCaptain: myTeam && myTeam.captain.id === myUser.id,
 					timeLeft: myGame.timer
 						? myGame.timer - Date.parse(new Date())
@@ -694,6 +736,10 @@ const socket = (http, server) => {
 					// slides: myGame.slides.slice(0, myGame.currentSlide + 1),
 					// slides: myGame.slides,
 					slides: currentSlides,
+					submissions:
+						myGame.currentRound >= 0
+							? myTeam.submissions[myGame.currentRound]
+							: undefined,
 				});
 			} else {
 				io.to(socket.id).emit('game-started', {
@@ -817,8 +863,24 @@ const socket = (http, server) => {
 			cb({ status: 'OK' });
 			io.to(socket.id).emit('game-joined', {
 				...toSend,
+				teams: toSend.teams.filter((t) => {
+					return t.active;
+				}),
 				slides: myGame.slides.slice(0, myGame.currentSlide + 1),
 			});
+		});
+
+		socket.on('join-slide-show', (data, cb) => {
+			console.log(`Attempting to join slideshow for ${data.id}`);
+			if (
+				!games.find((g) => {
+					return g.id === data.id;
+				})
+			) {
+				return cb({ status: 'fail', message: 'Game not found' });
+			}
+			socket.join(data.id);
+			return cb({ status: 'OK' });
 		});
 
 		socket.on('game-chat', (data, cb) => {
@@ -1182,6 +1244,7 @@ const socket = (http, server) => {
 			}
 			if (myTeam.members.length === 0) {
 				myGame.removeTeam(myTeam.id);
+				console.log(myGame.teams);
 				io.to(myGame.id).emit('remove-team', { id: myTeam.id });
 			}
 			myTeam = undefined;
@@ -1295,13 +1358,39 @@ const socket = (http, server) => {
 			console.log(data);
 
 			const result = myGame.gradeRound(data.round, data.key);
-			console.log('Key:');
-			console.log(data.key);
-			console.log('------');
-			console.log('Game key:');
-			console.log(myGame.getKeyForRound(data.round));
-
 			cb({ status: 'OK', result });
+		});
+
+		socket.on('set-adjustment', (data, cb) => {
+			const res = verifyHost();
+			if (res.status !== 'OK') return cb(res);
+
+			const errCount = 0;
+			const errs = [];
+			data.adjustments.forEach((a) => {
+				const r = myGame.setAdjustment(a.teamId, a.round, a.adjustment);
+				if (r.status !== 'OK') {
+					errCount++;
+					errs.push(r.message);
+				}
+			});
+
+			if (errCount === 0) {
+				cb({ status: 'OK' });
+			} else {
+				let message = '';
+				errs.forEach((m, i) => {
+					if (i === 0) {
+						message = m;
+					} else {
+						message = `${message}\n${m}`;
+					}
+				});
+				cb({
+					status: 'fail',
+					message: `Error saving adjustments:\n${message}`,
+				});
+			}
 		});
 
 		socket.on('end-game', async (data, cb) => {

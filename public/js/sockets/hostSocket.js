@@ -4,7 +4,11 @@ import { createChatMessage } from '../utils/chatMessage.js';
 import { setUserCookie, getCookie } from '../utils/cookie.js';
 import { getElementArray } from '../utils/getElementArray.js';
 import { hideMessage, showMessage } from '../utils/messages.js';
-import { createSlide, modifySlide } from '../utils/slideshow.js';
+import {
+	createSlide,
+	createPictureSlide,
+	modifySlide,
+} from '../utils/slideshow.js';
 import { withTimeout, timeoutMessage } from '../utils/socketTimeout.js';
 import { createElement } from '../utils/createElementFromSelector.js';
 import { generateScoreboard } from '../utils/scoreboard.js';
@@ -28,8 +32,51 @@ const userInfoTeam = document.getElementById('user-info-team');
 const userInfoConnected = document.getElementById('user-info-connected');
 const confirmKickButton = document.getElementById('confirm-remove-user');
 const kickName = document.getElementById('kick-user-name');
+
+const popoutButton = document.getElementById('popout-button');
+let ssWindow = undefined;
+let popSlide = undefined;
+let popupCheckInterval;
+
 let timerInterval;
 let timeLeft;
+
+const openSlideShowWindow = (e) => {
+	if (popupOpen()) {
+		if (!popupDoc()) return;
+		if (popSlide && !popupDoc().querySelector('.carousel-item.active')) {
+			popupDoc().querySelector('.carousel-inner').appendChild(popSlide);
+		}
+		return;
+	}
+
+	const w = window.screen.width;
+	const h = window.screen.height;
+	ssWindow = window.open(
+		`/slideshow/`,
+		'_blank',
+		`fullscreen=yes,location=no,menubar=no,resizable=yes,scrollbars=no,status=no,titlebar=no,toolbar=no,width=${w},height=${h}`
+	);
+	ssWindow.addEventListener(
+		'load',
+		(e) => {
+			console.log('load');
+			if (popSlide) {
+				popupDoc().querySelector('.carousel-inner').appendChild(popSlide);
+			}
+		},
+		true
+	);
+};
+
+const popupOpen = () => {
+	return ssWindow && !ssWindow.closed;
+};
+
+const popupDoc = () => {
+	if (!popupOpen()) return undefined;
+	return ssWindow.document;
+};
 
 const getTimeString = (time) => {
 	return `${Math.floor(time / 60)}:${time % 60 < 10 ? '0' : ''}${time % 60}`;
@@ -37,16 +84,35 @@ const getTimeString = (time) => {
 
 const setTimer = (time) => {
 	timeLeft = Math.max(0, Math.floor(time));
-	timer.innerHTML = getTimeString(timeLeft);
+	const str = getTimeString(timeLeft);
+	timer.innerHTML = str;
+	if (popupOpen()) {
+		const pTimer = popupDoc().getElementById('timer');
+		if (pTimer) {
+			pTimer.classList.remove('invisible-div');
+			pTimer.innerHTML = str;
+		}
+	}
 };
 
 const decrementTimer = () => {
 	timeLeft = Math.max(0, timeLeft - 1);
-	timer.innerHTML = getTimeString(timeLeft);
+	const str = getTimeString(timeLeft);
+	timer.innerHTML = str;
+	if (popupOpen()) {
+		const pTimer = popupDoc().getElementById('timer');
+		if (pTimer) {
+			pTimer.classList.remove('invisible-div');
+			pTimer.innerHTML = str;
+		}
+	}
 };
 
 const startTimer = () => {
 	timer.classList.remove('invisible-div');
+	if (popupOpen()) {
+		popupDoc().getElementById('timer').classList.remove('invisible-div');
+	}
 	if (timerInterval) clearInterval(timerInterval);
 	timerInterval = setInterval(decrementTimer, 1000);
 };
@@ -54,6 +120,77 @@ const startTimer = () => {
 const stopTimer = () => {
 	clearInterval(timerInterval);
 	timer.classList.add('invisible-div');
+	if (popupOpen()) {
+		popupDoc().getElementById('timer').classList.add('invisible-div');
+	}
+};
+
+const handlePopSlide = (data) => {
+	const pop = popupOpen();
+	if (!pop) return;
+	let ns = createSlide(data);
+	let popDoc = popupDoc();
+	let popCI = popDoc.getElementById('game-carousel-inner');
+	let popC = popDoc.getElementById('game-carousel');
+	let popCarousel = new bootstrap.Carousel(popC);
+
+	if (data.clear || data.new) {
+		popCI.appendChild(ns);
+		const popActiveSlide = popC.querySelector('.carousel-item.active');
+		if (popActiveSlide) {
+			const len = popC.querySelectorAll('.carousel-item').length;
+			popCarousel.to(len - 1);
+		} else {
+			ns.classList.add('active');
+		}
+		if (data.clear) {
+			getElementArray(popC, '.carousel-item:not(:last-child)').forEach(
+				(item) => {
+					item.remove();
+				}
+			);
+		}
+		if (data.scores) {
+			const popActive = popC.querySelector('.carousel-item');
+			if (popActive) {
+				generateScoreboard(popActive.querySelector('.slide-body'), data.scores);
+			} else {
+				console.log('no pop active');
+			}
+		}
+	} else if (!data.timer) {
+		const popCurrent = popC.querySelector(
+			'.carousel-item:last-child .slide-contents'
+		);
+		if (popCurrent) modifySlide(popCurrent, data);
+	}
+};
+
+const handlePopArray = (data) => {
+	const pop = popupOpen();
+	if (!pop) return;
+	let popDoc = popupDoc();
+	let popCI = popDoc.getElementById('game-carousel-inner');
+	let popC = popDoc.getElementById('game-carousel');
+	let popCarousel = new bootstrap.Carousel(popC);
+
+	console.log(data);
+
+	if (
+		data.every((d) => {
+			return d.picture;
+		})
+	) {
+		let ns = createPictureSlide(data);
+		popCI.appendChild(ns);
+		const popActiveSlide = popC.querySelector('.carousel-item.active');
+		if (popActiveSlide) {
+			const len = popC.querySelectorAll('.carousel-item').length;
+			popCarousel.to(len - 1);
+		} else {
+			ns.classList.add('active');
+		}
+	}
 };
 
 const handleNewSlide = (data, ...toSetActive) => {
@@ -70,8 +207,7 @@ const handleNewSlide = (data, ...toSetActive) => {
 
 		if (setActive) {
 			const activeSlide = myCarousel.querySelector('.carousel-item.active');
-			// if (activeSlide) activeSlide.classList.remove('active');
-			// newSlide.classList.add('active');
+
 			if (activeSlide) {
 				const len = myCarousel.querySelectorAll('.carousel-item').length;
 				slideCarousel.to(len - 1);
@@ -88,6 +224,7 @@ const handleNewSlide = (data, ...toSetActive) => {
 		}
 
 		if (data.scores) {
+			console.log(data);
 			const activeSlide = myCarousel.querySelector('.carousel-item');
 			if (activeSlide) {
 				generateScoreboard(
@@ -100,8 +237,18 @@ const handleNewSlide = (data, ...toSetActive) => {
 		setTimer(data.timer * 60);
 		startTimer();
 	} else {
-		modifySlide(data);
+		const currentSlide = myCarousel.querySelector(
+			'.carousel-item:last-child .slide-contents'
+		);
+
+		if (currentSlide) modifySlide(currentSlide, data);
 	}
+
+	popSlide = document
+		.querySelector('.carousel-item:last-child')
+		.cloneNode(true);
+	popSlide.classList.remove('carousel-item-next', 'carousel-item-start');
+	popSlide.classList.add('active');
 };
 
 const uncheckRadios = (e) => {
@@ -348,7 +495,13 @@ const adjustScore = (e) => {
 	const base = parseInt(sumCell.getAttribute('data-score'));
 	if (isNaN(base)) return;
 
-	sumCell.innerHTML = base + adj;
+	let cont = sumCell.querySelector('.score-container');
+	if (!cont) {
+		cont = createElement('.score-container');
+		sumCell.innerHTML = '';
+		sumCell.appendChild(cont);
+	}
+	cont.innerHTML = base + adj;
 };
 
 const createResultRows = (data) => {
@@ -362,12 +515,12 @@ const createResultRows = (data) => {
 
 		const nameCell = createElement('td');
 		nameCell.classList.add('team-header');
-		nameCell.innerHTML = `<span class="team-name">${data.name}</span>&nbsp;<span class="team-status">❌</span>`;
+		nameCell.innerHTML = `<div><span class="team-name">${data.name}</span>&nbsp;<span class="team-status" title="Round not submitted">❌</span></div>`;
 		newRow.appendChild(nameCell);
 
 		for (var i = 0; i < hr.cells.length - 3; i++) {
 			const newCell = createElement('td');
-			newCell.innerHTML = '0';
+			newCell.innerHTML = '<div class="score-container">0</div>';
 			newCell.classList.add('result-cell', 'incorrect');
 			newCell.setAttribute('title', `Answer: [Blank]`);
 			newCell.setAttribute('data-question', i + 1);
@@ -384,23 +537,37 @@ const createResultRows = (data) => {
 		newRow.appendChild(adjCell);
 
 		const sumCell = createElement('td');
-		sumCell.innerHTML = '0';
+		const cont = createElement('.score-container');
+		cont.innerHTML = '0';
+		sumCell.appendChild(cont);
 		sumCell.classList.add('total-cell');
+		sumCell.setAttribute('data-score', '0');
 		newRow.appendChild(sumCell);
 
 		a.appendChild(newRow);
 	});
 };
 
-export const Host = (socket) => {
-	socket.on('set-user-cookie', setUserCookie);
+document.addEventListener('DOMContentLoaded', () => {
+	popoutButton.addEventListener('click', openSlideShowWindow);
+});
 
+export const Host = (socket) => {
+	socket.on('connection-made', (data) => {
+		setUserCookie(data);
+		const sbs = getElementArray(document, '.start-button');
+		sbs.forEach((s) => {
+			s.classList.remove('invisible-block');
+			s.disabled = false;
+		});
+	});
 	socket.on('game-started', (data) => {
 		hideMessage();
 		console.log(data);
 
 		const myId = getCookie('id');
 
+		//restore the chat on refresh
 		if (data.newGame.chat) {
 			data.newGame.chat.forEach((m) => {
 				const newMessage = createChatMessage(
@@ -422,25 +589,31 @@ export const Host = (socket) => {
 			}, 10);
 		}
 
+		//restore the slide show on refresh
 		data.newGame.slides.forEach((s) => {
 			if (Array.isArray(s)) {
 				s.forEach((s2) => {
 					handleNewSlide(s2);
 				});
+				handlePopArray(s);
 			} else {
 				handleNewSlide(s);
+				handlePopSlide(s);
 			}
 		});
 
+		//restore the timer on refresh
 		if (data.newGame.timeLeft) {
 			setTimer(Math.floor(data.newGame.timeLeft / 1000));
 			startTimer();
 		}
 
+		//restore the grading
 		data.newGame.gameData.rounds.forEach((r, i) => {
 			const rgc = document.getElementById(`grading-${i + 1}`);
 			if (rgc) rgc.setAttribute('data-format', r.format || 'questions');
 
+			//restore the result/adjustment table
 			const rac = document.getElementById(`adjust-${i + 1}`);
 			if (rac) {
 				rac.innerHTML = '';
@@ -472,7 +645,7 @@ export const Host = (socket) => {
 					if (r.theme && r.themePoints) {
 						const newCell = createElement('th.result-cell');
 						newCell.setAttribute('title', `Answer: ${r.theme}`);
-						newCell.innerHTML = 'Th';
+						newCell.innerHTML = 'T';
 						newCell.setAttribute('data-wager', false);
 						newCell.setAttribute('data-value', r.themePoints);
 						hr.appendChild(newCell);
@@ -547,7 +720,7 @@ export const Host = (socket) => {
 
 				const th = ar.querySelector('.team-header');
 				if (th)
-					th.innerHTML = `<span class="team-name">${t.name}</span>&nbsp;<span class="team-status">✅</span>`;
+					th.innerHTML = `<div><span class="team-name">${t.name}</span>&nbsp;<span class="team-status">✅</span></div>`;
 				//in the adjustment row...
 				const resCells = getElementArray(ar, '.result-cell');
 				const headerCells = getElementArray(
@@ -682,6 +855,19 @@ export const Host = (socket) => {
 		createResultRows(data);
 	});
 
+	socket.on('remove-team', (data) => {
+		const rows = getElementArray(
+			document,
+			`.adjustment-row[data-id="${data.id}"]`
+		);
+		rows.forEach((r) => {
+			const tn = r.querySelector('.team-name');
+			const ts = r.querySelector('.team-status');
+			if (tn) tn.classList.add('team-removed');
+			if (ts) ts.innerHTML = '';
+		});
+	});
+
 	socket.on('new-response', (data) => {
 		// (r, q, ans, correct, partial, allowPartial)
 		const gd = document.getElementById(`grading-${data.round}`);
@@ -712,7 +898,10 @@ export const Host = (socket) => {
 		if (!row) return;
 
 		const sp = row.querySelector('span.team-status');
-		if (sp) sp.innerHTML = '✅';
+		if (sp) {
+			sp.innerHTML = '✅';
+			sp.setAttribute('title', 'Round submitted');
+		}
 
 		console.log(data);
 		//set the cell titles to the answers given
@@ -797,11 +986,13 @@ export const Host = (socket) => {
 								res.data.forEach((d) => {
 									handleNewSlide(d);
 								});
+								handlePopArray(res.data);
 								const count =
 									myCarousel.querySelectorAll('.carousel-item').length;
 								slideCarousel.to(count - 1);
 							} else {
 								handleNewSlide(res.data);
+								handlePopSlide(res.data);
 							}
 						} else {
 							showMessage('error', res.message);
