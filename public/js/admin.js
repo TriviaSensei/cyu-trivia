@@ -21,18 +21,17 @@ const createUserButton = document.getElementById('create-new-user');
 const createVenueModal = new bootstrap.Modal(
 	document.getElementById('create-venue-modal')
 );
-const createVenueButton = document.getElementById('confirm-create');
 const createVenueForm = document.getElementById('new-venue-modal-form');
 const vName = document.getElementById('venue-name');
 const vDescription = document.getElementById('venue-description');
 const vGameTimes = document.getElementById('venue-game-times');
 const vAddress = document.getElementById('venue-address');
-const vPhoto = document.getElementById('venue-photo');
 
 let action = undefined;
 let uid = undefined;
 let venueAction = undefined;
 let vid = undefined;
+let venueList = [];
 
 const setUID = (e) => {
 	const button = e.target.closest('button');

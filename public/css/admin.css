@@ -80,7 +80,8 @@ td button:not([disabled]):hover {
 	background-color: yellow;
 }
 
-#create-user-modal {
+#create-user-modal,
+#host-modal {
 	z-index: 100000;
 }
 

@@ -195,6 +195,12 @@ textarea {
 	width: 100%;
 }
 
+.input-group > select,
+.input-group option {
+	font-weight: bold;
+	background-color: #ccc;
+}
+
 .banner {
 	width: 100%;
 	max-height: 500px;

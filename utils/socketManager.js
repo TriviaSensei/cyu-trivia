@@ -358,6 +358,7 @@ const createSlides = (data, joinCode) => {
 			toReturn.push({
 				new: true,
 				clear: true,
+				header: 'Final scores',
 				mode: 'scores',
 				scores: [],
 			});

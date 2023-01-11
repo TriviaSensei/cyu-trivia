@@ -6,6 +6,7 @@ const userRouter = require('./routes/userRoutes');
 const gameRouter = require('./routes/gameRoutes');
 const viewRouter = require('./routes/viewRoutes');
 const venueRouter = require('./routes/venueRoutes');
+const gigRouter = require('./routes/gigRoutes');
 const errorHandler = require('./controllers/errorController');
 const AppError = require('./utils/appError');
 const rateLimit = require('express-rate-limit');
@@ -46,6 +47,8 @@ app.use(cookieParser());
 app.use('/api/v1/users/', userRouter);
 app.use('/api/v1/games/', gameRouter);
 app.use('/api/v1/venues/', venueRouter);
+app.use('/api/v1/gigs/', gigRouter);
+
 app.use('/', viewRouter);
 
 const limiter = rateLimit({

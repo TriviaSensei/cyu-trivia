@@ -3,11 +3,10 @@ const User = require('../models/userModel');
 const factory = require('../controllers/handlerFactory');
 const catchAsync = require('../utils/catchAsync');
 const multer = require('multer');
-const { ImgurClient } = require('imgur');
+// const { ImgurClient } = require('imgur');
 const S3 = require('aws-sdk/clients/s3');
-const client = new ImgurClient({ clientId: process.env.IMGUR_CLIENT_ID });
+// const client = new ImgurClient({ clientId: process.env.IMGUR_CLIENT_ID });
 const { v4: uuidV4 } = require('uuid');
-const { resolve } = require('path');
 const AppError = require('../utils/appError');
 const { default: mongoose } = require('mongoose');
 const deleteTimeout = 5 * 60 * 1000;
@@ -117,7 +116,16 @@ exports.getHostedGames = catchAsync(async (req, res, next) => {
 
 exports.createGame = factory.createOne(Game);
 exports.getGame = factory.getOne(Game);
-exports.getAll = factory.getAll(Game);
+exports.getAll = catchAsync(async (req, res, next) => {
+	const data = await Game.find().sort({ date: -1 }).limit(10);
+
+	console.log(data);
+
+	res.status(200).json({
+		status: 'success',
+		data,
+	});
+});
 exports.updateGame = factory.updateOne(Game);
 // exports.deleteGame = factory.deleteOne(Game);
 

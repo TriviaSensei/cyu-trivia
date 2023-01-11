@@ -4,22 +4,26 @@ const venueController = require('../controllers/venueController');
 
 const router = express.Router();
 
-router.use(authController.protect);
-
-router.use(authController.restrictTo('owner'));
-
 router
 	.route('/')
 	.post(
-		venueController.uploadImages,
-		venueController.AWSUpload,
+		authController.protect,
+		authController.restrictTo('owner'),
 		venueController.createVenue
 	)
 	.get(venueController.getAllVenues);
 router
 	.route('/:id')
 	.get(venueController.getVenue)
-	.patch(venueController.updateVenue)
-	.delete(venueController.deleteVenue);
+	.patch(
+		authController.protect,
+		authController.restrictTo('owner'),
+		venueController.updateVenue
+	)
+	.delete(
+		authController.protect,
+		authController.restrictTo('owner'),
+		venueController.deleteVenue
+	);
 
 module.exports = router;

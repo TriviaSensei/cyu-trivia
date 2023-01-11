@@ -42,7 +42,19 @@ const nonHostContainer = document.getElementById('non-hosts');
 const hostContainer = document.getElementById('hosts');
 const hostListContainer = document.getElementById('host-list-container');
 
+const createGigButton = document.getElementById('create-new-gig');
+const venueSelect = document.getElementById('venue-select');
+const createGigForm = document.getElementById('new-gig-modal-form');
+const gigDate = document.getElementById('gig-date');
+const gigHour = document.getElementById('hour');
+const gigMin = document.getElementById('minute');
+const gigAMPM = document.getElementById('ampm');
+const gameSelect = document.getElementById('game-select');
+
 //modals
+const createGigModal = new bootstrap.Modal(
+	document.getElementById('create-gig-modal')
+);
 const saveChangesModal = new bootstrap.Modal(
 	document.getElementById('save-changes-modal')
 );
@@ -72,6 +84,7 @@ let gameSearchResults = [];
 let allHosts = [];
 let hosts = [];
 let nonHosts = [];
+let venueList = [];
 let savedAction;
 
 const setGID = (e) => {
@@ -792,6 +805,8 @@ const handleSave = (post) => {
 			} else if (post) {
 				handleOpen(document.querySelector(`.edit-button[data-id="${post}"]`));
 			}
+
+			getGames(null);
 		} else {
 			if (res.error.code === 11000) {
 				showMessage(
@@ -1393,7 +1408,7 @@ const populateHostLists = () => {
 	});
 };
 
-const loadHosts = (e) => {
+const loadHosts = () => {
 	if (loadingDiv) loadingDiv.classList.remove('invisible-div');
 	hostContainer.innerHTML = '';
 	nonHostContainer.innerHTML = '';
@@ -1404,12 +1419,13 @@ const loadHosts = (e) => {
 			nonHosts = [];
 			hosts = [];
 
-			let lg = undefined;
-			if (loadedGame) {
-				lg = gameSearchResults.find((g) => {
-					return g._id.toString() === loadedGame;
-				});
-			}
+			// let lg = undefined;
+			// if (loadedGame) {
+			// 	lg = gameSearchResults.find((g) => {
+			// 		return g._id.toString() === loadedGame;
+			// 	});
+			// }
+
 			res.data.forEach((h) => {
 				const obj = {
 					name: `${h.lastName}, ${h.firstName}`,
@@ -1433,5 +1449,87 @@ const loadHosts = (e) => {
 	};
 	handleRequest('/api/v1/users/getAll', 'GET', null, handler);
 };
-loadHosts(null);
-if (addHost) addHost.addEventListener('click', loadHosts);
+loadHosts();
+
+const handleCreateGig = (e) => {
+	if (e.target !== createGigForm) return;
+	e.preventDefault();
+
+	const handler = (res) => {
+		if (res.status === 'success') {
+			showMessage('info', 'Successfully added gig');
+			// gigDate.value = '';
+			// gigHour.selectedIndex = 6;
+			// gigMinute.selectedIndex = 0;
+			// gigAMPM.selectedIndex = 1;
+			// hosts = [];
+			// nonHosts = allHosts.slice(0);
+			// populateHostLists();
+		} else {
+			showMessage('error', res.message);
+		}
+	};
+
+	const str = '/api/v1/gigs/';
+	const body = {
+		venue: venueSelect.value,
+		date: gigDate.value,
+		game: gameSelect.value,
+		hour: parseInt(gigHour.value) + (gigAMPM.value === 'pm' ? 12 : 0),
+		minute: parseInt(gigMin.value),
+		hosts: hosts.map((h) => {
+			return h._id;
+		}),
+	};
+	handleRequest(str, 'POST', body, handler);
+};
+
+const getVenues = (e) => {
+	if (e.target === createGigButton && venueList.length === 0) {
+		const handler = (res) => {
+			if (res.status === 'success') {
+				venueList = res.data;
+				if (venueSelect) {
+					venueSelect.innerHTML = '';
+					venueList.forEach((v) => {
+						const op = document.createElement('option');
+						op.innerHTML = v.name;
+						op.value = v._id;
+						venueSelect.appendChild(op);
+					});
+				}
+			} else {
+				showMessage('error', res.message);
+			}
+		};
+		const str = '/api/v1/venues';
+		handleRequest(str, 'GET', null, handler);
+	}
+};
+
+const getGames = (e) => {
+	const handler = (res) => {
+		if (res.status === 'success') {
+			gameSelect.innerHTML = '';
+			res.data.forEach((g) => {
+				const op = document.createElement('option');
+				op.innerHTML = g.title;
+				op.value = g._id;
+				gameSelect.appendChild(op);
+			});
+		} else {
+			showMessage('error', res.message);
+		}
+	};
+	const str = '/api/v1/games/';
+	handleRequest(str, 'GET', null, handler);
+};
+
+if (createGigModal && createGigButton) {
+	createGigButton.addEventListener('click', getVenues);
+	createGigButton.addEventListener('click', getGames);
+}
+
+if (createGigForm) {
+	createGigForm.addEventListener('submit', handleCreateGig);
+}

@@ -34,7 +34,7 @@ exports.loginRedirect = catchAsync(async (req, res, next) => {
 exports.getHomepage = catchAsync(async (req, res, next) => {
 	// 2) build template
 
-	const venues = await Venue.find({ public: true });
+	const venues = await Venue.find({ isHidden: false });
 
 	const toSend = venues.map((v) => {
 		let address = v.address;

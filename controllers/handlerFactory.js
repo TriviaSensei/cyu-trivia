@@ -3,6 +3,7 @@ const AppError = require('../utils/appError');
 const APIFeatures = require('../utils/apiFeatures');
 const moment = require('moment-timezone');
 const User = require('../models/userModel');
+const slugify = require('slugify');
 //this will delete one of any document, depending on what gets passed to it.
 exports.deleteOne = (Model) =>
 	catchAsync(async (req, res, next) => {
@@ -150,6 +151,9 @@ exports.createOne = (Model) =>
 			const newDate = new Date(req.body.date - offset * 1000 * 60 * 60);
 
 			req.body.date = newDate;
+		} else if (loc === 'venues') {
+			req.body.slug = slugify(req.body.name);
+			console.log(req.body);
 		}
 		req.body.lastModified = new Date();
 
@@ -199,6 +203,11 @@ exports.getAll = (Model, popOptions) =>
 			req.query.sort = 'lastName';
 		} else if (loc === 'games') {
 			req.query.sort = '-lastModified';
+		} else if (loc === 'venues') {
+			req.query.filter = {
+				isHidden: false,
+			};
+			req.query.sort = 'name';
 		}
 
 		let features;

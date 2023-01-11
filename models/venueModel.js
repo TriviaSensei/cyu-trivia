@@ -10,6 +10,12 @@ const venueSchema = new mongoose.Schema({
 		minlength: [1, 'You must specify a name.'],
 		maxlength: [100, 'The maximum length is 100 characters'],
 	},
+	slug: {
+		type: String,
+		required: true,
+		unique: true,
+		trim: true,
+	},
 	description: {
 		type: String,
 		required: [true, 'Venue description is required'],
@@ -26,11 +32,6 @@ const venueSchema = new mongoose.Schema({
 		minlength: [1, 'You must specify a game time.'],
 		maxlength: [100, 'The maximum length is 100 characters'],
 	},
-	public: {
-		type: Boolean,
-		required: [true, 'You must specify if the venue is public'],
-		default: true,
-	},
 	address: {
 		type: String,
 		required: [true, 'Venue address is required'],
@@ -42,6 +43,10 @@ const venueSchema = new mongoose.Schema({
 	website: {
 		type: String,
 		maxlength: [200, 'The maximum length is 200 characters'],
+	},
+	isHidden: {
+		type: Boolean,
+		default: false,
 	},
 });
 
