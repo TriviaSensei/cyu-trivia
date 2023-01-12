@@ -1,0 +1,52 @@
+.modal.fade#edit-gig-modal(tabindex="-1" aria-labelledby="edit-gig-label" aria-hidden="true")
+    .modal-dialog.modal-dialog-centered
+        .modal-content#edit-gig-modal-content
+            .modal-header
+                h5.modal-title#edit-gig-label Edit Gig
+                button.btn-close(type="button" data-bs-dismiss="modal" aria-label="Close")
+            .modal-body
+                form#edit-gig-modal-form
+                    label.form-label(for="edit-gig-select") Select Gig: 
+                    .input-group.mb-3
+                        select#edit-gig-select(name="edit-gig-select")
+                            option(value="") [Select a gig]
+                    label.form-label(for="edit-venue-select") Venue:
+                    .input-group.mb-3
+                        select#edit-venue-select(name="edit-venue-select" disabled)
+                    label.form-label(for="edit-gig-date") Date:
+                    .input-group.mb-3
+                        input#edit-gig-date(type="date" required disabled)
+                    label.form-label(for="edit-game-select") Game:
+                    .input-group.mb-3
+                        select#edit-game-select(name="edit-game-select" disabled)
+                    label.form-label(for="time") Time:
+                    .input-group.mb-3
+                        select#edit-hour(disabled)
+                            - var i = 1
+                            - while (i <= 12)
+                                - if (i == 7)
+                                    option(value=`${i}` selected)= i
+                                - else 
+                                    option(value=`${i%12}`)= i
+                                - i++
+                        span(style="margin-left:5px;margin-right:5px;") :
+                        select#edit-minute(disabled)
+                            option(value="00") 00
+                            option(value="15") 15
+                            option(value="30") 30
+                            option(value="45") 45
+                        span(style="margin-left:5px;margin-right:5px;")
+                        select#edit-ampm(disabled)
+                            option(value="am") AM
+                            option(value="pm" selected) PM
+                    .input-container#edit-host-container
+                        .input-label Hosts 
+                        .host-list-container
+                            .edit-no-hosts (None)
+                            #edit-host-list-container
+                        label#edit-hosts-label.image-upload-label.invisible-div(for="add-host" data-bs-toggle="modal" data-bs-target="#host-modal") Add/Remove Hosts
+                        button.image-upload#edit-add-host(type="button")
+                        //- button.image-upload#add-host(type="button" data-bs-toggle='modal' data-bs-target="#host-modal")
+            .modal-footer
+                button.btn.btn-secondary#cancel-edit-gig(type="button" data-bs-dismiss="modal") Close
+                button.btn.btn-primary#confirm-edit-gig(type="submit" form="edit-gig-modal-form") Edit

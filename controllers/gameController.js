@@ -114,13 +114,104 @@ exports.getHostedGames = catchAsync(async (req, res, next) => {
 	});
 });
 
+exports.verifyGame = catchAsync(async (req, res, next) => {
+	req.body.ready = req.body.rounds.every((r, i) => {
+		if (!r.description) {
+			res.locals.message = `Round ${i + 1} is missing a description`;
+			return false;
+		}
+		if (i % 2 === 0 || (i === 3 && r.format === 'questions')) {
+			return r.questions.every((q, j) => {
+				if (!q.text) {
+					res.locals.message = `Round ${i + 1} Question ${
+						j + 1
+					} is missing text.`;
+					return false;
+				} else if (!q.answer) {
+					res.locals.message = `Round ${i + 1} Question ${
+						j + 1
+					} is missing an answer.`;
+					return false;
+				} else if (!q.value && i !== 3) {
+					res.locals.message = `Round ${i + 1} Question ${
+						j + 1
+					} is missing a value.`;
+					return false;
+				}
+				return true;
+			});
+		} else {
+			if (!r.pointsPerCorrect) {
+				res.locals.message = `Round ${
+					i + 1
+				} is missing a point value for correct answers.`;
+				return false;
+			}
+			if (i === 1) {
+				return r.questions.every((q, j) => {
+					if (!q.link) {
+						res.locals.message = `Round ${i + 1} Question ${
+							j + 1
+						} is missing a link.`;
+						return false;
+					} else if (!q.answer) {
+						res.locals.message = `Round ${i + 1} Question ${
+							j + 1
+						} is missing an answer.`;
+						return false;
+					}
+					return true;
+				});
+			} else if (i === 3) {
+				if (r.format === 'list') {
+					if (r.answerCount > r.answerList.length) {
+						res.locals.message = `Round ${
+							i + 1
+						} (list round) does not have a sufficiently long answer list.`;
+						return false;
+					}
+				} else if (r.format === 'matching') {
+					if (r.matchingPairs.length < 8) {
+						res.locals.message = `Round ${
+							i + 1
+						} (matching) does not have a sufficiently long answer list.`;
+						return false;
+					}
+				}
+				return true;
+			} else if (i === 5) {
+				if (!r.videoLink) {
+					res.locals.message = `Round ${
+						i + 1
+					} (Audio) does not have a video link.`;
+					return false;
+				} else if (r.theme && !r.themePoints) {
+					res.locals.message = `Round ${
+						i + 1
+					} (Audio) has a theme but no value assigned to it.`;
+					return false;
+				} else if (!r.theme && r.themePoints) {
+					res.locals.message = `Round ${
+						i + 1
+					} (Audio) has no theme specified but has a value assigned to the theme.`;
+					return false;
+				} else if (r.questions.length < 8) {
+					res.locals.message = `Round ${
+						i + 1
+					} (Audio) does not have a sufficiently long answer list.`;
+					return false;
+				}
+				return true;
+			}
+		}
+	});
+	next();
+});
+
 exports.createGame = factory.createOne(Game);
 exports.getGame = factory.getOne(Game);
 exports.getAll = catchAsync(async (req, res, next) => {
 	const data = await Game.find().sort({ date: -1 }).limit(10);
-
-	console.log(data);
-
 	res.status(200).json({
 		status: 'success',
 		data,

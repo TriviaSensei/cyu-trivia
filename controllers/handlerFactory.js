@@ -4,6 +4,7 @@ const APIFeatures = require('../utils/apiFeatures');
 const moment = require('moment-timezone');
 const User = require('../models/userModel');
 const slugify = require('slugify');
+
 //this will delete one of any document, depending on what gets passed to it.
 exports.deleteOne = (Model) =>
 	catchAsync(async (req, res, next) => {
@@ -76,46 +77,11 @@ exports.updateOne = (Model) =>
 
 			req.body.date = newDate;
 
-			if (req.body.assignedHosts) {
-				//find any host with this game already assigned
-				const hosts = await User.find({
-					assignedGames: req.params.id,
-				});
-
-				//remove this game from their list if they're not in the assigned hosts list for this request
-				hosts.forEach(async (h) => {
-					if (!req.body.assignedHosts.includes(h._id)) {
-						console.log(h.assignedGames);
-						h.assignedGames = h.assignedGames.filter((g) => {
-							if (!g) return false;
-							console.log(g.toString(), req.params.id);
-							return g.toString() === req.params.id;
-						});
-						await h.save({ validateBeforeSave: false });
-					}
-				});
-
-				//for every host, add it to their list if it's not already there
-				req.body.assignedHosts.forEach(async (h) => {
-					const host = await User.findById(h);
-					if (host) {
-						host.assignedGames = host.assignedGames.filter((g) => {
-							return g;
-						});
-						if (
-							!host.assignedGames.some((g) => {
-								if (!g) return false;
-								return g._id.toString() === req.params.id;
-							})
-						) {
-							host.assignedGames.push(req.params.id);
-							await host.save({ validateBeforeSave: false });
-						}
-					}
-				});
-			}
-
 			req.body.lastModified = new Date();
+		} else if (loc.toLowerCase() === 'venues') {
+			if (req.body.name) {
+				req.body.slug = slugify(req.body.name);
+			}
 		}
 
 		let toReturn = null;
@@ -131,6 +97,7 @@ exports.updateOne = (Model) =>
 		res.status(200).json({
 			status: 'success',
 			data: toReturn || doc,
+			message: loc.toLowerCase() === 'games' ? res.locals.message : '',
 		});
 	});
 
@@ -153,7 +120,6 @@ exports.createOne = (Model) =>
 			req.body.date = newDate;
 		} else if (loc === 'venues') {
 			req.body.slug = slugify(req.body.name);
-			console.log(req.body);
 		}
 		req.body.lastModified = new Date();
 
@@ -162,6 +128,7 @@ exports.createOne = (Model) =>
 			status: 'success',
 			//envelope the new object
 			data: doc,
+			message: loc.toLowerCase() === 'games' ? res.locals.message : '',
 		});
 	});
 

@@ -25,7 +25,6 @@ export const handleRequest = (
 		req.setRequestHeader('Content-type', 'application/json; charset=utf-8');
 		try {
 			if (requestBody) {
-				console.log(JSON.stringify(requestBody));
 				req.send(JSON.stringify(requestBody));
 			} else {
 				req.send(null);

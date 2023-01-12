@@ -31,16 +31,9 @@ const gameSchema = new mongoose.Schema({
 	},
 	date: {
 		type: Date,
-		validate: {
-			validator: validateDate,
-			message: 'Game date must be in the future.',
-		},
+		required: [true, 'You must specify a date'],
 	},
 	rounds: [Object],
-	assignedHosts: {
-		type: [mongoose.Schema.ObjectId],
-		ref: 'Users',
-	},
 	ready: Boolean,
 	lastModified: Date,
 	deleteAfter: Date,

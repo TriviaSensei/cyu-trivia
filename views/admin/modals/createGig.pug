@@ -6,13 +6,12 @@
                 button.btn-close(type="button" data-bs-dismiss="modal" aria-label="Close")
             .modal-body
                 form#new-gig-modal-form
-                    input#edit-gig-id(type='hidden' value='')
                     label.form-label(for="venue-select") Venue:
                     .input-group.mb-3
                         select#venue-select(name="venue-select")
                     label.form-label(for="gig-date") Date:
                     .input-group.mb-3
-                        input#gig-date(type="date")
+                        input#gig-date(type="date" required)
                     label.form-label(for="game-select") Game:
                     .input-group.mb-3
                         select#game-select(name="game-select")
@@ -24,7 +23,7 @@
                                 - if (i == 7)
                                     option(value=`${i}` selected)= i
                                 - else 
-                                    option(value=`${i}`)= i
+                                    option(value=`${i%12}`)= i
                                 - i++
                         span(style="margin-left:5px;margin-right:5px;") :
                         select#minute
@@ -41,7 +40,7 @@
                         .host-list-container
                             .no-hosts (None)
                             #host-list-container
-                        label.image-upload-label(for="add-host" data-bs-toggle="modal" data-bs-target="#host-modal") Add/Remove Hosts
+                        label#add-hosts-label.image-upload-label(for="add-host" data-bs-toggle="modal" data-bs-target="#host-modal") Add/Remove Hosts
                         button.image-upload#add-host(type="button")
                         //- button.image-upload#add-host(type="button" data-bs-toggle='modal' data-bs-target="#host-modal")
             .modal-footer

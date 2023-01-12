@@ -41,6 +41,10 @@ const loadingDiv = document.getElementById('host-loading-div');
 const nonHostContainer = document.getElementById('non-hosts');
 const hostContainer = document.getElementById('hosts');
 const hostListContainer = document.getElementById('host-list-container');
+const editHostContainer = document.getElementById('edit-host-container');
+const editHostListContainer = document.getElementById(
+	'edit-host-list-container'
+);
 
 const createGigButton = document.getElementById('create-new-gig');
 const venueSelect = document.getElementById('venue-select');
@@ -50,6 +54,21 @@ const gigHour = document.getElementById('hour');
 const gigMin = document.getElementById('minute');
 const gigAMPM = document.getElementById('ampm');
 const gameSelect = document.getElementById('game-select');
+const addHostsLabel = document.getElementById('add-hosts-label');
+
+const editGigButton = document.getElementById('browse-gig');
+const editGigSelect = document.getElementById('edit-gig-select');
+const editVenueSelect = document.getElementById('edit-venue-select');
+const editGigForm = document.getElementById('edit-gig-modal-form');
+const editGigDate = document.getElementById('edit-gig-date');
+const editGigHour = document.getElementById('edit-hour');
+const editGigMin = document.getElementById('edit-minute');
+const editGigAMPM = document.getElementById('edit-ampm');
+const editGameSelect = document.getElementById('edit-game-select');
+const editHostsLabel = document.getElementById('edit-hosts-label');
+const confirmEditGig = document.getElementById('confirm-edit-gig');
+
+let gigMode = '';
 
 //modals
 const createGigModal = new bootstrap.Modal(
@@ -81,9 +100,14 @@ let loadedGame = undefined;
 let changesMade = false;
 let gid = undefined;
 let gameSearchResults = [];
+let gigList = [];
+
 let allHosts = [];
 let hosts = [];
 let nonHosts = [];
+let editHosts = [];
+let editNonHosts = [];
+
 let venueList = [];
 let savedAction;
 
@@ -788,7 +812,15 @@ const handleSave = (post) => {
 
 	const handler = (res) => {
 		if (res.status === 'success') {
-			showMessage('info', 'Successfully saved game.');
+			if (res.message) {
+				showMessage(
+					'info',
+					`Changes saved, but game is not ready. ${res.message}`,
+					2000
+				);
+			} else {
+				showMessage('info', 'Successfully saved game.');
+			}
 			loadedGame = res.data._id;
 			changesMade = false;
 			unsavedChanges.classList.add('invisible-div');
@@ -1293,71 +1325,93 @@ const handleClickEdit = (e) => {
 };
 
 const toggleHost = (e) => {
+	if (!gigMode) return;
+
 	const parent = e.target.closest(
-		'.list-left, .list-right, #host-list-container'
+		'.list-left, .list-right, #host-list-container, #edit-host-list-container'
 	);
 	if (!parent) return;
-
-	handleChangeMade(null);
 	const hostId = e.target.getAttribute('data-id');
 
+	let hostList;
+	if (gigMode === 'create') hostList = hostListContainer;
+	else hostList = editHostListContainer;
+
 	//removing a host from a game
-	if (parent === hostContainer || parent === hostListContainer) {
+	if (
+		parent === hostContainer ||
+		parent === hostListContainer ||
+		parent === editHostListContainer
+	) {
+		//move the tile to the "available hosts" side
 		nonHostContainer.appendChild(
 			document.querySelector(`.host-tile[data-id="${hostId}"]`)
 		);
 
-		const hostDiv = hostListContainer.querySelector(
-			`.host-div[data-id="${hostId}"]`
-		);
-
+		//remove the tile from the list of hosts outside the modal
+		const hostDiv = hostList.querySelector(`.host-div[data-id="${hostId}"]`);
 		if (hostDiv) hostDiv.remove();
 
-		if (!hostListContainer.querySelector('.host-div')) {
-			document.querySelector('.no-hosts').classList.remove('invisible-div');
-		}
-		nonHosts.push(
-			hosts.find((h) => {
-				return h._id === hostId;
-			})
-		);
-		hosts = hosts.filter((h) => {
-			return h._id !== hostId;
-		});
-
-		if (parent === hostListContainer) {
-			const tile = e.target.closest('.host-div');
-			if (tile) tile.remove();
+		if (!hostList.querySelector('.host-div')) {
+			document
+				.querySelector(gigMode === 'create' ? '.no-hosts' : '.edit-no-hosts')
+				.classList.remove('invisible-div');
 		}
 
-		gameSearchResults.find((g) => {
-			if (g._id === loadedGame) {
-				g.assignedHosts = g.assignedHosts.filter((h) => {
-					return h !== hostId;
-				});
-				return true;
+		if (gigMode === 'create') {
+			nonHosts.push(
+				hosts.find((h) => {
+					return h._id === hostId;
+				})
+			);
+			hosts = hosts.filter((h) => {
+				return h._id !== hostId;
+			});
+
+			if (parent === hostListContainer) {
+				const tile = e.target.closest('.host-div');
+				if (tile) tile.remove();
 			}
-		});
+		} else {
+			editNonHosts.push(
+				editHosts.find((h) => {
+					return h._id === hostId;
+				})
+			);
+			editHosts = editHosts.filter((h) => {
+				return h._id !== hostId;
+			});
+
+			if (parent === editHostListContainer) {
+				const tile = e.target.closest('.host-div');
+				if (tile) tile.remove();
+			}
+		}
 	}
 	//adding a host to a game
 	else if (parent === nonHostContainer) {
 		hostContainer.appendChild(e.target.closest('.host-tile'));
-		const newHost = nonHosts.find((h) => {
-			return h._id === hostId;
-		});
-		hosts.push(newHost);
-		hostListContainer.appendChild(createHostDiv(newHost));
-		document.querySelector('.no-hosts').classList.add('invisible-div');
-		nonHosts = nonHosts.filter((h) => {
-			return h._id !== hostId;
-		});
-
-		gameSearchResults.find((g) => {
-			if (g._id === loadedGame) {
-				g.assignedHosts.push(hostId);
-				return true;
-			}
-		});
+		if (gigMode === 'create') {
+			const newHost = nonHosts.find((h) => {
+				return h._id === hostId;
+			});
+			hosts.push(newHost);
+			hostListContainer.appendChild(createHostDiv(newHost));
+			document.querySelector('.no-hosts').classList.add('invisible-div');
+			nonHosts = nonHosts.filter((h) => {
+				return h._id !== hostId;
+			});
+		} else {
+			const newHost = editNonHosts.find((h) => {
+				return h._id === hostId;
+			});
+			editHosts.push(newHost);
+			editHostListContainer.appendChild(createHostDiv(newHost));
+			document.querySelector('.edit-no-hosts').classList.add('invisible-div');
+			editNonHosts = editNonHosts.filter((h) => {
+				return h._id !== hostId;
+			});
+		}
 	}
 };
 
@@ -1367,7 +1421,7 @@ const createTile = (data) => {
 	newTile.classList.add('host-div');
 	newTile.setAttribute('data-id', data._id);
 	const content = document.createElement('div');
-	content.innerHTML = data.name;
+	content.innerHTML = data.name || `${data.lastName}, ${data.firstName}`;
 	const button = document.createElement('button');
 	button.classList.add('btn-close');
 	button.setAttribute('data-id', data._id);
@@ -1382,7 +1436,7 @@ const createHostDiv = (data) => {
 	newTile.classList.add('host-div');
 	newTile.setAttribute('data-id', data._id);
 	const content = document.createElement('div');
-	content.innerHTML = data.name;
+	content.innerHTML = data.name || `${data.lastName}, ${data.firstName}`;
 	const button = document.createElement('button');
 	button.classList.add('btn-close');
 	button.classList.add('delete-button');
@@ -1406,6 +1460,29 @@ const populateHostLists = () => {
 		document.querySelector('.no-hosts').classList.add('invisible-div');
 		hostListContainer.appendChild(createHostDiv(u));
 	});
+	loadingDiv.classList.add('invisible-div');
+};
+
+const populateEditHostLists = (data) => {
+	//clear the containers in the modal
+	nonHostContainer.innerHTML = '';
+	hostContainer.innerHTML = '';
+	//clear the container in the edit gig window
+	editHostListContainer.innerHTML = '';
+	editHosts = [];
+	editNonHosts = [];
+
+	allHosts.forEach((h) => {
+		if (data.includes(h._id)) {
+			editHosts.push(h);
+			document.querySelector('.edit-no-hosts').classList.add('invisible-div');
+			hostContainer.appendChild(createTile(h));
+			editHostListContainer.appendChild(createHostDiv(h));
+		} else {
+			editNonHosts.push(h);
+			nonHostContainer.appendChild(createTile(h));
+		}
+	});
 };
 
 const loadHosts = () => {
@@ -1418,6 +1495,8 @@ const loadHosts = () => {
 			allHosts = res.data;
 			nonHosts = [];
 			hosts = [];
+			editHosts = [];
+			editNonHosts = [];
 
 			// let lg = undefined;
 			// if (loadedGame) {
@@ -1432,15 +1511,8 @@ const loadHosts = () => {
 					_id: h._id,
 					assignedGames: h.assignedGames,
 				};
-				if (!loadedGame || !lg) {
-					nonHosts.push(obj);
-				} else {
-					if (lg.assignedHosts.includes(h._id)) {
-						hosts.push(obj);
-					} else {
-						nonHosts.push(obj);
-					}
-				}
+				nonHosts.push(obj);
+				editNonHosts.push(obj);
 			});
 			populateHostLists();
 		} else {
@@ -1458,13 +1530,14 @@ const handleCreateGig = (e) => {
 	const handler = (res) => {
 		if (res.status === 'success') {
 			showMessage('info', 'Successfully added gig');
-			// gigDate.value = '';
-			// gigHour.selectedIndex = 6;
-			// gigMinute.selectedIndex = 0;
-			// gigAMPM.selectedIndex = 1;
-			// hosts = [];
-			// nonHosts = allHosts.slice(0);
-			// populateHostLists();
+			gigDate.value = '';
+			gigHour.selectedIndex = 6;
+			gigMinute.selectedIndex = 0;
+			gigAMPM.selectedIndex = 1;
+			hosts = [];
+			nonHosts = allHosts.slice(0);
+			gigList.push(res.data);
+			populateHostLists();
 		} else {
 			showMessage('error', res.message);
 		}
@@ -1484,20 +1557,58 @@ const handleCreateGig = (e) => {
 	handleRequest(str, 'POST', body, handler);
 };
 
+const handleEditGig = (e) => {
+	if (e.target !== editGigForm) return;
+	e.preventDefault();
+
+	if (!editGigSelect.value) return;
+
+	const handler = (res) => {
+		if (res.status === 'success') {
+			showMessage('info', 'Successfully modified gig');
+			console.log(res.data);
+			console.log(gigList);
+			gigList = gigList.map((g) => {
+				if (g._id === res.data._id) {
+					return res.data;
+				} else {
+					return g;
+				}
+			});
+			console.log(gigList);
+		} else {
+			showMessage('error', res.message);
+		}
+	};
+	const str = `/api/v1/gigs/edit/${editGigSelect.value}`;
+	const body = {
+		venue: editVenueSelect.value,
+		date: editGigDate.value,
+		game: editGameSelect.value,
+		hour: parseInt(editGigHour.value) + (editGigAMPM.value === 'pm' ? 12 : 0),
+		minute: parseInt(editGigMin.value),
+		hosts: editHosts.map((h) => {
+			return h._id;
+		}),
+	};
+	console.log(body);
+	handleRequest(str, 'PATCH', body, handler);
+};
+
 const getVenues = (e) => {
-	if (e.target === createGigButton && venueList.length === 0) {
+	if (venueList.length === 0) {
 		const handler = (res) => {
 			if (res.status === 'success') {
 				venueList = res.data;
-				if (venueSelect) {
-					venueSelect.innerHTML = '';
-					venueList.forEach((v) => {
-						const op = document.createElement('option');
-						op.innerHTML = v.name;
-						op.value = v._id;
-						venueSelect.appendChild(op);
-					});
-				}
+				if (venueSelect) venueSelect.innerHTML = '';
+				if (editVenueSelect) editVenueSelect.innerHTML = '';
+				venueList.forEach((v) => {
+					const op = document.createElement('option');
+					op.innerHTML = v.name;
+					op.value = v._id;
+					if (venueSelect) venueSelect.appendChild(op);
+					if (editVenueSelect) editVenueSelect.appendChild(op.cloneNode(true));
+				});
 			} else {
 				showMessage('error', res.message);
 			}
@@ -1507,15 +1618,90 @@ const getVenues = (e) => {
 	}
 };
 
+const populateGigs = () => {
+	if (!editGigSelect) return;
+	editGigSelect.innerHTML = '';
+	const o1 = document.createElement('option');
+	o1.innerHTML = '[Select a gig]';
+	editGigSelect.appendChild(o1);
+	gigList.forEach((g) => {
+		const op = document.createElement('option');
+		op.innerHTML = `${g.date.split('T')[0]} - ${
+			g.hour % 12 === 0 ? 12 : g.hour % 12
+		}:${g.minute === 0 ? '00' : g.minute} ${g.hour >= 12 ? 'PM' : 'AM'} - ${
+			g.venue.name
+		}`;
+		op.value = g._id;
+		editGigSelect.appendChild(op);
+	});
+};
+
+const selectGig = (e) => {
+	const selectedId = e?.target?.value || '';
+	const gig = gigList.find((g) => {
+		return g._id === selectedId;
+	});
+
+	if (!e || !gig) {
+		editVenueSelect.disabled = true;
+		editGigDate.value = '';
+		editGigDate.disabled = true;
+		editGameSelect.disabled = true;
+		editGigHour.disabled = true;
+		editGigMin.disabled = true;
+		editGigAMPM.disabled = true;
+		confirmEditGig.disabled = true;
+		editHostContainer.classList.add('invisible-div');
+		editHostsLabel.classList.add('invisible-div');
+	} else {
+		editVenueSelect.value = gig.venue._id;
+		editGigDate.value = gig.date.split('T')[0];
+		editGameSelect.value = gig.game;
+		editGigHour.value = gig.hour % 12;
+		editGigMin.value = gig.minute || '00';
+		editGigAMPM.value = gig.hour >= 12 ? 'pm' : 'am';
+		editVenueSelect.disabled = false;
+		editGameSelect.disabled = false;
+		editGigDate.disabled = false;
+		editGigHour.disabled = false;
+		editGigMin.disabled = false;
+		editGigAMPM.disabled = false;
+		confirmEditGig.disabled = false;
+		editHostContainer.classList.remove('invisible-div');
+		editHostsLabel.classList.remove('invisible-div');
+
+		console.log(gig);
+
+		populateEditHostLists(gig.hosts);
+	}
+};
+
+const getGigs = (e) => {
+	if (gigList.length === 0) {
+		const handler = (res) => {
+			if (res.status === 'success') {
+				gigList = res.data;
+				populateGigs();
+			} else {
+				showMessage('error', res.message);
+			}
+		};
+		const str = `/api/v1/gigs/upcoming`;
+		handleRequest(str, 'GET', null, handler);
+	}
+};
+
 const getGames = (e) => {
 	const handler = (res) => {
 		if (res.status === 'success') {
 			gameSelect.innerHTML = '';
+			editGameSelect.innerHTML = '';
 			res.data.forEach((g) => {
 				const op = document.createElement('option');
 				op.innerHTML = g.title;
 				op.value = g._id;
 				gameSelect.appendChild(op);
+				editGameSelect.appendChild(op.cloneNode(true));
 			});
 		} else {
 			showMessage('error', res.message);
@@ -1525,11 +1711,31 @@ const getGames = (e) => {
 	handleRequest(str, 'GET', null, handler);
 };
 
+const setMode = (e) => {
+	if (e.target === addHostsLabel || e.target === createGigButton)
+		gigMode = 'create';
+	else if (e.target === editHostsLabel || e.target === editGigButton)
+		gigMode = 'edit';
+	else gigMode = '';
+};
+
 if (createGigModal && createGigButton) {
 	createGigButton.addEventListener('click', getVenues);
 	createGigButton.addEventListener('click', getGames);
+	createGigButton.addEventListener('click', populateHostLists);
+	createGigButton.addEventListener('click', setMode);
+	editGigButton.addEventListener('click', getVenues);
+	editGigButton.addEventListener('click', getGames);
+	editGigButton.addEventListener('click', getGigs);
+	editGigButton.addEventListener('click', setMode);
 }
 
 if (createGigForm) {
 	createGigForm.addEventListener('submit', handleCreateGig);
 }
+if (editGigForm) {
+	editGigSelect.addEventListener('change', selectGig);
+	editGigForm.addEventListener('submit', handleEditGig);
+}
+if (addHostsLabel) addHostsLabel.addEventListener('click', setMode);
+if (editHostsLabel) editHostsLabel.addEventListener('click', setMode);

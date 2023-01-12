@@ -19,9 +19,11 @@ router
 
 router.route('/delete/:id').patch(gameController.deleteGame);
 
-router.route('/:id').patch(gameController.updateGame);
+router
+	.route('/:id')
+	.patch(gameController.verifyGame, gameController.updateGame);
 router.route('/:id/:uid').patch(gameController.assignHost);
 router.route('/').get(gameController.getAll);
 
-router.post('/', gameController.createGame);
+router.post('/', gameController.verifyGame, gameController.createGame);
 module.exports = router;
