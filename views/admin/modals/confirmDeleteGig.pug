@@ -1,0 +1,10 @@
+.modal.fade#confirm-delete-gig-modal(tabindex="-1" aria-labelledby="delete-gig-label" aria-hidden="true")
+    .modal-dialog.modal-dialog-centered
+        .modal-content#delete-gig-modal-content
+            .modal-header
+                h5.modal-title#delete-gig-label Delete gig?
+            .modal-body
+                p Are you sure you wish to delete this gig? This cannot be undone.
+            .modal-footer
+                button.btn.btn-primary#confirm-delete-gig(type="button" data-bs-dismiss="modal") Yes
+                button.btn.btn-secondary(type="button" data-bs-dismiss="modal") No

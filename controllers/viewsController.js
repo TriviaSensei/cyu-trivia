@@ -1,6 +1,8 @@
 const catchAsync = require('../utils/catchAsync');
 const Game = require('../models/gameModel');
+const User = require('../models/userModel');
 const Venue = require('../models/venueModel');
+const moment = require('moment-timezone');
 
 exports.httpsRedirect = (req, res, next) => {
 	// console.log(req.header('x-forwarded-proto'));
@@ -125,17 +127,33 @@ exports.getHost = catchAsync(async (req, res, next) => {
 	// 	assignedHosts: res.locals.user._id,
 	// });
 
-	const user = await res.locals.user.populate('assignedGames');
-	const games = user.assignedGames;
+	const user = await res.locals.user.populate({
+		path: 'assignedGigs',
+		populate: ['game', 'venue'],
+	});
+	const games = user.assignedGigs;
+
+	const d = new Date().toISOString();
+	const e = moment().tz('America/New_York').format();
+	let offset =
+		parseInt(e.split('T')[1].split(':')[0]) -
+		parseInt(d.split('T')[1].split(':')[0]);
+
+	if (offset > 0) offset = offset - 24;
 
 	const data = games.map((g) => {
-		const { _id, title, date } = g;
 		return {
-			_id,
-			title,
-			date,
+			_id: g._id,
+			title: g.game.title,
+			venue: g.venue.name,
+			date: new Date(Date.parse(g.date) - offset * 60 * 60 * 1000),
+			time: `${g.hour === 12 ? 12 : g.hour % 12}:${
+				g.minute === 0 ? '00' : g.minute
+			} ${g.hour >= 12 ? 'PM' : 'AM'}`,
 		};
 	});
+
+	console.log(data);
 
 	// 3) render template using tour data from (1)
 	// this will look in the /views (set in app.js) folder for 'overview.pug' (pug engine also specified in app.js)

@@ -18,7 +18,9 @@ export const handleRequest = (
 					const res = JSON.parse(req.response);
 					responseHandler(res);
 				} else {
-					responseHandler(res);
+					responseHandler({
+						status: 'success',
+					});
 				}
 			}
 		};

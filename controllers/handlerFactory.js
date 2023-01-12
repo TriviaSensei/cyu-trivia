@@ -124,6 +124,7 @@ exports.createOne = (Model) =>
 		req.body.lastModified = new Date();
 
 		const doc = await Model.create(req.body);
+
 		res.status(201).json({
 			status: 'success',
 			//envelope the new object

@@ -67,6 +67,8 @@ const editGigAMPM = document.getElementById('edit-ampm');
 const editGameSelect = document.getElementById('edit-game-select');
 const editHostsLabel = document.getElementById('edit-hosts-label');
 const confirmEditGig = document.getElementById('confirm-edit-gig');
+const deleteGigButton = document.getElementById('delete-gig');
+const confirmDeleteGig = document.getElementById('confirm-delete-gig');
 
 let gigMode = '';
 
@@ -1532,7 +1534,7 @@ const handleCreateGig = (e) => {
 			showMessage('info', 'Successfully added gig');
 			gigDate.value = '';
 			gigHour.selectedIndex = 6;
-			gigMinute.selectedIndex = 0;
+			gigMin.selectedIndex = 0;
 			gigAMPM.selectedIndex = 1;
 			hosts = [];
 			nonHosts = allHosts.slice(0);
@@ -1619,6 +1621,7 @@ const getVenues = (e) => {
 };
 
 const populateGigs = () => {
+	console.log(gigList);
 	if (!editGigSelect) return;
 	editGigSelect.innerHTML = '';
 	const o1 = document.createElement('option');
@@ -1636,6 +1639,20 @@ const populateGigs = () => {
 	});
 };
 
+const disableEditing = () => {
+	editVenueSelect.disabled = true;
+	editGigDate.value = '';
+	editGigDate.disabled = true;
+	editGameSelect.disabled = true;
+	editGigHour.disabled = true;
+	editGigMin.disabled = true;
+	editGigAMPM.disabled = true;
+	confirmEditGig.disabled = true;
+	editHostContainer.classList.add('invisible-div');
+	editHostsLabel.classList.add('invisible-div');
+	deleteGigButton.classList.add('invisible-div');
+};
+
 const selectGig = (e) => {
 	const selectedId = e?.target?.value || '';
 	const gig = gigList.find((g) => {
@@ -1643,16 +1660,7 @@ const selectGig = (e) => {
 	});
 
 	if (!e || !gig) {
-		editVenueSelect.disabled = true;
-		editGigDate.value = '';
-		editGigDate.disabled = true;
-		editGameSelect.disabled = true;
-		editGigHour.disabled = true;
-		editGigMin.disabled = true;
-		editGigAMPM.disabled = true;
-		confirmEditGig.disabled = true;
-		editHostContainer.classList.add('invisible-div');
-		editHostsLabel.classList.add('invisible-div');
+		disableEditing();
 	} else {
 		editVenueSelect.value = gig.venue._id;
 		editGigDate.value = gig.date.split('T')[0];
@@ -1669,26 +1677,23 @@ const selectGig = (e) => {
 		confirmEditGig.disabled = false;
 		editHostContainer.classList.remove('invisible-div');
 		editHostsLabel.classList.remove('invisible-div');
-
-		console.log(gig);
+		deleteGigButton.classList.remove('invisible-div');
 
 		populateEditHostLists(gig.hosts);
 	}
 };
 
 const getGigs = (e) => {
-	if (gigList.length === 0) {
-		const handler = (res) => {
-			if (res.status === 'success') {
-				gigList = res.data;
-				populateGigs();
-			} else {
-				showMessage('error', res.message);
-			}
-		};
-		const str = `/api/v1/gigs/upcoming`;
-		handleRequest(str, 'GET', null, handler);
-	}
+	const handler = (res) => {
+		if (res.status === 'success') {
+			gigList = res.data;
+			populateGigs();
+		} else {
+			showMessage('error', res.message);
+		}
+	};
+	const str = `/api/v1/gigs/upcoming`;
+	handleRequest(str, 'GET', null, handler);
 };
 
 const getGames = (e) => {
@@ -1719,6 +1724,31 @@ const setMode = (e) => {
 	else gigMode = '';
 };
 
+const handleDeleteGig = (e) => {
+	if (e.target !== confirmDeleteGig) return;
+
+	const handler = (res) => {
+		console.log(res);
+		if (res.status === 'success') {
+			showMessage('info', 'Successfully deleted gig');
+			gigList = gigList.filter((g) => {
+				return g._id !== editGigSelect.value;
+			});
+			const op = editGigSelect.querySelector(
+				`[value="${editGigSelect.value}"]`
+			);
+			if (op) op.remove();
+			editGigSelect.selectedIndex = 0;
+
+			disableEditing();
+		} else {
+			showMessage('error', res.message);
+		}
+	};
+	const str = `/api/v1/gigs/${editGigSelect.value}`;
+	handleRequest(str, 'DELETE', null, handler);
+};
+
 if (createGigModal && createGigButton) {
 	createGigButton.addEventListener('click', getVenues);
 	createGigButton.addEventListener('click', getGames);
@@ -1739,3 +1769,6 @@ if (editGigForm) {
 }
 if (addHostsLabel) addHostsLabel.addEventListener('click', setMode);
 if (editHostsLabel) editHostsLabel.addEventListener('click', setMode);
+if (confirmDeleteGig) {
+	confirmDeleteGig.addEventListener('click', handleDeleteGig);
+}

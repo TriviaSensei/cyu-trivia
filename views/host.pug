@@ -28,19 +28,23 @@ block modals
     include host/modals/removeUserModal
 
 block content
-    #assigned-games
+    #assigned-games(Style="text-align:center;")
         h3.page-title Your assigned games
         table.game-table
             thead
                 tr 
-                    th Title 
+                    th Venue
                     th Date
+                    th Time
+                    th Game Title
                     th Start
             tbody
                 each game in data 
                     tr
-                        td= game.title 
+                        td= game.venue
                         td= game.date.toDateString()
+                        td= game.time
+                        td= game.title 
                         td 
                             button.start-button(data-id=`${game._id}` class="start-button invisible-block" disabled) Start
     #hosting-container.invisible-div

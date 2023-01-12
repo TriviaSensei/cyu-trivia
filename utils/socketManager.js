@@ -1,6 +1,7 @@
 // const { questions, pictures, wildcard } = require('../public/js/utils/questions');
 const GameModel = require('../models/gameModel');
 const UserModel = require('../models/userModel');
+const GigModel = require('../models/gigModel');
 const { promisify } = require('util');
 const jwt = require('jsonwebtoken');
 // const UserManager = require('./managers/userManager');
@@ -766,11 +767,18 @@ const socket = (http, server) => {
 				return emitError('You are not logged in');
 			}
 
-			const game = await GameModel.findById(data._id);
-			if (!game || game.deleteAfter) {
-				emitError('Game not found.');
+			const gig = await GigModel.findById(data._id);
+
+			if (!gig) {
+				return emitError('Gig not found');
 			}
-			if (game.assignedHosts.includes(decoded.id)) {
+
+			const game = await GameModel.findById(gig.game._id);
+			if (!game || game.deleteAfter) {
+				return emitError('Game not found.');
+			}
+
+			if (gig.hosts.includes(decoded.id)) {
 				if (new Date() <= game.date && process.env.LOCAL !== 'true') {
 					return emitError('This game may not be started yet.');
 				}

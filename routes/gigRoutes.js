@@ -19,6 +19,6 @@ router.patch(
 	gigController.updateGig
 );
 router.get('/upcoming', gigController.getUpcoming);
-router.delete('/delete/:id', gigController.deleteGig);
+router.delete('/:id', gigController.deleteGig);
 
 module.exports = router;

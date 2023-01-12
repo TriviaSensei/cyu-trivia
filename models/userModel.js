@@ -66,9 +66,9 @@ const userSchema = new mongoose.Schema({
 	deleteUserAfter: {
 		type: Date,
 	},
-	assignedGames: {
+	assignedGigs: {
 		type: [mongoose.Schema.ObjectId],
-		ref: 'Games',
+		ref: 'Gigs',
 	},
 });
 

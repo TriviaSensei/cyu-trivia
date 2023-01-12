@@ -98,9 +98,9 @@ exports.preventDuplicate = catchAsync(async (req, res, next) => {
 			//make sure none of the hosts are booked close to the booking we're trying to make
 			if (
 				g.hosts.some((h1) => {
-					return allHosts.some((h2) => {
-						if (h1._id.toString() === h2._id.toString()) {
-							message = `Host ${h2.firstName} ${h2.lastName} is booked within 3 hours of this booking.`;
+					return req.body.hosts.some((h2) => {
+						if (h1._id.toString() === h2.toString()) {
+							message = `Host ${h1.firstName} ${h1.lastName} is booked within 3 hours of this booking.`;
 							return true;
 						}
 					});
@@ -138,6 +138,16 @@ exports.createGig = catchAsync(async (req, res, next) => {
 	}
 
 	const data = await Gig.create({ ...req.body, results: [] });
+	await Promise.all(
+		req.body.hosts.map(async (h) => {
+			const user = await Host.findById(h.toString());
+			user.assignedGigs.push(data._id);
+			user.markModified('assignedGigs');
+			return user.save({
+				validateBeforeSave: false,
+			});
+		})
+	);
 
 	res.status(200).json({
 		status: 'success',
@@ -152,6 +162,9 @@ exports.updateGig = catchAsync(async (req, res, next) => {
 	}
 
 	const data = await Gig.findById(req.params.id);
+
+	const oldHosts = data.toJSON().hosts;
+
 	data.venue = req.body.venue;
 	data.date = req.body.date;
 	data.game = req.body.game;
@@ -163,6 +176,48 @@ exports.updateGig = catchAsync(async (req, res, next) => {
 		new: true,
 		runValidators: true,
 	});
+
+	//find users who were removed from the host list, and remove this from their assigned gigs
+	await Promise.all(
+		oldHosts.map(async (h) => {
+			if (
+				!data.hosts.some((ho) => {
+					return ho.toString() === h.toString();
+				})
+			) {
+				const user = await Host.findById(h);
+				console.log(`User ${user.displayName} was removed from ${data._id}`);
+				user.assignedGigs = user.assignedGigs.filter((g) => {
+					return g.toString().trim() !== data._id.toString().trim();
+				});
+				user.markModified('assignedGigs');
+				return user.save({
+					validateBeforeSave: false,
+				});
+			}
+			return true;
+		})
+	);
+
+	//find users who were added to the host list, and add it to their assigned gigs
+	await Promise.all(
+		data.hosts.map(async (h) => {
+			if (
+				!oldHosts.some((ho) => {
+					return ho.toString() === h.toString();
+				})
+			) {
+				const user = await Host.findById(h);
+				console.log(`User ${user.displayName} was added`);
+				user.assignedGigs.push(data._id);
+				user.markModified('assignedGigs');
+				return user.save({
+					validateBeforeSave: false,
+				});
+			}
+			return true;
+		})
+	);
 
 	res.status(200).json({
 		status: 'success',

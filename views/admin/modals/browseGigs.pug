@@ -39,7 +39,7 @@
                         select#edit-ampm(disabled)
                             option(value="am") AM
                             option(value="pm" selected) PM
-                    .input-container#edit-host-container
+                    .input-container.mb-3#edit-host-container
                         .input-label Hosts 
                         .host-list-container
                             .edit-no-hosts (None)
@@ -47,6 +47,8 @@
                         label#edit-hosts-label.image-upload-label.invisible-div(for="add-host" data-bs-toggle="modal" data-bs-target="#host-modal") Add/Remove Hosts
                         button.image-upload#edit-add-host(type="button")
                         //- button.image-upload#add-host(type="button" data-bs-toggle='modal' data-bs-target="#host-modal")
+                    .input-container.mb-3
+                        button#delete-gig.btn.btn-danger.invisible-div(type="button" data-bs-toggle="modal" data-bs-target="#confirm-delete-gig-modal") Delete
             .modal-footer
                 button.btn.btn-secondary#cancel-edit-gig(type="button" data-bs-dismiss="modal") Close
                 button.btn.btn-primary#confirm-edit-gig(type="submit" form="edit-gig-modal-form") Edit
