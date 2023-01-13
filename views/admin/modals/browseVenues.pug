@@ -1,0 +1,29 @@
+.modal.fade#edit-venue-modal(tabindex="-1" aria-labelledby="edit-venue-label" aria-hidden="true")
+    .modal-dialog.modal-dialog-centered
+        .modal-content#edit-venue-modal-content
+            .modal-header
+                h5.modal-title#edit-venue-label Edit Venue
+                button.btn-close(type="button" data-bs-dismiss="modal" aria-label="Close")
+            .modal-body
+                form#edit-venue-modal-form
+                    label.form-label(for="browse-venue-select") Select Venue: 
+                    .input-group.mb-3
+                        select#browse-venue-select
+                            option(value="") [Select a venue]
+                    label.form-label(for="browse-venue-name") Name: 
+                    .input-group.mb-3
+                        input#browse-venue-name(name="name")
+                    label.form-label(for="browse-venue-description") Description: 
+                    .input-group.mb-3
+                        textarea#browse-venue-description(name="description")
+                    label.form-label(for="browse-venue-times") Game times: 
+                    .input-group.mb-3
+                        input#browse-venue-times(name="gameTime")
+                    label.form-label(for="browse-venue-address") Address: 
+                    .input-group.mb-3
+                        input#browse-venue-address(name="address")
+                    .input-container.mb-3
+                        button#delete-venue.btn.btn-danger.invisible-div(type="button" data-bs-toggle="modal" data-bs-target="#confirm-delete-venue-modal") Delete
+            .modal-footer
+                button.btn.btn-secondary#cancel-edit-venue(type="button" data-bs-dismiss="modal") Close
+                button.btn.btn-primary#confirm-edit-venue(type="submit" form="edit-venue-modal-form") Edit

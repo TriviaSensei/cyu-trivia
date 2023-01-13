@@ -27,10 +27,17 @@ const vDescription = document.getElementById('venue-description');
 const vGameTimes = document.getElementById('venue-game-times');
 const vAddress = document.getElementById('venue-address');
 
+// const browseVenueModal = new bootstrap.Modal(document.getElementById('edit-venue-modal'));
+const editVenueForm = document.getElementById('edit-venue-modal-form');
+const venueSelect = document.getElementById('browse-venue-select');
+const browseVenueName = document.getElementById('browse-venue-name');
+const browseVenueDesc = document.getElementById('browse-venue-description');
+const browseVenueTimes = document.getElementById('browse-venue-times');
+const browseVenueAddress = document.getElementById('browse-venue-address');
+const editVenueButton = document.getElementById('browse-venue');
+
 let action = undefined;
 let uid = undefined;
-let venueAction = undefined;
-let vid = undefined;
 let venueList = [];
 
 const setUID = (e) => {
@@ -246,12 +253,11 @@ if (createVenueModal && createVenueForm) {
 	createVenueForm.addEventListener('submit', (e) => {
 		e.preventDefault();
 		const formData = new FormData(createVenueForm);
-		console.log(formData);
 
 		const handler = (res) => {
 			if (res.status === 'success') {
 				showMessage('info', 'Successfully created venue.');
-				[vName, vDescription, vGameTimes, vAddress, vPhoto].forEach((el) => {
+				[vName, vDescription, vGameTimes, vAddress].forEach((el) => {
 					el.value = '';
 				});
 				createVenueModal.hide();
@@ -267,4 +273,104 @@ if (createVenueModal && createVenueForm) {
 
 if (browseUsers) {
 	browseUsers.addEventListener('click', loadUsers);
+}
+
+if (editVenueForm) {
+	editVenueForm.addEventListener('submit', (e) => {
+		e.preventDefault();
+		if (!venueSelect.value) return;
+
+		const handler = (res) => {
+			if (res.status === 'success') {
+				showMessage('info', 'Successfully edited venue.');
+				venueList.some((v) => {
+					if (res.data._id === v._id) {
+						v.name = res.data.name;
+						v.description = res.data.description;
+						v.gameTime = res.data.gameTime;
+						v.address = res.data.address;
+						return true;
+					}
+					return false;
+				});
+			} else {
+				showMessage('error', res.message, 1000);
+			}
+		};
+
+		const body = {
+			name: browseVenueName.value,
+			description: browseVenueDesc.value,
+			gameTime: browseVenueTimes.value,
+			address: browseVenueAddress.value,
+		};
+
+		showMessage('info', 'Writing changes...', 1000);
+		handleRequest(
+			`/api/v1/venues/${venueSelect.value}`,
+			'PATCH',
+			body,
+			handler
+		);
+	});
+}
+
+const populateVenues = (e) => {
+	if (e.target !== editVenueButton) return;
+	const handler = (res) => {
+		if (res.status === 'success') {
+			console.log(res.data);
+			venueList = res.data;
+			venueSelect.innerHTML = '';
+			const o1 = document.createElement('option');
+			o1.innerHTML = '[Select a venue]';
+			o1.value = '';
+			venueSelect.appendChild(o1);
+			venueList.forEach((v) => {
+				const op = document.createElement('option');
+				op.innerHTML = v.name;
+				op.value = v._id;
+				venueSelect.appendChild(op);
+			});
+			[
+				browseVenueName,
+				browseVenueDesc,
+				browseVenueTimes,
+				browseVenueAddress,
+			].forEach((el) => {
+				el.value = '';
+			});
+		} else {
+			showMessage('error', res.message);
+		}
+	};
+	const str = `/api/v1/venues`;
+	handleRequest(str, 'GET', null, handler);
+};
+if (editVenueButton) {
+	editVenueButton.addEventListener('click', populateVenues);
+}
+
+if (venueSelect) {
+	venueSelect.addEventListener('change', (e) => {
+		if (e.target !== venueSelect) return;
+		const venue = venueList.find((v) => {
+			return v._id === e.target.value;
+		});
+		if (!venue) {
+			[
+				browseVenueName,
+				browseVenueDesc,
+				browseVenueTimes,
+				browseVenueAddress,
+			].forEach((el) => {
+				el.value = '';
+			});
+			return;
+		}
+		browseVenueName.value = venue.name;
+		browseVenueDesc.value = venue.description;
+		browseVenueTimes.value = venue.gameTime;
+		browseVenueAddress.value = venue.address;
+	});
 }

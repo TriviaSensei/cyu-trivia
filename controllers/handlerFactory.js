@@ -172,9 +172,25 @@ exports.getAll = (Model, popOptions) =>
 		} else if (loc === 'games') {
 			req.query.sort = '-lastModified';
 		} else if (loc === 'venues') {
-			req.query.filter = {
-				isHidden: false,
-			};
+			let header;
+			let host;
+			let referer;
+			req.rawHeaders.some((h, i) => {
+				if (i % 2 === 0) {
+					header = h;
+				} else {
+					if (header === 'Referer') {
+						const tokens = h.split('/');
+						if (tokens[tokens.length - 1].toLowerCase() !== 'admin') {
+							req.query.filter = {
+								isHidden: false,
+							};
+							return true;
+						}
+					}
+				}
+				return false;
+			});
 			req.query.sort = 'name';
 		}
 
