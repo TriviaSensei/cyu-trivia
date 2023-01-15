@@ -589,10 +589,12 @@ const createResultRows = (data) => {
 
 		for (var i = 0; i < hr.cells.length - 3; i++) {
 			const newCell = createElement('td');
-			newCell.innerHTML = '<div class="score-container">0</div>';
+			const newCont = createElement('.score-container');
+			newCont.innerHTML = 0;
 			newCell.classList.add('result-cell', 'incorrect');
 			newCell.setAttribute('title', `Answer: [Blank]`);
 			newCell.setAttribute('data-question', i + 1);
+			newCell.appendChild(newCont);
 			newRow.appendChild(newCell);
 		}
 
@@ -1008,11 +1010,11 @@ export const Host = (socket) => {
 							}"]`
 						);
 						if (cell) {
-							cell.innerHTML = `-${wager}`;
+							cell.innerHTML = `<div class="score-container">-${wager}</div>`;
 							cell.setAttribute('data-wager', wager);
 							const sumCell = row.querySelector('.total-cell');
 							if (sumCell) {
-								sumCell.innerHTML = `-${wager}`;
+								sumCell.innerHTML = `<div class="score-container">-${wager}</div>`;
 								sumCell.setAttribute('data-score', -wager);
 							}
 						}

@@ -550,6 +550,7 @@ const socket = (http, server) => {
 		const getCookie = (name) => {
 			let cookies;
 			if (socket.handshake.headers.cookie) {
+				console.log(socket.handshake.headers.cookie);
 				cookies = socket.handshake.headers.cookie.split(';');
 				for (var j = 0; j < cookies.length; j++) {
 					const tokens = cookies[j].trim().split('=');
@@ -675,9 +676,10 @@ const socket = (http, server) => {
 			console.log(`${myUser.name} rejoining game ${myGame.id}`);
 			socket.to(myGame.id).emit('user-reconnected', { id: myUser.id });
 			socket.join(myGame.id);
-			systemMsg(`${myUser.name} has reconnected`);
+			systemMsg(`${myUser.name} has reconnected.`);
 
 			myTeam = myGame.getTeamForPlayer(myUser.id);
+
 			if (myTeam) {
 				socket.join(myTeam.roomid);
 				console.log(`${myUser.name} rejoining team ${myTeam.id}`);
@@ -739,9 +741,22 @@ const socket = (http, server) => {
 					// slides: myGame.slides,
 					slides: currentSlides,
 					submissions:
-						myGame.currentRound >= 0
+						myTeam && myGame.currentRound >= 0
 							? myTeam.submissions[myGame.currentRound]
 							: undefined,
+					scores:
+						!myGame.currentRound || myGame.currentRound < 2
+							? undefined
+							: myGame
+									.getScoresAfterRound(
+										Math.floor(myGame.currentRound / 2) * 2 - 1
+									)
+									.map((s) => {
+										return {
+											...s,
+											myTeam: myTeam.id === s.id,
+										};
+									}),
 				});
 			} else {
 				io.to(socket.id).emit('game-started', {

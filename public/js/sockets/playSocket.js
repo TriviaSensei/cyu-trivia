@@ -402,7 +402,7 @@ export const Play = (socket) => {
 		}
 	};
 
-	socket.on('set-user-cookie', setUserCookie);
+	socket.on('connection-made', setUserCookie);
 
 	socket.on('game-joined', (data) => {
 		myGame = data;
@@ -416,7 +416,9 @@ export const Play = (socket) => {
 			setTimer(Math.floor(data.timeLeft / 1000));
 			showMessage(
 				`info`,
-				`Answers will auto-submit in ${getTimeString(data.timeLeft)}.`
+				`Answers will auto-submit in ${getTimeString(
+					Math.floor(data.timeLeft / 1000)
+				)}.`
 			);
 			startTimer();
 		}
@@ -500,6 +502,22 @@ export const Play = (socket) => {
 				const wag = document.getElementById('wager');
 				if (wag && data.submissions.wager >= 0) {
 					wag.value = data.submissions.wager;
+				}
+			}
+
+			if (data.scores) {
+				teamCount.innerHTML = data.scores.length;
+				if (
+					!data.scores.some((s, i) => {
+						if (s.myTeam) {
+							teamScore.innerHTML = s.score;
+							teamPlace.innerHTML = data.scores.length - i;
+							return true;
+						}
+					})
+				) {
+					teamScore.innerHTML = '-';
+					teamPlace.innerHTML = '-';
 				}
 			}
 		}

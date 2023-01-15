@@ -230,7 +230,11 @@ const handleSaveGrades = (e) => {
 											? -parseInt(c.getAttribute('data-wager'))
 											: 0;
 										c.classList.add('incorrect');
-										c.innerHTML = points;
+										const cont = c.querySelector('.score-container');
+										if (cont) cont.innerHTML = points;
+										else {
+											c.innerHTML = `<div class="score-container">${points}</div>`;
+										}
 										score = score + points;
 									}
 								});
@@ -238,7 +242,12 @@ const handleSaveGrades = (e) => {
 								const adjInput = r.querySelector('input[type="number"]');
 								if (sumCell) {
 									const adj = adjInput ? parseInt(adjInput.value) : 0;
-									sumCell.innerHTML = score + adj;
+									const cont = sumCell.querySelector('.score-container');
+									if (cont) cont.innerHTML = score + adj;
+									else
+										sumCell.innerHTML = `<div class="score-container">${
+											score + adj
+										}</div>`;
 									sumCell.setAttribute('data-score', score);
 								}
 							});
