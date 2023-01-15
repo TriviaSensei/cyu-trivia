@@ -782,7 +782,7 @@ const socket = (http, server) => {
 				if (new Date() <= game.date && process.env.LOCAL !== 'true') {
 					return emitError('This game may not be started yet.');
 				}
-				myGame = new Game(myUser, randomCode(4), game.toJSON());
+				myGame = new Game(gig._id, myUser, randomCode(4), game.toJSON());
 				console.log(`Starting game with join code ${myGame.joinCode}`);
 				while (getGame(myGame.joinCode)) {
 					myGame.joinCode = randomCode(4);
@@ -1259,16 +1259,47 @@ const socket = (http, server) => {
 			myTeam = undefined;
 		});
 
-		socket.on('next-slide', (data, cb) => {
+		socket.on('next-slide', async (data, cb) => {
 			const res = verifyHost();
 			if (res.status !== 'OK') return cb(res);
 
 			const adv = myGame.advanceSlide();
 			if (adv.status !== 'OK') {
-				return cb({
-					status: 'fail',
-					message: adv.message,
-				});
+				if (!adv.endGame) {
+					return cb({
+						status: 'fail',
+						message: adv.message,
+					});
+				} else {
+					io.to(myGame.id).emit('game-ended', {
+						message: 'The game has ended.',
+					});
+
+					//get gig from mygame.gigId
+					//copy myGame's results to the gig
+					//save the gig
+
+					myGame.teams.forEach(async (t) => {
+						const teamSockets = await io.in(t.roomid).fetchSockets();
+						teamSockets.forEach((s) => {
+							s.leave(t.roomid);
+						});
+					});
+
+					const sockets = await io.in(myGame.id).fetchSockets();
+					sockets.forEach((s) => {
+						s.leave(myGame.id);
+					});
+
+					games = games.filter((g) => {
+						if (g.id === myGame.id) {
+							g.active = false;
+							return false;
+						}
+						return true;
+					});
+					myGame = undefined;
+				}
 			}
 
 			cb({
@@ -1406,7 +1437,9 @@ const socket = (http, server) => {
 			const res = verifyHost();
 			if (res.status !== 'OK') return cb(res);
 			//host triggers ending the game
-			io.to(myGame.id).emit('game-ended', null);
+			io.to(myGame.id).emit('game-ended', {
+				message: 'The host has ended the game.',
+			});
 
 			myGame.teams.forEach(async (t) => {
 				const teamSockets = await io.in(t.roomid).fetchSockets();

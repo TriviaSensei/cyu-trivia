@@ -36,7 +36,13 @@ const kickName = document.getElementById('kick-user-name');
 const popoutButton = document.getElementById('popout-button');
 let ssWindow = undefined;
 let popSlide = undefined;
-let popupCheckInterval;
+let roundData = {
+	format: undefined,
+	qList: [],
+	round: undefined,
+	endBonus: undefined,
+	maxWager: undefined,
+};
 
 let timerInterval;
 let timeLeft;
@@ -134,8 +140,19 @@ const handlePopSlide = (data) => {
 	let popC = popDoc.getElementById('game-carousel');
 	let popCarousel = new bootstrap.Carousel(popC);
 
+	if (data.newRound) {
+		roundData = {
+			format: data.format,
+			qList: [],
+			round: data.round,
+			endBonus: data.endBonus,
+			maxWager: data.maxWager,
+		};
+	}
+
 	if (data.clear || data.new) {
 		popCI.appendChild(ns);
+
 		const popActiveSlide = popC.querySelector('.carousel-item.active');
 		if (popActiveSlide) {
 			const len = popC.querySelectorAll('.carousel-item').length;
@@ -158,11 +175,63 @@ const handlePopSlide = (data) => {
 				console.log('no pop active');
 			}
 		}
+
+		if (roundData.format === 'std' && !data.newRound) {
+			roundData.qList.push(data.body);
+		}
 	} else if (!data.timer) {
 		const popCurrent = popC.querySelector(
 			'.carousel-item:last-child .slide-contents'
 		);
 		if (popCurrent) modifySlide(popCurrent, data);
+	} else if (
+		roundData.round % 2 === 1 ||
+		(roundData.round === 3 && roundData.format === 'std')
+	) {
+		console.log(roundData);
+		let body = `<ol>`;
+		roundData.qList.forEach((q, i) => {
+			if (i !== roundData.qList.length - 1) body = `${body}<li>${q}</li>`;
+			else if (!roundData.endBonus) body = `${body}<li>${q}</li></ol>`;
+			else {
+				body = `${body}</ol><p>Bonus (wager 0-${roundData.maxWager}): ${q}</p>`;
+			}
+		});
+		const recapSlide = createSlide({
+			header: `Round ${roundData.round} ${
+				roundData.round % 2 === 1 ? 'Recap' : 'Questions'
+			}`,
+			body,
+		});
+		const footer = recapSlide.querySelector('.slide-footer');
+		const header = recapSlide.querySelector('.slide-header');
+		if (footer) footer.remove();
+		if (header) {
+			header.classList.remove('.slide-header');
+			header.classList.add('.recap-header');
+		}
+		const contents = recapSlide.querySelector('.slide-contents');
+		contents.classList.remove('slide-contents');
+		contents.classList.add('recap-contents');
+		const recapBody = recapSlide.querySelector('.slide-body');
+		recapBody.classList.add('recap-body');
+		recapBody.classList.remove('slide-body');
+
+		popCI.appendChild(recapSlide);
+
+		const popActiveSlide = popC.querySelector('.carousel-item.active');
+		if (popActiveSlide) {
+			const len = popC.querySelectorAll('.carousel-item').length;
+			popCarousel.to(len - 1);
+		} else {
+			ns.classList.add('active');
+		}
+
+		getElementArray(popC, '.carousel-item:not(:last-child)').forEach((item) => {
+			item.remove();
+		});
+
+		popSlide = recapSlide;
 	}
 };
 

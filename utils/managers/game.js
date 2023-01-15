@@ -2,7 +2,7 @@ const { v4: uuidv4 } = require('uuid');
 const Games = require('../../models/gameModel');
 
 module.exports = class Game {
-	constructor(host, joinCode, game) {
+	constructor(gigId, host, joinCode, game) {
 		this.id = uuidv4();
 		this.players = [];
 		this.teams = [];
@@ -79,6 +79,7 @@ module.exports = class Game {
 		this.timer = undefined;
 		this.bannedList = [];
 		this.active = true;
+		this.gigId = gigId;
 	}
 
 	addSubmission(rd, submission) {
@@ -501,12 +502,14 @@ module.exports = class Game {
 				message: `You must wait ${Math.floor(
 					(this.timer - new Date()) / 1000
 				)} seconds before continuing.`,
+				endGame: false,
 			};
 
 		if (this.currentSlide >= this.slides.length - 1) {
 			return {
 				status: 'fail',
 				message: 'You have reached the end of the deck.',
+				endGame: true,
 			};
 		}
 
@@ -522,6 +525,7 @@ module.exports = class Game {
 				return {
 					status: 'fail',
 					message: `You have not saved grades for round ${failure + 1}`,
+					endGame: false,
 				};
 			} else {
 				this.slides[this.currentSlide + 1].scores = this.getScoresAfterRound(

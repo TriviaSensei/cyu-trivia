@@ -16,6 +16,10 @@ const createHeader = (data) => {
 	if (data.header) {
 		header.innerHTML = replaceBreaks(data.header);
 	}
+	if (data.picture) {
+		header.classList.add('picture-header');
+		header.classList.remove('slide-header');
+	}
 	return header;
 };
 
@@ -38,6 +42,8 @@ const createBody = (data) => {
 		img.setAttribute('src', data.picture);
 		container.appendChild(img);
 		body.appendChild(container);
+		body.classList.add('.picture-body');
+		body.classList.remove('.slide-body');
 	} else if (data.videoLink) {
 		const videoSrc = getEmbeddedLink(
 			data.videoLink,
@@ -79,6 +85,7 @@ export const createSlide = (data) => {
 	contents.appendChild(header);
 	contents.appendChild(body);
 	contents.appendChild(footer);
+
 	slide.appendChild(contents);
 
 	return slide;

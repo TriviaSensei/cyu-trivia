@@ -26,6 +26,9 @@ const teamNameEntry = document.getElementById('team-name-entry');
 
 const teamChat = document.getElementById('team-chat-container');
 const nameChangeSpan = document.getElementById('name-change');
+const teamScore = document.getElementById('team-score');
+const teamPlace = document.getElementById('team-place');
+const teamCount = document.getElementById('team-count');
 
 const joinTeamModal = new bootstrap.Modal(
 	document.getElementById('join-team-modal')
@@ -368,6 +371,19 @@ export const Play = (socket) => {
 						data.scores
 					);
 				}
+
+				if (
+					!data.scores.some((s, i) => {
+						if (s.myTeam) {
+							teamPlace.innerHTML = data.scores.length - i;
+							teamScore.innerHTML = s.score;
+							return true;
+						}
+					})
+				) {
+					teamPlace.innerHTML = '-';
+				}
+				teamCount.innerHTML = data.scores.length;
 			}
 		} else if (data.timer && !timerInterval) {
 			setTimer(data.timer * 60);
@@ -379,7 +395,10 @@ export const Play = (socket) => {
 				}.`
 			);
 		} else {
-			modifySlide(data);
+			const activeSlide = myCarousel.querySelector(
+				'.carousel-item.active > .slide-contents'
+			);
+			modifySlide(activeSlide, data);
 		}
 	};
 
@@ -788,7 +807,7 @@ export const Play = (socket) => {
 	};
 
 	socket.on('game-ended', (data) => {
-		showMessage('info', 'The host has ended the game.', 1000);
+		showMessage('info', data.message, 1000);
 		socket.emit('leave-game', null);
 		gameChat.innerHTML = '';
 		teamChat.innerHTML = '';

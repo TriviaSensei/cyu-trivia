@@ -14,6 +14,15 @@ body {
 	margin: auto;
 }
 
+.carousel-item > .recap-contents {
+	width: 100%;
+	height: 100%;
+	padding: 10% 5% 5% 14%;
+	display: flex;
+	flex-direction: column;
+	font-size: min(12px, 0.8rem);
+}
+
 .slide-header,
 .slide-body,
 .slide-footer {
@@ -22,9 +31,31 @@ body {
 .slide-footer {
 	font-weight: bold;
 }
+.recap-header {
+	flex: 1;
+	overflow-y: hidden;
+	font-size: 3vh;
+}
 
-.picture-body {
-	flex: 8;
+.recap-body {
+	font-size: 2vh;
+	flex: 6;
+}
+
+.recap-body li {
+	margin-bottom: 5px;
+}
+
+.slide-contents > .slide-header {
+	flex: 2;
+	overflow-y: hidden;
+	font-size: min(48px, 4vh);
+}
+
+.slide-contents > .picture-header {
+	flex: 1;
+	overflow-y: hidden;
+	font-size: min(48px, 4vh);
 }
 
 #timer {

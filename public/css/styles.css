@@ -520,8 +520,17 @@ li.navlink {
 	overflow-y: hidden;
 }
 
+.slide-contents > .picture-header {
+	flex: 1;
+	overflow-y: hidden;
+}
+
 .slide-contents > .slide-body {
 	flex: 5;
+	overflow-y: hidden;
+}
+.slide-contents > .picture-body {
+	flex: 6;
 	overflow-y: hidden;
 }
 
