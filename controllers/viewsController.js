@@ -2,8 +2,7 @@ const catchAsync = require('../utils/catchAsync');
 const Game = require('../models/gameModel');
 const User = require('../models/userModel');
 const Venue = require('../models/venueModel');
-const moment = require('moment-timezone');
-
+const getOffset = require('../utils/getOffset');
 exports.httpsRedirect = (req, res, next) => {
 	// console.log(req.header('x-forwarded-proto'));
 	// console.log(req.header('host'));
@@ -119,6 +118,8 @@ exports.getAdmin = catchAsync(async (req, res, next) => {
 	// this will look in the /views (set in app.js) folder for 'overview.pug' (pug engine also specified in app.js)
 	res.status(200).render('admin', {
 		title: 'Admin',
+		offset: getOffset(),
+		user: res.locals.user,
 	});
 });
 
@@ -133,13 +134,7 @@ exports.getHost = catchAsync(async (req, res, next) => {
 	});
 	const games = user.assignedGigs;
 
-	const d = new Date().toISOString();
-	const e = moment().tz('America/New_York').format();
-	let offset =
-		parseInt(e.split('T')[1].split(':')[0]) -
-		parseInt(d.split('T')[1].split(':')[0]);
-
-	if (offset > 0) offset = offset - 24;
+	let offset = getOffset();
 
 	const data = games.map((g) => {
 		return {
@@ -160,6 +155,7 @@ exports.getHost = catchAsync(async (req, res, next) => {
 	res.status(200).render('host', {
 		title: 'Host',
 		data,
+		user: res.locals.user,
 	});
 });
 

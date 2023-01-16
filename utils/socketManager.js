@@ -18,13 +18,15 @@ const filter = new Filter();
 let games = [];
 let users = [];
 
-const createSlides = (data, joinCode) => {
+const createSlides = (data, joinCode, ...s) => {
 	const toReturn = [
 		{
 			new: true,
 			clear: true,
 			header: 'Welcome',
-			body: `${data.description}\n\nhttps://www.cyutrivia.com/play\n\nJoin code: ${joinCode}`,
+			body: `${
+				data.description ? data.description + '\n\n' : ''
+			}https://www.cyutrivia.com/play\n\nJoin code: ${joinCode}`,
 		},
 		{
 			new: true,
@@ -32,14 +34,12 @@ const createSlides = (data, joinCode) => {
 			header: 'Rules',
 			body: "1. Don't cheat\n2. Don't cheat\n3. Keep answers out of the public chat\n4. Challenges welcome\n5. Host decisions are final.",
 		},
-		{
-			new: true,
-			clear: true,
-			header: 'Rounds',
-			body: '1, 3, 5, 7: General Knowledge\n2. Picture 📷\n4. Wildcard 🂡\n6. Music 🎵',
-		},
 	];
+	let startRound;
+	if (!s) startRound = 0;
+	else startRound = s[0] || 0;
 	data.rounds.forEach((r, i) => {
+		if (i < startRound) return;
 		toReturn.push({
 			new: true,
 			clear: true,
@@ -67,6 +67,18 @@ const createSlides = (data, joinCode) => {
 								return m.answer;
 							})
 							.concat(r.extraAnswers)
+							.map((m) => {
+								return {
+									answer: m,
+									order: Math.random(),
+								};
+							})
+							.sort((a, b) => {
+								return a.order - b.order;
+							})
+							.map((m) => {
+								return m.answer;
+							})
 					: [],
 			endBonus: i % 2 === 0,
 			endTheme: r.theme,
@@ -807,7 +819,7 @@ const socket = (http, server) => {
 					myGame.joinCode = '1111';
 				}
 				games.push(myGame);
-				const slides = createSlides(game, myGame.joinCode);
+				const slides = createSlides(game, myGame.joinCode, myGame.currentRound);
 				myGame.slides = slides;
 				myGame.currentSlide = 0;
 
@@ -820,6 +832,7 @@ const socket = (http, server) => {
 						...sanitize(myGame),
 						slides: myGame.slides.slice(0, 1),
 					},
+					game,
 				});
 
 				io.emit('live-now', {
@@ -1286,13 +1299,26 @@ const socket = (http, server) => {
 						message: adv.message,
 					});
 				} else {
-					io.to(myGame.id).emit('game-ended', {
-						message: 'The game has ended.',
-					});
-
 					//get gig from mygame.gigId
+					const gig = await Gig.findById(myGame.gigId);
 					//copy myGame's results to the gig
+					const results = myGame.teams.map((t) => {
+						return {
+							name: t.name,
+							score: t.submissions.reduce((p, c) => {
+								return p + c.score + c.adjustment;
+							}),
+						};
+					});
 					//save the gig
+					gig.results = results;
+					gig.markModified('results');
+					await gig.save();
+
+					io.to(myGame.id).emit('game-ended', {
+						message: 'The game has ended and results have been saved.',
+						results,
+					});
 
 					myGame.teams.forEach(async (t) => {
 						const teamSockets = await io.in(t.roomid).fetchSockets();
@@ -1389,6 +1415,16 @@ const socket = (http, server) => {
 					myGame.currentRound !== 3
 						? 'questions'
 						: myGame.gameData.rounds[3].format;
+
+				if (format === 'matching') {
+					myGame.gradeRound(
+						myGame.currentRound + 1,
+						myGame.getKeyForRound(myGame.currentRound + 1).answers
+					);
+
+					console.log(myTeam.submissions[myGame.currentRound]);
+				}
+
 				io.to(myGame.host.id).emit('new-response', {
 					id: myTeam.id,
 					round: myGame.currentRound + 1,

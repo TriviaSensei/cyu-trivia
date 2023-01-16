@@ -40,17 +40,18 @@ block modals
     include admin/modals/confirmDeleteGig
 
 block content 
+    input#time-offset(type="hidden" value=`${offset}`)
     #admin-console
         ul.nav.nav-tabs.nav-fill#admin-tabs(role="tablist")
             -if (user.role === 'owner')
                 li.nav-item(role="presentation")
-                    button.nav-link#user-tab(data-bs-toggle="tab" data-bs-target="#users" type="button" role="tab" aria-controls="users" aria-selected="true") Users
+                    button.nav-link#user-tab(data-bs-toggle="tab" data-bs-target="#users" type="button" role="tab" aria-controls="users" aria-selected="false") Users
                 li.nav-item(role="presentation")
-                    button.nav-link#game-tab(data-bs-toggle="tab" data-bs-target="#games" type="button" role="tab" aria-controls="games" aria-selected="false") Games
+                    button.nav-link.active#game-tab(data-bs-toggle="tab" data-bs-target="#games" type="button" role="tab" aria-controls="games" aria-selected="true") Games
                 li.nav-item(role="presentation")
                     button.nav-link#venue-tab(data-bs-toggle="tab" data-bs-target="#venues" type="button" role="tab" aria-controls="venues" aria-selected="false") Venues
                 li.nav-item(role="presentation")
-                    button.nav-link.active#gig-tab(data-bs-toggle="tab" data-bs-target="#gigs" type="button" role="tab" aria-controls="gigs" aria-selected="false") Gigs
+                    button.nav-link#gig-tab(data-bs-toggle="tab" data-bs-target="#gigs" type="button" role="tab" aria-controls="gigs" aria-selected="false") Gigs
             -else
                 li.nav-item(role="presentation")
                     button.nav-link.active#game-tab(data-bs-toggle="tab" data-bs-target="#games" type="button" role="tab" aria-controls="games" aria-selected="true") Games                
@@ -58,11 +59,11 @@ block content
             -if (user.role === 'owner')
                 .tab-pane.fade#users(role="tabpanel" aria-labelledby="user-tab")  
                     include admin/users
-                .tab-pane.fade#games(role="tabpanel" aria-labelledby="game-tab")
+                .tab-pane.fade.show.active#games(role="tabpanel" aria-labelledby="game-tab")
                     include admin/games
                 .tab-pane.fade#venues(role="tabpanel" aria-labelledby="venue-tab")
                     include admin/venues
-                .tab-pane.fade.show.active#gigs(role="tabpanel" aria-labelledby="gig-tab")
+                .tab-pane.fade#gigs(role="tabpanel" aria-labelledby="gig-tab")
                     include admin/gigs
             -else
                 .tab-pane.fade.show.active#games(role="tabpanel" aria-labelledby="game-tab")

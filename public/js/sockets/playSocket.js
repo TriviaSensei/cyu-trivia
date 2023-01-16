@@ -36,6 +36,7 @@ const joinTeamModal = new bootstrap.Modal(
 const confirmSubmitModal = new bootstrap.Modal(
 	document.getElementById('confirm-submit-modal')
 );
+const ansReceipt = document.getElementById('answer-confirmation');
 const submitAnswers = document.getElementById('confirm-submit');
 
 const teammateName = document.getElementById('new-teammate-name');
@@ -197,7 +198,6 @@ export const Play = (socket) => {
 		const rLabel = document.getElementById('round-no');
 		if (rLabel) rLabel.innerHTML = `${currentRound}`;
 
-		const ansReceipt = document.getElementById('answer-confirmation');
 		ansReceipt.innerHTML = '';
 
 		const lines = getElementArray(teamAnswerContainer, '.team-answer-line');
@@ -206,7 +206,11 @@ export const Play = (socket) => {
 			const inp = l.querySelector('input,select');
 			if (sp && inp) {
 				ansReceipt.innerHTML =
-					ansReceipt.innerHTML + sp.innerHTML + inp.value + '<br>';
+					ansReceipt.innerHTML +
+					sp.innerHTML +
+					`${inp.tagName.toLowerCase() === 'select' ? ' - ' : ''}` +
+					inp.value +
+					'<br>';
 			}
 		});
 
@@ -299,10 +303,10 @@ export const Play = (socket) => {
 				}
 			} else if (data.format === 'matching') {
 				data.matchingPrompts.forEach((p, j) => {
-					const newDiv = createElement('.team-answer-line');
+					const newDiv = createElement('.team-answer-line.matching-line');
 					const newSpan = createElement('span');
 					newSpan.innerHTML = p;
-					const input = createElement(`select#answer-${i + 1}`);
+					const input = createElement(`select#answer-${j + 1}`);
 					input.setAttribute('data-question', j);
 					const top = createElement('option');
 					top.setAttribute('value', '');

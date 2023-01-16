@@ -38,11 +38,11 @@ exports.AWSUpload = catchAsync(async (req, res, next) => {
 	const fileExtension = req.files.pictures[0].mimetype.split('/')[1];
 	const filename = `${uuidV4()}.${fileExtension}`;
 
-	const metadata = await sharp(req.files['venue-photo'][0].buffer).metadata();
+	const metadata = await sharp(req.files['pictures'][0].buffer).metadata();
 
 	const resizedBuffer =
 		metadata.height > maxImageHeight
-			? await sharp(req.files['venue-photo'][0].buffer)
+			? await sharp(req.files['pictures'][0].buffer)
 					.resize({ height: maxImageHeight })
 					.toBuffer()
 			: undefined;
@@ -50,7 +50,7 @@ exports.AWSUpload = catchAsync(async (req, res, next) => {
 	const params = {
 		Bucket: process.env.AWS_BUCKET,
 		Key: filename,
-		Body: resizedBuffer || req.files['venue-photo'][0].buffer,
+		Body: resizedBuffer || req.files['pictures'][0].buffer,
 	};
 
 	const data = await s3.upload(params).promise();

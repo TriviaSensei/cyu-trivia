@@ -940,6 +940,7 @@ export const Host = (socket) => {
 	});
 
 	socket.on('new-response', (data) => {
+		if (data.round === 4) console.log(data);
 		// (r, q, ans, correct, partial, allowPartial)
 		const gd = document.getElementById(`grading-${data.round}`);
 		if (gd) gd.setAttribute('data-format', data.format);
@@ -956,6 +957,43 @@ export const Host = (socket) => {
 		} else if (data.format === 'list') {
 			data.responses.forEach((r) => {
 				addListAnswers(data.round, r.answers, data.key.answers);
+			});
+		} else if (data.format === 'matching') {
+			const adjc = document.querySelector(
+				`.adjustment-container[data-round="${data.round}"]`
+			);
+			if (!adjc) return;
+			data.responses.forEach((r) => {
+				let score = 0;
+				const adjr = adjc.querySelector(`.adjustment-row[data-id="${r.id}"]`);
+				if (!adjr) return;
+				r.answers.forEach((a, i) => {
+					if (i >= data.key.answers.length) return;
+					const cell = adjr.querySelector(
+						`.result-cell[data-question="${i + 1}"]`
+					);
+					if (!cell) return;
+					cell.classList.remove('correct', 'incorrect', 'partial');
+					const cont = cell.querySelector('.score-container');
+					if (a === data.key.answers[i].answer) {
+						if (!cont)
+							cell.innerHTML = `<div class="score-container">${data.key.answers[i].value}</div>`;
+						else cont.innerHTML = data.key.answers[i].value;
+						cell.classList.add('correct');
+						score = score + data.key.answers[i].value;
+					} else {
+						if (!cont) cell.innerHTML = `<div class="score-container">0</div>`;
+						else cont.innerHTML = 0;
+						cell.classList.add('incorrect');
+					}
+				});
+				const totalCell = adjr.querySelector('.total-cell');
+				if (!totalCell) return;
+				const cont = totalCell.querySelector('.score-container');
+				if (!cont)
+					totalCell.innerHTML = `<div class="score-container">${score}</div>`;
+				else cont.innerHTML = score;
+				totalCell.setAttribute('data-score', score);
 			});
 		}
 

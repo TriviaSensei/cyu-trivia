@@ -3,7 +3,7 @@ const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
 const Gig = require('../models/gigModel');
 const Host = require('../models/userModel');
-const moment = require('moment-timezone');
+const getOffset = require('../utils/getOffset');
 const oneDay = 24 * 60 * 60 * 1000;
 
 exports.getVenueResults = catchAsync(async (req, res, next) => {
@@ -16,13 +16,7 @@ exports.getVenueResults = catchAsync(async (req, res, next) => {
 });
 
 exports.getUpcoming = catchAsync(async (req, res, next) => {
-	const d = new Date().toISOString();
-	const e = moment().tz('America/New_York').format();
-	let offset =
-		parseInt(e.split('T')[1].split(':')[0]) -
-		parseInt(d.split('T')[1].split(':')[0]);
-
-	if (offset > 0) offset = offset - 24;
+	let offset = getOffset();
 
 	const today = new Date();
 	today.setHours(offset);

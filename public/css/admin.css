@@ -408,8 +408,8 @@ td button:not([disabled]):hover {
 		width: 10%;
 	}
 	#round-tabs {
-		display: flex;
-		flex-direction: column;
+		display: unset;
+		/* flex-direction: column; */
 	}
 
 	#round-tabs.nav-tabs {

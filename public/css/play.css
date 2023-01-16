@@ -85,6 +85,12 @@
 	margin: 5px;
 }
 
+.team-answer-line select,
+.team-answer-line option {
+	font-weight: bold;
+	background-color: #ccc;
+}
+
 .team-answer-line > span {
 	font-weight: bold;
 	margin: auto 5px;
@@ -93,6 +99,13 @@
 .team-answer-line > .answer-display,
 .team-answer-line > button {
 	flex: 1;
+}
+
+.matching-line {
+	justify-content: space-between;
+	border-bottom: 1px solid #770;
+	padding-bottom: 8px;
+	margin-bottom: 8px;
 }
 
 .answer-display {

@@ -18,6 +18,9 @@ const wcMatchingBank = document.querySelector('#wc-matching-bank');
 const videoLink = document.querySelector('.video-link');
 const videoPreview = document.getElementById('video-preview');
 const gameDate = document.getElementById('game-date');
+const gameDescription = document.getElementById('game-desc');
+const gameTitle = document.getElementById('game-title');
+
 const wcListAnswers = document.getElementById('wc-list-answers');
 const wcListCount = document.getElementById('wc-list-count');
 const audioTheme = document.getElementById('audio-theme');
@@ -96,7 +99,13 @@ const picRound =
 		return r === 'pic';
 	}) + 1;
 
-gameDate.setAttribute('min', new Date().toISOString().split('T')[0]);
+const timeOffset = document.getElementById('time-offset');
+const offset = parseInt(timeOffset.value) || 0;
+if (timeOffset) timeOffset.remove();
+const minDate = new Date();
+minDate.setHours(minDate.getHours() + offset);
+console.log(Date.parse(minDate));
+gameDate.setAttribute('min', minDate.toISOString().split('T')[0]);
 
 let loadedGame = undefined;
 let changesMade = false;
@@ -420,6 +429,8 @@ const handlePaste = (evt) => {
 	const item = items[0];
 	// Get the blob of image
 	const blob = item.getAsFile();
+
+	if (!blob) return;
 	addPictureToRound(blob);
 };
 
@@ -501,10 +512,9 @@ const autoPopulatePoints = (overwrite) => {
 	showMessage('info', 'Auto-populating default settings...', 500);
 
 	//game description
-	const gameDesc = document.getElementById('game-desc');
-	if (!gameDesc.value || overwrite) {
-		gameDesc.value = 'https://www.cyutrivia.com/play\n';
-		handleInputChange(gameDesc);
+	if (!gameDescription.value || overwrite) {
+		gameDescription.value = 'https://www.cyutrivia.com/play\n';
+		handleInputChange(gameDescription);
 	}
 
 	//GK round values
@@ -633,9 +643,9 @@ const closeGame = () => {
 
 const handleSave = (post) => {
 	const game = {
-		title: document.getElementById('game-title').value,
-		description: document.getElementById('game-desc').value,
-		date: Date.parse(document.getElementById('game-date').value),
+		title: gameTitle.value,
+		description: gameDescription.value,
+		date: Date.parse(gameDate.value),
 		rounds: [],
 		assignedHosts: hosts,
 	};
@@ -1050,6 +1060,9 @@ actionPop.addEventListener('click', (e) => {
 const inputs = document.querySelectorAll(
 	'.input-container input:not([type="radio"]):not([type="file"]), .input-container textarea, .question-container input:not([type="radio"]), .question-container textarea, .video-container input'
 );
+gameDate.addEventListener('change', (e) => {
+	handleInputChange(gameDate);
+});
 
 const handleInputChange = (element) => {
 	handleChangeMade(null);
@@ -1191,11 +1204,9 @@ const handleOpen = (element) => {
 	if (!data) return;
 
 	//game info
-	document.getElementById('game-title').value = data.title;
-	document.getElementById('game-desc').value = data.description;
-	document.getElementById('game-date').value = data.date
-		? data.date.split('T')[0]
-		: '';
+	gameTitle.value = data.title;
+	gameDescription.value = data.description;
+	gameDate.value = data.date ? data.date.split('T')[0] : '';
 
 	data.rounds.forEach((r, i) => {
 		const desc = document.querySelector(`.round-desc[round="${i + 1}"]`);

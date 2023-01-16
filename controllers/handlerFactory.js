@@ -2,6 +2,7 @@ const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
 const APIFeatures = require('../utils/apiFeatures');
 const moment = require('moment-timezone');
+const getOffset = require('../utils/getOffset');
 const User = require('../models/userModel');
 const slugify = require('slugify');
 
@@ -65,13 +66,7 @@ exports.updateOne = (Model) =>
 			const arr = req.originalUrl.trim().split('/');
 			const loc = arr.length > 3 ? arr[3] : '';
 
-			const d = new Date().toISOString();
-			const e = moment().tz('America/New_York').format();
-			let offset =
-				parseInt(e.split('T')[1].split(':')[0]) -
-				parseInt(d.split('T')[1].split(':')[0]);
-
-			if (offset > 0) offset = offset - 24;
+			let offset = getOffset();
 
 			const newDate = new Date(req.body.date - offset * 1000 * 60 * 60);
 
@@ -107,13 +102,7 @@ exports.createOne = (Model) =>
 		const loc = arr.length > 3 ? arr[3] : '';
 
 		if (loc === 'games') {
-			const d = new Date().toISOString();
-			const e = moment().tz('America/New_York').format();
-			let offset =
-				parseInt(e.split('T')[1].split(':')[0]) -
-				parseInt(d.split('T')[1].split(':')[0]);
-
-			if (offset > 0) offset = offset - 24;
+			let offset = getOffset();
 
 			const newDate = new Date(req.body.date - offset * 1000 * 60 * 60);
 

@@ -17,7 +17,7 @@ module.exports = class Game {
 			let toPush = {
 				round: i + 1,
 				answers: [],
-				saved: false,
+				saved: r.format === 'matching',
 				format: 'questions',
 			};
 			if (i !== 3 || r.format === 'questions') {
@@ -389,24 +389,28 @@ module.exports = class Game {
 			this.teams.forEach((t) => {
 				t.submissions.some((s) => {
 					if (s.round === rd) {
+						console.log(s);
+						console.log(roundKey);
 						s.result = [];
 						s.score = 0;
 
-						s.answers.forEach((ans) => {
+						s.answers.forEach((ans, i) => {
 							if (
 								!s.result.find((r) => {
 									return r.prompt === ans.prompt;
 								})
 							) {
-								const match = roundKey.answers.find((a) => {
-									return a.prompt === ans.prompt && a.answer === ans.answer;
-								});
-								s.result.push({
-									prompt: ans.prompt,
-									answer: ans.answer,
-									score: match ? match.value : 0,
-								});
-								if (match) s.score = s.score + match.value;
+								const q = roundKey.answers[i];
+								if (q.answer === ans) {
+									s.result.push({ ...q });
+									s.score = s.score + q.value;
+								} else {
+									s.result.push({
+										...q,
+										answer: ans,
+										value: 0,
+									});
+								}
 							}
 						});
 
