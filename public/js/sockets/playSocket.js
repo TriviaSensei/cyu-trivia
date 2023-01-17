@@ -504,8 +504,10 @@ export const Play = (socket) => {
 				data.submissions.answers.forEach((a, i) => {
 					if ((typeof a).toLowerCase() === 'string') {
 						const inp = document.querySelector(`input[data-question="${i}"]`);
-						if (inp) inp.value = a;
-						else {
+						if (inp) {
+							inp.value = a;
+							if (data.submissions.final) inp.disabled = true;
+						} else {
 							const d = document.querySelector(
 								`.answer-display[data-question="${i}"]`
 							);
@@ -517,9 +519,13 @@ export const Play = (socket) => {
 				if (wag && data.submissions.wager >= 0) {
 					if (data.isCaptain) {
 						wag.value = data.submissions.wager;
+						if (data.submissions.final) wag.disabled = true;
 					} else {
 						wag.innerHTML = data.submissions.wager;
 					}
+				}
+				if (data.submissions.final) {
+					submitButton.disabled = true;
 				}
 			}
 
@@ -814,7 +820,6 @@ export const Play = (socket) => {
 		if (!data.continueTimer) {
 			stopTimer();
 		}
-		console.log(data);
 		if (Array.isArray(data.slide)) {
 			console.log(data.slide);
 			data.slide.forEach((d) => {
@@ -834,7 +839,6 @@ export const Play = (socket) => {
 	});
 
 	socket.on('update-answer', (data) => {
-		console.log(data);
 		const el = document.getElementById(`answer-${data.question + 1}`);
 		if (el) {
 			const tn = el.tagName.toLowerCase();
@@ -843,7 +847,7 @@ export const Play = (socket) => {
 			} else if (tn === 'select') {
 				const opts = getElementArray(el, 'option');
 				opts.some((o, i) => {
-					if (o.value.toLowerCase() === data.answer) {
+					if (o.value.toLowerCase() === data.answer.toLowerCase()) {
 						el.selectedIndex = i;
 						return true;
 					}
