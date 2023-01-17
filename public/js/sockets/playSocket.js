@@ -272,9 +272,9 @@ export const Play = (socket) => {
 							i + 1
 						}`
 					);
+					input.setAttribute('data-question', i);
 					if (slideData.isCaptain) {
 						input.setAttribute('type', 'text');
-						input.setAttribute('data-question', i);
 						input.addEventListener('keyup', handleAnswerChange);
 						input.addEventListener('change', handleAnswerChange);
 					}
@@ -289,11 +289,11 @@ export const Play = (socket) => {
 					const input = createElement(
 						`${slideData.isCaptain ? 'input' : '.answer-display'}#wager`
 					);
+					input.setAttribute('type', 'number');
+					input.setAttribute('min', '0');
+					input.setAttribute('max', data.maxWager);
+					input.setAttribute('required', true);
 					if (slideData.isCaptain) {
-						input.setAttribute('type', 'number');
-						input.setAttribute('min', '0');
-						input.setAttribute('max', data.maxWager);
-						input.setAttribute('required', true);
 						input.addEventListener('keyup', handleWagerChange);
 						input.addEventListener('change', handleWagerChange);
 					}
@@ -329,34 +329,34 @@ export const Play = (socket) => {
 				});
 			}
 
+			const newDiv = createElement('.team-answer-line');
+			const butt = createElement('button#submit');
+			butt.classList.add('invisible-div');
+			butt.innerHTML = 'Submit';
+			butt.setAttribute('type', 'submit');
+			newForm.addEventListener('submit', handleSubmitResponse);
+			newDiv.appendChild(butt);
+			newForm.appendChild(newDiv);
 			if (slideData.isCaptain) {
-				const newDiv = createElement('.team-answer-line');
-				const butt = createElement('button#submit');
-				butt.innerHTML = 'Submit';
-				butt.setAttribute('type', 'submit');
-				newForm.addEventListener('submit', handleSubmitResponse);
-				newDiv.appendChild(butt);
-				newForm.appendChild(newDiv);
+				butt.classList.remove('invisible-div');
 			}
 			teamAnswerContainer.appendChild(newForm);
 			teamAnswerContainer.scrollTop = 0;
 		}
-
-		console.log(data);
 
 		if (data.clear || data.new) {
 			const newSlide = createSlide(data);
 			myCarouselInner.appendChild(newSlide);
 
 			if (setActive) {
-				if (!myCarousel.querySelector('.carousel-item.active')) {
-					myCarousel
-						.querySelector('.carousel-item.active')
-						?.classList.remove('active');
+				const activeSlide = myCarousel.querySelector('.carousel-item.active');
+				if (!activeSlide) {
 					newSlide.classList.add('active');
 				} else {
+					activeSlide.classList.remove('active');
 					const len = myCarousel.querySelectorAll('.carousel-item').length;
 					slideCarousel.to(len - 1);
+					newSlide.classList.add('active');
 				}
 			}
 			if (data.clear) {
@@ -473,8 +473,8 @@ export const Play = (socket) => {
 
 			teamNameLabel.innerHTML = myTeam.name;
 
-			if (myTeam.chat) {
-				myTeam.chat.forEach((m) => {
+			if (data.teamChat) {
+				data.teamChat.forEach((m) => {
 					const newMessage = createChatMessage(
 						m.mid,
 						m.text,
@@ -493,19 +493,27 @@ export const Play = (socket) => {
 				}, 10);
 			}
 
+			//handle restoring the answers on refresh
 			if (data.submissions) {
 				data.submissions.answers.forEach((a, i) => {
-					console.log(typeof a);
 					if ((typeof a).toLowerCase() === 'string') {
 						const inp = document.querySelector(`input[data-question="${i}"]`);
-						if (inp) {
-							inp.value = a;
+						if (inp) inp.value = a;
+						else {
+							const d = document.querySelector(
+								`.answer-display[data-question="${i}"]`
+							);
+							if (d) d.innerHTML = a;
 						}
 					}
 				});
 				const wag = document.getElementById('wager');
 				if (wag && data.submissions.wager >= 0) {
-					wag.value = data.submissions.wager;
+					if (data.isCaptain) {
+						wag.value = data.submissions.wager;
+					} else {
+						wag.innerHTML = data.submissions.wager;
+					}
 				}
 			}
 
@@ -751,6 +759,7 @@ export const Play = (socket) => {
 	});
 
 	socket.on('new-captain', (data) => {
+		console.log(data);
 		showMessage('info', 'You are the captain now.');
 		const suffs = getElementArray(teamRosterList, '.suffix');
 		suffs.forEach((s) => {
@@ -758,6 +767,41 @@ export const Play = (socket) => {
 		});
 		const bp = teamRosterList.querySelector(`li.is-me[data-id="${myUser.id}"]`);
 		if (bp) bp.innerHTML = `${myUser.name} <span class="suffix">(C, Me)</span>`;
+
+		const submitButton = document.getElementById('submit');
+		if (submitButton) submitButton.classList.remove('invisible-div');
+
+		const answerLines = getElementArray(document, '.answer-display');
+		answerLines.forEach((a, i) => {
+			const newInput = createElement(`input#${a.id}`);
+			newInput.classList.add(a.id);
+			newInput.setAttribute('data-question', a.getAttribute('data-question'));
+
+			if (a.classList.contains('wager')) {
+				newInput.setAttribute('type', 'number');
+				newInput.setAttribute('min', a.getAttribute('min'));
+				newInput.setAttribute('max', a.getAttribute('max'));
+				newInput.setAttribute('required', true);
+				newInput.value = data && data.wager >= 0 ? data.wager : '';
+				newInput.addEventListener('keyup', handleWagerChange);
+				newInput.addEventListener('change', handleWagerChange);
+			} else {
+				newInput.setAttribute('type', 'text');
+				newInput.value = data && data.answers.length > i ? data.answers[i] : '';
+				newInput.addEventListener('keyup', handleAnswerChange);
+				newInput.addEventListener('change', handleAnswerChange);
+			}
+			a.parentElement.appendChild(newInput);
+			a.remove();
+		});
+
+		const tac = document.getElementById('team-answer-container');
+		if (tac) {
+			const selects = getElementArray(tac, 'select');
+			selects.forEach((s) => {
+				s.disabled = false;
+			});
+		}
 	});
 
 	socket.on('next-slide', (data) => {
@@ -787,7 +831,18 @@ export const Play = (socket) => {
 		console.log(data);
 		const el = document.getElementById(`answer-${data.question + 1}`);
 		if (el) {
-			el.innerHTML = data.answer;
+			const tn = el.tagName.toLowerCase();
+			if (tn === 'div') {
+				el.innerHTML = data.answer;
+			} else if (tn === 'select') {
+				const opts = getElementArray(el, 'option');
+				opts.some((o, i) => {
+					if (o.value.toLowerCase() === data.answer) {
+						el.selectedIndex = i;
+						return true;
+					}
+				});
+			}
 		}
 	});
 

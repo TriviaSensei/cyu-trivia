@@ -634,7 +634,12 @@ const socket = (http, server) => {
 					//change captains (but don't force it)
 					const newCaptain = myTeam.changeCaptain(false);
 					if (newCaptain) {
-						io.to(newCaptain.id).emit('new-captain', null);
+						io.to(newCaptain.id).emit(
+							'new-captain',
+							myGame.currentRound >= 0
+								? myTeam.submissions[myGame.currentRound]
+								: null
+						);
 					}
 				}, captainTimeout);
 			}
@@ -756,6 +761,7 @@ const socket = (http, server) => {
 						myTeam && myGame.currentRound >= 0
 							? myTeam.submissions[myGame.currentRound]
 							: undefined,
+					teamChat: myTeam ? myTeam.chat : undefined,
 					scores:
 						!myGame.currentRound || myGame.currentRound < 2
 							? undefined
@@ -1277,7 +1283,12 @@ const socket = (http, server) => {
 			myTeam.removePlayer(myUser.id);
 			const newCaptainId = myTeam.captain.id;
 			if (oldCaptainId !== newCaptainId) {
-				io.to(newCaptainId).emit('new-captain', null);
+				io.to(newCaptainId).emit(
+					'new-captain',
+					myGame.currentRound >= 0
+						? myTeam.submissions[myGame.currentRound]
+						: null
+				);
 			}
 			if (myTeam.members.length === 0) {
 				myGame.removeTeam(myTeam.id);
