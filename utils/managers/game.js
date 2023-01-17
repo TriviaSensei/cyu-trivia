@@ -544,6 +544,8 @@ module.exports = class Game {
 
 		if (this.slides[this.currentSlide].timer) {
 			this.setTimer(this.slides[this.currentSlide].timer);
+		} else {
+			this.timer = undefined;
 		}
 
 		if (this.slides[this.currentSlide].newRound) {

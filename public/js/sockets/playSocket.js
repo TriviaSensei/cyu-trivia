@@ -413,7 +413,13 @@ export const Play = (socket) => {
 
 		console.log(data);
 		data.slides.forEach((s) => {
-			handleNewSlide({ isCaptain: data.isCaptain, slide: s });
+			if (Array.isArray(s)) {
+				s.forEach((s2) => {
+					handleNewSlide({ isCaptain: data.isCaptain, slide: s2 });
+				});
+			} else {
+				handleNewSlide({ isCaptain: data.isCaptain, slide: s });
+			}
 		});
 
 		if (data.timeLeft) {
