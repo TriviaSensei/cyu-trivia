@@ -67,17 +67,8 @@ const createSlides = (data, joinCode, ...s) => {
 								return m.answer;
 							})
 							.concat(r.extraAnswers)
-							.map((m) => {
-								return {
-									answer: m,
-									order: Math.random(),
-								};
-							})
 							.sort((a, b) => {
-								return a.order - b.order;
-							})
-							.map((m) => {
-								return m.answer;
+								return a.localeCompare(b);
 							})
 					: [],
 			endBonus: i % 2 === 0,

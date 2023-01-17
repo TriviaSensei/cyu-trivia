@@ -508,10 +508,23 @@ export const Play = (socket) => {
 							inp.value = a;
 							if (data.submissions.final) inp.disabled = true;
 						} else {
-							const d = document.querySelector(
-								`.answer-display[data-question="${i}"]`
+							const sel = document.querySelector(
+								`select[data-question="${i}"]`
 							);
-							if (d) d.innerHTML = a;
+							if (sel) {
+								const opts = getElementArray(sel, 'option');
+								opts.some((o, i) => {
+									if (o.value.toLowerCase() === a.toLowerCase()) {
+										sel.selectedIndex = i;
+										return true;
+									}
+								});
+							} else {
+								const d = document.querySelector(
+									`.answer-display[data-question="${i}"]`
+								);
+								if (d) d.innerHTML = a;
+							}
 						}
 					}
 				});
