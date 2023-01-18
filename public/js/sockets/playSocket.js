@@ -264,7 +264,7 @@ export const Play = (socket) => {
 					newSpan.innerHTML =
 						i === data.questionCount - 1 && data.endBonus
 							? 'B.&nbsp;'
-							: data.endTheme
+							: i === data.questionCount - 1 && data.endTheme
 							? 'Theme:&nbsp;'
 							: `${i + 1}.&nbsp;`;
 					const input = createElement(
@@ -537,7 +537,8 @@ export const Play = (socket) => {
 						wag.innerHTML = data.submissions.wager;
 					}
 				}
-				if (data.submissions.final) {
+				const submitButton = document.getElementById('submit');
+				if (data.submissions.final && submitButton) {
 					submitButton.disabled = true;
 				}
 			}

@@ -816,6 +816,7 @@ const handleSave = (post) => {
 						`.video-container input[type="number"][round="${i}"]`
 					).value
 				),
+				format: 'audio',
 			};
 		}
 

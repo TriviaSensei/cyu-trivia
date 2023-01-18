@@ -9,7 +9,7 @@ module.exports = class Game {
 		this.slides = [];
 		this.joinCode = joinCode;
 		this.currentSlide = undefined;
-		this.currentRound = undefined;
+		this.currentRound = 4;
 		this.gameData = game;
 		this.roundCount = game.rounds.length;
 		this.key = [];
@@ -258,7 +258,8 @@ module.exports = class Game {
 		let hostMatch;
 
 		const r = this.gameData.rounds[rd - 1];
-		if (rd !== 4 || r.format === 'questions') {
+
+		if (rd !== 4 || r.format === 'questions' || r.format === 'audio') {
 			keyMatch = 'question';
 			hostMatch = 'submissions';
 		} else if (r.format === 'list') {
@@ -389,8 +390,6 @@ module.exports = class Game {
 			this.teams.forEach((t) => {
 				t.submissions.some((s) => {
 					if (s.round === rd) {
-						console.log(s);
-						console.log(roundKey);
 						s.result = [];
 						s.score = 0;
 
@@ -500,12 +499,18 @@ module.exports = class Game {
 	}
 
 	advanceSlide() {
-		if (this.timer && new Date() < this.timer && process.env.LOCAL !== 'true')
+		if (
+			this.timer &&
+			new Date() < this.timer &&
+			this.teams.some((t) => {
+				return !t.submissions[this.currentRound || 0].final;
+			})
+		)
 			return {
 				status: 'fail',
 				message: `You must wait ${Math.floor(
 					(this.timer - new Date()) / 1000
-				)} seconds before continuing.`,
+				)} seconds or until all teams submit before continuing.`,
 				endGame: false,
 			};
 

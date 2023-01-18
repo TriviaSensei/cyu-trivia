@@ -188,7 +188,10 @@ const handleSaveGrades = (e) => {
 						if (!adjc) return;
 						const rows = getElementArray(adjc, `tbody > .adjustment-row`);
 
-						if (data.result.format === 'questions') {
+						if (
+							data.result.format === 'questions' ||
+							data.result.format === 'audio'
+						) {
 							rows.forEach((r) => {
 								const cells = getElementArray(r, '.result-cell');
 								let score = 0;
