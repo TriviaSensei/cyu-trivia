@@ -7,9 +7,10 @@ module.exports = class Game {
 		this.players = [];
 		this.teams = [];
 		this.slides = [];
+		this.allowAdvance = true;
 		this.joinCode = joinCode;
 		this.currentSlide = undefined;
-		this.currentRound = 4;
+		this.currentRound = undefined;
 		this.gameData = game;
 		this.roundCount = game.rounds.length;
 		this.key = [];
@@ -86,19 +87,22 @@ module.exports = class Game {
 		if (rd >= this.key.length) return;
 
 		if (rd !== 3 || this.gameData.rounds[rd].format === 'questions') {
+
 			this.key[rd].answers.forEach((a) => {
 				if (
 					!a.submissions.some((s) => {
+						if (a.question >= submissions.answers.length) return false;
 						return (
 							s.answer === submission.answers[a.question - 1].toLowerCase()
 						);
 					})
 				) {
-					a.submissions.push({
-						answer: submission.answers[a.question - 1].toLowerCase(),
-						correct: false,
-						partial: 0,
-					});
+					if (a.question <= submission.answers.length)
+						a.submissions.push({
+							answer: submission.answers[a.question - 1].toLowerCase(),
+							correct: false,
+							partial: 0,
+						});
 				}
 			});
 		} else if (this.gameData.rounds[rd].format === 'list') {
@@ -513,6 +517,14 @@ module.exports = class Game {
 				)} seconds or until all teams submit before continuing.`,
 				endGame: false,
 			};
+
+		if (!this.allowAdvance) {
+			return {
+				status: 'fail',
+				message: 'Please wait for scores to display before continuing',
+				endGame: false,
+			};
+		}
 
 		if (this.currentSlide >= this.slides.length - 1) {
 			return {

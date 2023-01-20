@@ -4,6 +4,7 @@ import { showMessage } from './utils/messages.js';
 import { createChatMessage } from './utils/chatMessage.js';
 import { withTimeout, timeoutMessage } from './utils/socketTimeout.js';
 import { createElement } from './utils/createElementFromSelector.js';
+import { replaceAll } from './utils/stringReplace.js';
 
 const mainContent = document.querySelector('.main-content');
 const slideShowContainer = document.querySelector('#slideshow-outer');
@@ -119,7 +120,7 @@ const handleSaveGrades = (e) => {
 					const rr = a.querySelector('.right-radio');
 					const part = a.querySelector('.partial-credit');
 					let newAns = {
-						answer: a.getAttribute('data-answer'),
+						answer: replaceAll(a.getAttribute('data-answer'), '&quot;', '"'),
 						correct: rr && rr.checked,
 						partial: part ? parseInt(part.value) || 0 : 0,
 					};
@@ -141,14 +142,16 @@ const handleSaveGrades = (e) => {
 				if (
 					!toSend.key.some((v) => {
 						if (v.answer === val) {
-							v.matches.push(r.getAttribute('data-answer'));
+							v.matches.push(
+								replaceAll(r.getAttribute('data-answer'), '&quot;', '"')
+							);
 							return true;
 						}
 					})
 				) {
 					toSend.key.push({
 						answer: val,
-						matches: [r.getAttribute('data-answer')],
+						matches: [replaceAll(r.getAttribute('data-answer'), '&quot;', '"')],
 					});
 				}
 			});
@@ -209,6 +212,7 @@ const handleSaveGrades = (e) => {
 													points = s.partial;
 													c.classList.add('partial');
 												} else if (s.correct) {
+													console.log(c);
 													points = c.getAttribute('data-wager')
 														? parseInt(c.getAttribute('data-wager'))
 														: data.result.answers[qNo - 1].value;

@@ -12,6 +12,8 @@ import {
 import { withTimeout, timeoutMessage } from '../utils/socketTimeout.js';
 import { createElement } from '../utils/createElementFromSelector.js';
 import { generateScoreboard } from '../utils/scoreboard.js';
+import { replaceAll } from '../utils/stringReplace.js';
+
 const gameRoster = document.getElementById('game-roster-list');
 const chatContainer = document.querySelector('.chat-container');
 const chatMenu = document.getElementById('chat-menu');
@@ -356,7 +358,11 @@ const addAnswer = (r, q, ans, correct, partial, allowPartial) => {
 
 	if (
 		qgc.querySelector(
-			`.answer-row[data-question="${q}"][data-answer="${dataAns}"]`
+			`.answer-row[data-question="${q}"][data-answer="${replaceAll(
+				dataAns,
+				'"',
+				'&quot;'
+			)}"]`
 		)
 	)
 		return;
@@ -421,11 +427,14 @@ const addListAnswers = (r, answers, key) => {
 	answers.forEach((a) => {
 		if (a.trim().length === 0) return;
 		const ar = gradingDiv.querySelector(
-			`.answer-row[data-answer="${a.toLowerCase()}"]`
+			`.answer-row[data-answer="${replcaeAll(a.toLowerCase(), '"', '&quot;')}"]`
 		);
 		if (ar) return;
 		const newRow = createElement('.answer-row.new-list-response');
-		newRow.setAttribute('data-answer', a.toLowerCase().trim());
+		newRow.setAttribute(
+			'data-answer',
+			replaceAll(a.toLowerCase().trim(), '"', '&quot;')
+		);
 		newRow.addEventListener('click', (e) => {
 			e.target.closest('.answer-row').classList.remove('new-list-response');
 		});
@@ -516,7 +525,11 @@ const populateAnswers = (data) => {
 			k.answers.forEach((a) => {
 				a.matches.forEach((m) => {
 					const ar = gradingDiv.querySelector(
-						`.answer-row[data-answer="${m.toLowerCase()}"]`
+						`.answer-row[data-answer="${replaceAll(
+							m.toLowerCase(),
+							'"',
+							'&quot;'
+						)}"]`
 					);
 					if (ar) return;
 					const newRow = createElement('.answer-row');

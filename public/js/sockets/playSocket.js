@@ -785,13 +785,12 @@ export const Play = (socket) => {
 	});
 
 	socket.on('new-captain', (data) => {
-		console.log(data);
 		showMessage('info', 'You are the captain now.');
 		const suffs = getElementArray(teamRosterList, '.suffix');
 		suffs.forEach((s) => {
 			s.innerHTML = '';
 		});
-		const bp = teamRosterList.querySelector(`li.is-me[data-id="${myUser.id}"]`);
+		const bp = teamRosterList.querySelector(`li[data-id="${myUser.id}"]`);
 		if (bp) bp.innerHTML = `${myUser.name} <span class="suffix">(C, Me)</span>`;
 
 		const submitButton = document.getElementById('submit');

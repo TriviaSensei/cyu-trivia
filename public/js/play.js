@@ -35,6 +35,11 @@ const teamChatMessage = document.getElementById('team-message');
 const teamChatButton = document.getElementById('send-team-chat');
 const teamChat = document.getElementById('team-chat-container');
 
+//slideshow
+const slideShow = new bootstrap.Carousel(
+	document.getElementById('game-carousel')
+);
+
 const allowJoin = document.getElementById('confirm-teammate');
 const denyJoin = document.getElementById('deny-teammate');
 const socket = io();
@@ -223,6 +228,21 @@ const handleLeaveTeam = () => {
 	teamRosterList.innerHTML = '';
 };
 
+const handleSlideMove = (e) => {
+	if (!slideShow) return;
+	const tag = e.target.tagName.toLowerCase();
+	if (tag !== 'input' && tag !== 'textarea') {
+		const key = e.key.toLowerCase();
+		if (key === 'arrowleft') slideShow.prev();
+		else if (key === 'arrowright') slideShow.next();
+	} else if (e.ctrlKey) {
+		e.preventDefault();
+		const key = e.key.toLowerCase();
+		if (key === 'arrowleft') slideShow.prev();
+		else if (key === 'arrowright') slideShow.next();
+	}
+};
+
 window.addEventListener('load', (e) => {
 	joinForm.addEventListener('submit', handleJoin);
 	chatMessage.addEventListener('keydown', handleSendChat);
@@ -235,6 +255,7 @@ window.addEventListener('load', (e) => {
 	allowJoin.addEventListener('click', resolveJoinRequest);
 	denyJoin.addEventListener('click', resolveJoinRequest);
 	confirmLeaveTeam.addEventListener('click', handleLeaveTeam);
+	document.addEventListener('keydown', handleSlideMove);
 });
 
 socket.on('error', (data) => {

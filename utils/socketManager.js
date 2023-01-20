@@ -35,11 +35,11 @@ const createSlides = (data, joinCode, ...s) => {
 			body: "1. Don't cheat\n2. Don't cheat\n3. Keep answers out of the public chat\n4. Challenges welcome\n5. Host decisions are final.",
 		},
 	];
-	let startRound;
-	if (!s) startRound = 0;
-	else startRound = s[0] || 0;
+	// let startRound;
+	// if (!s) startRound = -1;
+	// else startRound = s[0] || 0;
 	data.rounds.forEach((r, i) => {
-		if (i <= startRound) return;
+		// if (i <= startRound) return;
 		toReturn.push({
 			new: true,
 			clear: true,
@@ -1302,7 +1302,7 @@ const socket = (http, server) => {
 					});
 				} else {
 					//get gig from mygame.gigId
-					const gig = await Gig.findById(myGame.gigId);
+					const gig = await GigModel.findById(myGame.gigId);
 					//copy myGame's results to the gig
 					const results = myGame.teams.map((t) => {
 						return {
@@ -1349,6 +1349,14 @@ const socket = (http, server) => {
 				status: 'OK',
 				data: adv.slide,
 			});
+
+			if (adv.slide.scores) {
+				myGame.allowAdvance = false;
+				setTimeout(() => {
+					myGame.allowAdvance = true;
+				}, adv.slide.scores.length * 1500 + 2000);
+			}
+
 			if (adv.slide.newRound || adv.slide.pullAnswers) {
 				myGame.setAllAnswers(adv.slide.round - 1);
 			}
@@ -1408,6 +1416,7 @@ const socket = (http, server) => {
 			console.log(`${myTeam.name} submitting round ${myGame.currentRound + 1}`);
 
 			const submit = myTeam.setResponse(myGame.currentRound);
+			console.log(submit);
 			if (submit.status !== 'OK') {
 				cb(submit);
 			} else {
