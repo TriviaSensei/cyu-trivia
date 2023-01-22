@@ -230,16 +230,18 @@ const handleLeaveTeam = () => {
 
 const handleSlideMove = (e) => {
 	if (!slideShow) return;
+	if (e.target === teamNameEntry) return;
 	const tag = e.target.tagName.toLowerCase();
+	const key = e.key.toLowerCase();
 	if (tag !== 'input' && tag !== 'textarea') {
-		const key = e.key.toLowerCase();
 		if (key === 'arrowleft') slideShow.prev();
 		else if (key === 'arrowright') slideShow.next();
-	} else if (e.ctrlKey) {
+	} else if (e.ctrlKey && key === 'arrowleft') {
 		e.preventDefault();
-		const key = e.key.toLowerCase();
-		if (key === 'arrowleft') slideShow.prev();
-		else if (key === 'arrowright') slideShow.next();
+		slideShow.prev();
+	} else if (e.ctrlKey && key === 'arrowright') {
+		e.preventDefault();
+		slideShow.next();
 	}
 };
 

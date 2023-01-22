@@ -1305,17 +1305,21 @@ const socket = (http, server) => {
 					const gig = await GigModel.findById(myGame.gigId);
 					//copy myGame's results to the gig
 					const results = myGame.teams.map((t) => {
+						let score = 0;
+						t.submissions.forEach((s) => {
+							score = score + s.score + s.adjustment;
+						});
 						return {
 							name: t.name,
-							score: t.submissions.reduce((p, c) => {
-								return p + c.score + c.adjustment;
-							}),
+							score,
 						};
 					});
 					//save the gig
 					gig.results = results;
 					gig.markModified('results');
-					await gig.save();
+					await gig.save({
+						validateBeforeSave: false,
+					});
 
 					io.to(myGame.id).emit('game-ended', {
 						message: 'The game has ended and results have been saved.',
@@ -1342,6 +1346,8 @@ const socket = (http, server) => {
 						return true;
 					});
 					myGame = undefined;
+
+					return cb({ status: 'END' });
 				}
 			}
 
@@ -1389,7 +1395,7 @@ const socket = (http, server) => {
 		socket.on('update-answer', (data) => {
 			const res = verifyCaptain();
 			if (res.status !== 'OK') return emitError(res.message);
-			if (data.round !== myGame.currentRound)
+			if (data.round !== myGame.currentRound && false)
 				return emitError('Incorrect round');
 
 			myTeam.updateResponse(

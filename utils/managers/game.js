@@ -87,11 +87,10 @@ module.exports = class Game {
 		if (rd >= this.key.length) return;
 
 		if (rd !== 3 || this.gameData.rounds[rd].format === 'questions') {
-
 			this.key[rd].answers.forEach((a) => {
 				if (
 					!a.submissions.some((s) => {
-						if (a.question >= submissions.answers.length) return false;
+						if (a.question >= submission.answers.length) return false;
 						return (
 							s.answer === submission.answers[a.question - 1].toLowerCase()
 						);
@@ -305,6 +304,16 @@ module.exports = class Game {
 							const k = roundKey.answers.find((a) => {
 								return a.question === q + 1;
 							});
+
+							// if (!k) {
+							// 	console.log(
+							// 		`Did not find answer list for round ${rd} question ${q + 1}`
+							// 	);
+							// 	console.log(`Round ${rd} answer list:\n-----`);
+							// 	roundKey.answers.forEach((a) => {
+							// 		console.log(a);
+							// 	});
+							// }
 							/**
 							 * {
 							 * 		question: 1,
@@ -332,13 +341,13 @@ module.exports = class Game {
 								if (q === s.answers.length - 1 && rd % 2 === 1) {
 									s.score = s.score + s.wager;
 								} else {
-									s.score = s.score + k.value;
+									s.score = s.score + (k.value || 0);
 								}
 							} else if (toPush.partial > 0) {
 								s.score = s.score + toPush.partial;
 							} else {
 								if (q === s.answers.length - 1) {
-									s.score = s.score - s.wager;
+									s.score = s.score - (s.wager || 0);
 								}
 							}
 						});
@@ -433,8 +442,17 @@ module.exports = class Game {
 					name: t.name,
 					id: t.id,
 					roomid: t.roomid,
-					score: t.submissions.reduce((p, c) => {
-						if (c.round <= rd) return p + c.score + c.adjustment;
+					score: t.submissions.reduce((p, c, i) => {
+						if (isNaN(c.score)) {
+							c.score = 0;
+							console.log(`${t.name}'s score in round ${i + 1} is NaN`);
+						}
+						if (isNaN(c.adjustment)) {
+							c.adjustment = 0;
+							console.log(`${t.name}'s adjustment in round ${i + 1} is NaN`);
+						}
+						if (c.round <= rd)
+							return p + (isNaN(c.score) ? 0 : c.score) + c.adjustment;
 						else return p;
 					}, 0),
 				};

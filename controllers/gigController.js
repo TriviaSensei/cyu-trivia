@@ -107,15 +107,18 @@ exports.preventDuplicate = catchAsync(async (req, res, next) => {
 	if (message) return next(new AppError(message));
 
 	const venueGigs = await Gig.find({
+		//not this gig
 		$and: [{ _id: { $ne: req.body.id } }, { _id: { $ne: req.params.id } }],
+		//but the same venue
 		venue: req.body.venue,
+		//and the same game
 		game: req.body.game,
 	}).populate({
 		path: 'venue',
 		select: 'name',
 	});
 
-	if (venueGigs.length > 0) {
+	if (venueGigs.length > 0 && venueGigs[0].venue.name !== 'Private online') {
 		return next(
 			new AppError(
 				`That game has already been booked at ${venueGigs[0].venue.name}.`

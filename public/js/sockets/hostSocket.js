@@ -368,7 +368,7 @@ const addAnswer = (r, q, ans, correct, partial, allowPartial) => {
 		return;
 	const newRow = createElement('.answer-row');
 	newRow.setAttribute('data-question', q);
-	newRow.setAttribute('data-answer', dataAns);
+	newRow.setAttribute('data-answer', replaceAll(dataAns, '"', '&quot;'));
 
 	const box = createElement('input.partial-credit');
 	box.setAttribute('type', 'number');
@@ -1116,7 +1116,7 @@ export const Host = (socket) => {
 								handleNewSlide(res.data);
 								handlePopSlide(res.data);
 							}
-						} else {
+						} else if (res.status === 'fail') {
 							showMessage('error', res.message);
 						}
 					},

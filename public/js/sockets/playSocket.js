@@ -257,6 +257,8 @@ export const Play = (socket) => {
 
 			teamAnswerContainer.innerHTML = '';
 			const newForm = createElement('form');
+			newForm.setAttribute('autocomplete', 'off');
+			newForm.setAttribute('spellcheck', 'false');
 			if (data.format === 'std' || data.format === 'list') {
 				for (var i = 0; i < data.questionCount; i++) {
 					const newDiv = createElement('.team-answer-line');
@@ -369,6 +371,7 @@ export const Play = (socket) => {
 			if (data.scores) {
 				const activeSlide = myCarousel.querySelector('.carousel-item');
 				console.log(activeSlide);
+				console.log(data.scores);
 				if (activeSlide) {
 					generateScoreboard(
 						activeSlide.querySelector('.slide-body'),
