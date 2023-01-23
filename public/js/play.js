@@ -236,10 +236,10 @@ const handleSlideMove = (e) => {
 	if (tag !== 'input' && tag !== 'textarea') {
 		if (key === 'arrowleft') slideShow.prev();
 		else if (key === 'arrowright') slideShow.next();
-	} else if (e.ctrlKey && key === 'arrowleft') {
+	} else if (e.shiftKey && key === 'arrowleft') {
 		e.preventDefault();
 		slideShow.prev();
-	} else if (e.ctrlKey && key === 'arrowright') {
+	} else if (e.shiftKey && key === 'arrowright') {
 		e.preventDefault();
 		slideShow.next();
 	}

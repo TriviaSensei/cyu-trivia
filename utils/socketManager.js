@@ -1305,9 +1305,9 @@ const socket = (http, server) => {
 					const gig = await GigModel.findById(myGame.gigId);
 					//copy myGame's results to the gig
 					const results = myGame.teams.map((t) => {
-						let score = 0;
+						let score = [];
 						t.submissions.forEach((s) => {
-							score = score + s.score + s.adjustment;
+							score.push(s.score + s.adjustment);
 						});
 						return {
 							name: t.name,
