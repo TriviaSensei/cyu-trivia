@@ -132,17 +132,23 @@ exports.getHost = catchAsync(async (req, res, next) => {
 
 	let offset = getOffset();
 
-	const data = games.map((g) => {
-		return {
-			_id: g._id,
-			title: g.game.title,
-			venue: g.venue.name,
-			date: new Date(Date.parse(g.date) - offset * 60 * 60 * 1000),
-			time: `${g.hour === 12 ? 12 : g.hour % 12}:${
-				g.minute === 0 ? '00' : g.minute
-			} ${g.hour >= 12 ? 'PM' : 'AM'}`,
-		};
-	});
+	const data = games
+		.map((g) => {
+			console.log(g);
+			return {
+				_id: g._id,
+				title: g.game.title,
+				venue: g.venue.name,
+				date: new Date(Date.parse(g.date) - offset * 60 * 60 * 1000),
+				time: `${g.hour === 12 ? 12 : g.hour % 12}:${
+					g.minute === 0 ? '00' : g.minute
+				} ${g.hour >= 12 ? 'PM' : 'AM'}`,
+				results: g.results,
+			};
+		})
+		.filter((g) => {
+			return g.results.length === 0;
+		});
 
 	// 3) render template using tour data from (1)
 	// this will look in the /views (set in app.js) folder for 'overview.pug' (pug engine also specified in app.js)
