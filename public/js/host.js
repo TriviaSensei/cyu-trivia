@@ -184,7 +184,6 @@ const handleSaveGrades = (e) => {
 						showMessage('error', data.message || 'Something went wrong');
 					} else {
 						showMessage('info', 'Key saved.');
-						console.log(data.result);
 						const adjc = document.querySelector(
 							`.adjustment-container[data-round="${data.result.round}"]`
 						);
@@ -212,7 +211,6 @@ const handleSaveGrades = (e) => {
 													points = s.partial;
 													c.classList.add('partial');
 												} else if (s.correct) {
-													console.log(c);
 													points = c.getAttribute('data-wager')
 														? parseInt(c.getAttribute('data-wager'))
 														: data.result.answers[qNo - 1].value;

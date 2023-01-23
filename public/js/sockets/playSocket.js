@@ -370,8 +370,7 @@ export const Play = (socket) => {
 			}
 			if (data.scores) {
 				const activeSlide = myCarousel.querySelector('.carousel-item');
-				console.log(activeSlide);
-				console.log(data.scores);
+
 				if (activeSlide) {
 					generateScoreboard(
 						activeSlide.querySelector('.slide-body'),
@@ -414,7 +413,6 @@ export const Play = (socket) => {
 	socket.on('game-joined', (data) => {
 		myGame = data;
 
-		console.log(data);
 		data.slides.forEach((s) => {
 			if (Array.isArray(s)) {
 				s.forEach((s2) => {
@@ -603,7 +601,6 @@ export const Play = (socket) => {
 	});
 
 	const handleChat = (data) => {
-		console.log(data);
 		let newMessage;
 		if (data.isSystem)
 			newMessage = createChatMessage(
@@ -621,7 +618,6 @@ export const Play = (socket) => {
 				data.isHost ? 'host' : null
 			);
 
-		console.log(newMessage);
 		const chatBox = data.to === 'game' ? gameChat : teamChat;
 		chatBox.appendChild(newMessage);
 		chatBox.scrollTop = chatBox.scrollHeight;
@@ -674,7 +670,6 @@ export const Play = (socket) => {
 	});
 
 	socket.on('request-accepted', (data) => {
-		console.log(data);
 		socket.emit(
 			'join-team-by-id',
 			{ id: data.roomid },
@@ -837,7 +832,6 @@ export const Play = (socket) => {
 			stopTimer();
 		}
 		if (Array.isArray(data.slide)) {
-			console.log(data.slide);
 			data.slide.forEach((d) => {
 				handleNewSlide({
 					isCaptain: data.isCaptain,
@@ -873,7 +867,6 @@ export const Play = (socket) => {
 	});
 
 	socket.on('update-wager', (data) => {
-		console.log(data);
 		const el = document.getElementById(`wager`);
 		if (el) {
 			el.innerHTML = data.wager;

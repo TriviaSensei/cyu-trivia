@@ -68,7 +68,6 @@ const openSlideShowWindow = (e) => {
 	ssWindow.addEventListener(
 		'load',
 		(e) => {
-			console.log('load');
 			if (popSlide) {
 				popupDoc().querySelector('.carousel-inner').appendChild(popSlide);
 			}
@@ -173,8 +172,6 @@ const handlePopSlide = (data) => {
 			const popActive = popC.querySelector('.carousel-item');
 			if (popActive) {
 				generateScoreboard(popActive.querySelector('.slide-body'), data.scores);
-			} else {
-				console.log('no pop active');
 			}
 		}
 
@@ -190,7 +187,6 @@ const handlePopSlide = (data) => {
 		roundData.round % 2 === 1 ||
 		(roundData.round === 3 && roundData.format === 'std')
 	) {
-		console.log(roundData);
 		let body = `<ol>`;
 		roundData.qList.forEach((q, i) => {
 			if (i !== roundData.qList.length - 1) body = `${body}<li>${q}</li>`;
@@ -245,8 +241,6 @@ const handlePopArray = (data) => {
 	let popC = popDoc.getElementById('game-carousel');
 	let popCarousel = new bootstrap.Carousel(popC);
 
-	console.log(data);
-
 	if (
 		data.every((d) => {
 			return d.picture;
@@ -295,7 +289,6 @@ const handleNewSlide = (data, ...toSetActive) => {
 		}
 
 		if (data.scores) {
-			console.log(data);
 			const activeSlide = myCarousel.querySelector('.carousel-item');
 			if (activeSlide) {
 				generateScoreboard(
@@ -516,7 +509,6 @@ const populateAnswers = (data) => {
 				});
 			});
 		} else if (k.format === 'list') {
-			console.log(k);
 			const ansList = k.answers.map((a) => {
 				return a.answer;
 			});
@@ -647,7 +639,6 @@ export const Host = (socket) => {
 	});
 	socket.on('game-started', (data) => {
 		hideMessage();
-		console.log(data);
 
 		const myId = getCookie('id');
 
@@ -793,14 +784,7 @@ export const Host = (socket) => {
 				const ar = document.querySelector(
 					`.adjustment-row[data-round="${i + 1}"][data-id="${t.id}"]`
 				);
-				if (!ar) {
-					console.log(
-						`.adjustment-row[data-round="${i + 1}"][data-id="${
-							t.id
-						}"] not found`
-					);
-					return;
-				}
+				if (!ar) return;
 
 				const th = ar.querySelector('.team-header');
 				if (th)
@@ -953,7 +937,6 @@ export const Host = (socket) => {
 	});
 
 	socket.on('new-response', (data) => {
-		if (data.round === 4) console.log(data);
 		// (r, q, ans, correct, partial, allowPartial)
 		const gd = document.getElementById(`grading-${data.round}`);
 		if (gd) gd.setAttribute('data-format', data.format);
@@ -1025,7 +1008,6 @@ export const Host = (socket) => {
 			sp.setAttribute('title', 'Round submitted');
 		}
 
-		console.log(data);
 		//set the cell titles to the answers given
 		data.responses.some((r) => {
 			if (r.id === data.id) {
@@ -1130,7 +1112,6 @@ export const Host = (socket) => {
 	});
 
 	ssPrev.addEventListener('click', (e) => {
-		console.log('prev');
 		slideCarousel.prev();
 	});
 };

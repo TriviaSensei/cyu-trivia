@@ -172,8 +172,7 @@ const setAction = (e) => {
 			'data-role'
 		)}"]`;
 		const checkedRadio = document.querySelector(str);
-		console.log(str);
-		console.log(checkedRadio);
+
 		if (checkedRadio) {
 			checkedRadio.checked = true;
 		}
@@ -319,7 +318,6 @@ const populateVenues = (e) => {
 	if (e.target !== editVenueButton) return;
 	const handler = (res) => {
 		if (res.status === 'success') {
-			console.log(res.data);
 			venueList = res.data;
 			venueSelect.innerHTML = '';
 			const o1 = document.createElement('option');

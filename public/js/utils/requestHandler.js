@@ -31,9 +31,7 @@ export const handleRequest = (
 			} else {
 				req.send(null);
 			}
-		} catch (err) {
-			console.log(`err`);
-		}
+		} catch (err) {}
 	}
 };
 

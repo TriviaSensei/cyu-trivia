@@ -72,9 +72,6 @@ exports.isLoggedIn = catchAsync(async (req, res, next) => {
 		}
 		//we've passed the gauntlet. There is a logged in user.
 		res.locals.user = currentUser;
-
-		// console.log('logged in user:');
-		// console.log(res.locals.user);
 		next();
 	} catch (err) {
 		next();
@@ -311,8 +308,6 @@ exports.isLoggedIn = catchAsync(async (req, res, next) => {
 
 	//we've passed the gauntlet. There is a logged in user.
 	res.locals.user = currentUser;
-	// console.log('logged in user:');
-	// console.log(res.locals.user);
 	next();
 });
 
@@ -334,9 +329,7 @@ exports.restrictTo = (...roles) => {
 	return (req, res, next) => {
 		//roles is an array (e.g. ['admin','user'])
 		//access is granted if the logged-in user has a role in the roles array
-		// console.log('------');
-		// console.log(res.locals.user);
-		// console.log('------');
+
 		if (!res.locals.user) {
 			return res.redirect('/login');
 		}
@@ -386,7 +379,6 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
 				message: 'Token sent to e-mail',
 			});
 		} catch (err) {
-			// console.log(err.stack);
 			user.passwordResetToken = undefined;
 			user.passwordResetExpires = undefined;
 			await user.save({ validateBeforeSave: false });

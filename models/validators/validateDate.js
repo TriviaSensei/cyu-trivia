@@ -18,10 +18,6 @@ const validateDate = (val) => {
 	const sDate = submittedDate.getDate();
 	const sYear = submittedDate.getFullYear();
 
-	// console.log(offset);
-	// console.log(year, month + 1, date);
-	// console.log(sYear, sMonth + 1, sDate);
-
 	return !(
 		sYear < year ||
 		(sYear === year && sMonth < month) ||

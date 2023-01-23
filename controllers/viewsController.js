@@ -4,13 +4,9 @@ const User = require('../models/userModel');
 const Venue = require('../models/venueModel');
 const getOffset = require('../utils/getOffset');
 exports.httpsRedirect = (req, res, next) => {
-	// console.log(req.header('x-forwarded-proto'));
-	// console.log(req.header('host'));
-	// console.log(req.url);
 	if (process.env.LOCAL === 'true') {
 		return next();
 	} else if (req.headers.host !== `localhost:${process.env.PORT}`) {
-		console.log(req.headers.host);
 		if (req.header('x-forwarded-proto') !== 'https') {
 			console.log(`redirecting to https://${req.header('host')}${req.url}`);
 			return res.redirect(`https://${req.header('host')}${req.url}`);
@@ -147,8 +143,6 @@ exports.getHost = catchAsync(async (req, res, next) => {
 			} ${g.hour >= 12 ? 'PM' : 'AM'}`,
 		};
 	});
-
-	console.log(data);
 
 	// 3) render template using tour data from (1)
 	// this will look in the /views (set in app.js) folder for 'overview.pug' (pug engine also specified in app.js)

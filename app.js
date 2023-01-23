@@ -76,7 +76,6 @@ app.post('/api/v1/contact', async (req, res) => {
 	try {
 		await sgMail.send(msg);
 	} catch (e) {
-		console.log(e);
 		console.log(e.response.body.errors[0]);
 		return res
 			.status(e.code)

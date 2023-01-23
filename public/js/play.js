@@ -49,7 +49,6 @@ let roomid;
 let myName;
 
 document.addEventListener('shown.bs.modal', (e) => {
-	console.log(e.target);
 	if (e.target === createTeamModal) {
 		teamNameEntry.focus();
 	}
@@ -98,7 +97,6 @@ const handleSendChat = (e) => {
 				if (data.status !== 'OK') {
 					return showMessage('info', data.message);
 				}
-				console.log(data);
 				const newMessage = createChatMessage(data.id, data.message, 'Me', 'me');
 				e.target.value = '';
 				if (newMessage) {
@@ -148,8 +146,6 @@ const handleTeamName = (e) => {
 		withTimeout(
 			(data) => {
 				if (data.status === 'OK') {
-					console.log(data);
-
 					if (action === 'create') {
 						showMessage('info', 'Successfully created team.');
 						teamList.classList.add('invisible-div');

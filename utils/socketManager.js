@@ -380,6 +380,7 @@ const randomCode = (len) => {
 	return code;
 };
 const getGame = (joinCode) => {
+	console.log(`Fetching game with join code ${joinCode}`);
 	return games.find((g) => {
 		return g.joinCode === joinCode;
 	});
@@ -553,7 +554,6 @@ const socket = (http, server) => {
 		const getCookie = (name) => {
 			let cookies;
 			if (socket.handshake.headers.cookie) {
-				console.log(socket.handshake.headers.cookie);
 				cookies = socket.handshake.headers.cookie.split(';');
 				for (var j = 0; j < cookies.length; j++) {
 					const tokens = cookies[j].trim().split('=');
@@ -603,7 +603,6 @@ const socket = (http, server) => {
 								myTeam.removePlayer(myUser.id);
 								if (myTeam.members.length === 0) {
 									myGame.removeTeam(myTeam.id);
-									console.log(myGame.teams);
 									io.to(myGame.id).emit('remove-team', { id: myTeam.id });
 								}
 							}
@@ -780,12 +779,6 @@ const socket = (http, server) => {
 			}
 		}
 
-		// io.to(user.gameid).emit('')
-		// socket.on('request-questions', (data) => {
-		// 	console.log('questions requested');
-		// 	io.to(socket.id).emit('questions', { questions, pictures, wildcard });
-		// });
-
 		socket.on('start-game', async (data) => {
 			if (!jwt || !myUser) {
 				return emitError('You are not logged in');
@@ -869,6 +862,7 @@ const socket = (http, server) => {
 					message: 'Game not found.',
 				});
 			}
+
 			if (
 				myGame.isBanned({
 					id: myUser.id,
@@ -1283,7 +1277,6 @@ const socket = (http, server) => {
 			}
 			if (myTeam.members.length === 0) {
 				myGame.removeTeam(myTeam.id);
-				console.log(myGame.teams);
 				io.to(myGame.id).emit('remove-team', { id: myTeam.id });
 			}
 			myTeam = undefined;
@@ -1422,7 +1415,6 @@ const socket = (http, server) => {
 			console.log(`${myTeam.name} submitting round ${myGame.currentRound + 1}`);
 
 			const submit = myTeam.setResponse(myGame.currentRound);
-			console.log(submit);
 			if (submit.status !== 'OK') {
 				cb(submit);
 			} else {
@@ -1438,8 +1430,6 @@ const socket = (http, server) => {
 						myGame.currentRound + 1,
 						myGame.getKeyForRound(myGame.currentRound + 1).answers
 					);
-
-					console.log(myTeam.submissions[myGame.currentRound]);
 				}
 
 				io.to(myGame.host.id).emit('new-response', {
@@ -1462,8 +1452,6 @@ const socket = (http, server) => {
 		socket.on('grade-round', (data, cb) => {
 			const res = verifyHost();
 			if (res.status !== 'OK') return cb(res);
-
-			console.log(data);
 
 			const result = myGame.gradeRound(data.round, data.key);
 			cb({ status: 'OK', result });

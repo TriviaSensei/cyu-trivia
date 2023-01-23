@@ -307,7 +307,6 @@ const handleQuestions = () => {
 				},
 				0
 			);
-			console.log(fontSize);
 		}
 	});
 	bsQuestionCarousel.to(0);
@@ -359,8 +358,6 @@ const handleQuestions = () => {
 handleQuestions();
 
 socket.on('live-now', (data) => {
-	console.log(data);
-
 	if (liveInterval) {
 		clearInterval(liveInterval);
 	}

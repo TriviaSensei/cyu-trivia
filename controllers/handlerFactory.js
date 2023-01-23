@@ -49,8 +49,6 @@ exports.updateOne = (Model) =>
 		const arr = req.originalUrl.trim().split('/');
 		const loc = arr.length > 3 ? arr[3] : '';
 
-		// console.log(req.body);
-		// console.log(req.params.id);
 		if (loc.toLowerCase() === 'users') {
 			const user = await Model.findById(req.params.id);
 			if (!user) {

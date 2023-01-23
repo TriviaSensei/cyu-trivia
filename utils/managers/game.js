@@ -115,9 +115,6 @@ module.exports = class Game {
 					}
 				});
 			});
-			this.key[rd].answers.forEach((a) => {
-				console.log(a.answer, a.matches);
-			});
 		} else if (this.gameData.rounds[rd].format === 'matching') {
 			//we don't need to add submissions for matching rounds -
 			//there are a discrete set of possible answers for each one already,
@@ -305,15 +302,6 @@ module.exports = class Game {
 								return a.question === q + 1;
 							});
 
-							// if (!k) {
-							// 	console.log(
-							// 		`Did not find answer list for round ${rd} question ${q + 1}`
-							// 	);
-							// 	console.log(`Round ${rd} answer list:\n-----`);
-							// 	roundKey.answers.forEach((a) => {
-							// 		console.log(a);
-							// 	});
-							// }
 							/**
 							 * {
 							 * 		question: 1,
@@ -445,11 +433,9 @@ module.exports = class Game {
 					score: t.submissions.reduce((p, c, i) => {
 						if (isNaN(c.score)) {
 							c.score = 0;
-							console.log(`${t.name}'s score in round ${i + 1} is NaN`);
 						}
 						if (isNaN(c.adjustment)) {
 							c.adjustment = 0;
-							console.log(`${t.name}'s adjustment in round ${i + 1} is NaN`);
 						}
 						if (c.round <= rd)
 							return p + (isNaN(c.score) ? 0 : c.score) + c.adjustment;

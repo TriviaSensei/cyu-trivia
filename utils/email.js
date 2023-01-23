@@ -73,7 +73,6 @@ module.exports = class Email {
 			const result = await this.sgMail.send(msg);
 			return result;
 		} catch (err) {
-			console.log('something went wrong');
 			console.log(err);
 		}
 	}

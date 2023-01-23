@@ -41,7 +41,6 @@ profileForm.addEventListener('submit', (e) => {
 pwForm.addEventListener('submit', (e) => {
 	e.preventDefault();
 	const handler = (res) => {
-		console.log(res);
 		if (res.status === 'success') {
 			showMessage('info', 'Successfully changed password', 1000);
 			currentPW.value = '';

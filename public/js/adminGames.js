@@ -104,7 +104,6 @@ const offset = parseInt(timeOffset.value) || 0;
 if (timeOffset) timeOffset.remove();
 const minDate = new Date();
 minDate.setHours(minDate.getHours() + offset);
-console.log(Date.parse(minDate));
 gameDate.setAttribute('min', minDate.toISOString().split('T')[0]);
 
 let loadedGame = undefined;
@@ -866,7 +865,6 @@ const handleSave = (post) => {
 	const type = loadedGame ? 'PATCH' : 'POST';
 
 	handleRequest(str, type, game, handler);
-	console.log(game);
 };
 
 const handleClose = (e) => {
@@ -1580,8 +1578,7 @@ const handleEditGig = (e) => {
 	const handler = (res) => {
 		if (res.status === 'success') {
 			showMessage('info', 'Successfully modified gig');
-			console.log(res.data);
-			console.log(gigList);
+
 			gigList = gigList.map((g) => {
 				if (g._id === res.data._id) {
 					return res.data;
@@ -1589,7 +1586,6 @@ const handleEditGig = (e) => {
 					return g;
 				}
 			});
-			console.log(gigList);
 		} else {
 			showMessage('error', res.message);
 		}
@@ -1605,7 +1601,6 @@ const handleEditGig = (e) => {
 			return h._id;
 		}),
 	};
-	console.log(body);
 	handleRequest(str, 'PATCH', body, handler);
 };
 
@@ -1633,7 +1628,6 @@ const getVenues = (e) => {
 };
 
 const populateGigs = () => {
-	console.log(gigList);
 	if (!editGigSelect) return;
 	editGigSelect.innerHTML = '';
 	const o1 = document.createElement('option');
@@ -1740,7 +1734,6 @@ const handleDeleteGig = (e) => {
 	if (e.target !== confirmDeleteGig) return;
 
 	const handler = (res) => {
-		console.log(res);
 		if (res.status === 'success') {
 			showMessage('info', 'Successfully deleted gig');
 			gigList = gigList.filter((g) => {
