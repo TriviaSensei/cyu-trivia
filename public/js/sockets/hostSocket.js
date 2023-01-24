@@ -58,6 +58,8 @@ const openSlideShowWindow = (e) => {
 		return;
 	}
 
+	console.log(popSlide);
+
 	const w = window.screen.width;
 	const h = window.screen.height;
 	ssWindow = window.open(
@@ -142,8 +144,11 @@ const handlePopSlide = (data) => {
 	let popCarousel = new bootstrap.Carousel(popC);
 
 	if (data.newRound) {
+		console.log(data);
+
 		roundData = {
 			format: data.format,
+			description: data.body,
 			qList: [],
 			round: data.round,
 			endBonus: data.endBonus,
@@ -185,9 +190,11 @@ const handlePopSlide = (data) => {
 		if (popCurrent) modifySlide(popCurrent, data);
 	} else if (
 		roundData.round % 2 === 1 ||
-		(roundData.round === 3 && roundData.format === 'std')
+		(roundData.round === 4 && roundData.format === 'std')
 	) {
-		let body = `<ol>`;
+		let body;
+		if (roundData.round === 4) body = `${roundData.description}\n<ol>`;
+		else body = `<ol>`;
 		roundData.qList.forEach((q, i) => {
 			if (i !== roundData.qList.length - 1) body = `${body}<li>${q}</li>`;
 			else if (!roundData.endBonus) body = `${body}<li>${q}</li></ol>`;
@@ -255,13 +262,25 @@ const handlePopArray = (data) => {
 		} else {
 			ns.classList.add('active');
 		}
+		popSlide = ns.cloneNode(true);
+		popSlide.classList.add('active');
+		popSlide.classList.remove('carousel-item-next', 'carousel-item-start');
+	} else if (
+		data.every((d) => {
+			return d.body;
+		})
+	) {
+		roundData.qList = data.map((d) => {
+			return d.body;
+		});
+		handlePopSlide({ timer: true });
 	}
 };
 
-const handleNewSlide = (data, ...toSetActive) => {
-	let setActive = true;
-	if (toSetActive.length > 0) {
-		if (!toSetActive[0]) setActive = false;
+const handleNewSlide = (data, ...toSetPop) => {
+	let setPop = true;
+	if (toSetPop.length > 0) {
+		if (!toSetPop[0]) setPop = false;
 	}
 
 	stopTimer();
@@ -270,16 +289,15 @@ const handleNewSlide = (data, ...toSetActive) => {
 		const newSlide = createSlide(data);
 		myCarouselInner.appendChild(newSlide);
 
-		if (setActive) {
-			const activeSlide = myCarousel.querySelector('.carousel-item.active');
+		const activeSlide = myCarousel.querySelector('.carousel-item.active');
 
-			if (activeSlide) {
-				const len = myCarousel.querySelectorAll('.carousel-item').length;
-				slideCarousel.to(len - 1);
-			} else {
-				newSlide.classList.add('active');
-			}
+		if (activeSlide) {
+			const len = myCarousel.querySelectorAll('.carousel-item').length;
+			slideCarousel.to(len - 1);
+		} else {
+			newSlide.classList.add('active');
 		}
+
 		if (data.clear) {
 			getElementArray(myCarousel, '.carousel-item:not(:last-child)').forEach(
 				(item) => {
@@ -308,11 +326,14 @@ const handleNewSlide = (data, ...toSetActive) => {
 		if (currentSlide) modifySlide(currentSlide, data);
 	}
 
-	popSlide = document
-		.querySelector('.carousel-item:last-child')
-		.cloneNode(true);
-	popSlide.classList.remove('carousel-item-next', 'carousel-item-start');
-	popSlide.classList.add('active');
+	if (setPop) {
+		popSlide = document
+			.querySelector('.carousel-item:last-child')
+			.cloneNode(true);
+		popSlide.classList.remove('carousel-item-next', 'carousel-item-start');
+		popSlide.classList.add('active');
+		console.log(popSlide);
+	}
 };
 
 const uncheckRadios = (e) => {
@@ -668,7 +689,7 @@ export const Host = (socket) => {
 		data.newGame.slides.forEach((s) => {
 			if (Array.isArray(s)) {
 				s.forEach((s2) => {
-					handleNewSlide(s2);
+					handleNewSlide(s2, false);
 				});
 				handlePopArray(s);
 			} else {
@@ -1086,9 +1107,10 @@ export const Host = (socket) => {
 				withTimeout(
 					(res) => {
 						if (res.status === 'OK') {
+							console.log(res.data);
 							if (Array.isArray(res.data)) {
 								res.data.forEach((d) => {
-									handleNewSlide(d);
+									handleNewSlide(d, false);
 								});
 								handlePopArray(res.data);
 								const count =
