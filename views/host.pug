@@ -32,7 +32,7 @@ block content
         h3.page-title Your assigned games
         table.game-table
             thead
-                tr 
+                tr
                     th Venue
                     th Date
                     th Time
@@ -40,7 +40,7 @@ block content
                     th Start
             tbody
                 each game in data 
-                    tr
+                    tr(data-id=`${game._id}`)
                         td= game.venue
                         td= game.date.toDateString()
                         td= game.time

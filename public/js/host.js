@@ -104,7 +104,8 @@ const handleSaveGrades = (e) => {
 		if (!format) return;
 
 		let toSend;
-		if (format === 'questions') {
+
+		if (format === 'questions' || format === 'audio') {
 			const qgcs = getElementArray(gd, '.question-grading-container');
 			toSend = {
 				round,

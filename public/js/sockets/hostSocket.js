@@ -1122,6 +1122,25 @@ export const Host = (socket) => {
 							}
 						} else if (res.status === 'fail') {
 							showMessage('error', res.message);
+						} else if (res.status === 'END') {
+							showMessage('info', 'Game ended.');
+							const gr = document.querySelector(`tr[data-id="${res.id}"]`);
+							if (gr && res.results.length > 0) gr.remove();
+							if (chatContainer) {
+								chatContainer.innerHTML = '';
+							}
+							document
+								.querySelector('.top-navbar')
+								.classList.remove('invisible-div');
+							document
+								.getElementById('assigned-games')
+								.classList.remove('invisible-div');
+							document
+								.getElementById('hosting-container')
+								.classList.add('invisible-div');
+							mainContent.classList.remove('top-unset');
+							mainContent.classList.remove('h-100');
+							slideShowContainer.classList.add('invisible-div');
 						}
 					},
 					timeoutMessage('Request timed out - try again.'),
