@@ -1337,9 +1337,11 @@ const socket = (http, server) => {
 						}
 						return true;
 					});
-					myGame = undefined;
 
-					return cb({ status: 'END', id: myGame.gigId, results });
+					cb({ status: 'END', id: myGame.gigId, results });
+
+					myGame = undefined;
+					return;
 				}
 			}
 
