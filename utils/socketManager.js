@@ -39,7 +39,6 @@ const createSlides = (data, joinCode, ...s) => {
 	// if (!s) startRound = -1;
 	// else startRound = s[0] || 0;
 	data.rounds.forEach((r, i) => {
-		if (i <= 5) return;
 		toReturn.push({
 			new: true,
 			clear: true,
