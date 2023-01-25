@@ -553,6 +553,12 @@ li.navlink {
 	object-fit: contain;
 }
 
+.f-1 {
+	flex: 1;
+	width: unset;
+	height: unset;
+}
+
 .flair-div {
 	position: absolute;
 	left: 0%;

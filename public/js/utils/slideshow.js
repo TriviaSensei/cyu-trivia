@@ -35,7 +35,17 @@ const createBody = (data) => {
 				count === 1 ? '<span class="emphasis">' : '</span>'
 			);
 		}
-		body.innerHTML = replaceBreaks(str);
+		const p1 = createElement('p');
+		p1.innerHTML = replaceBreaks(str);
+		body.appendChild(p1);
+		if (data.qr) {
+			body.classList.add('d-flex', 'flex-column');
+			const qrd = createElement('.fill-container.f-1');
+			const i = createElement('img');
+			i.setAttribute('src', '/img/qr.svg');
+			qrd.appendChild(i);
+			body.appendChild(qrd);
+		}
 	} else if (data.picture) {
 		const container = createElement('.fill-container');
 		const img = createElement('img');

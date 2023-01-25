@@ -27,6 +27,7 @@ const createSlides = (data, joinCode, ...s) => {
 			body: `${
 				data.description ? data.description + '\n\n' : ''
 			}https://www.cyutrivia.com/play\n\nJoin code: ${joinCode}`,
+			qr: true,
 		},
 		{
 			new: true,
