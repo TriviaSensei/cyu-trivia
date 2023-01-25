@@ -144,8 +144,6 @@ const handlePopSlide = (data) => {
 	let popCarousel = new bootstrap.Carousel(popC);
 
 	if (data.newRound) {
-		console.log(data);
-
 		roundData = {
 			format: data.format,
 			description: data.body,
@@ -332,7 +330,6 @@ const handleNewSlide = (data, ...toSetPop) => {
 			.cloneNode(true);
 		popSlide.classList.remove('carousel-item-next', 'carousel-item-start');
 		popSlide.classList.add('active');
-		console.log(popSlide);
 	}
 };
 
