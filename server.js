@@ -1,7 +1,5 @@
 const dotenv = require('dotenv');
 const mongoose = require('mongoose');
-const Game = require('./models/gameModel');
-const User = require('./models/userModel');
 
 dotenv.config({ path: './config.env' });
 const port = process.env.PORT || 3000;

@@ -42,7 +42,7 @@ const createBody = (data) => {
 			body.classList.add('d-flex', 'flex-column');
 			const qrd = createElement('.fill-container.f-1');
 			const i = createElement('img');
-			i.setAttribute('src', '/img/qr.svg');
+			i.setAttribute('src', '/img/qr.png');
 			qrd.appendChild(i);
 			body.appendChild(qrd);
 		}
