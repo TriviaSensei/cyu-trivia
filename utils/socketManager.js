@@ -18,6 +18,8 @@ const filter = new Filter();
 let games = [];
 let users = [];
 
+const badCodes = ['1488', '8814', '0000'];
+
 const createSlides = (data, joinCode, ...s) => {
 	const toReturn = [
 		{
@@ -801,7 +803,7 @@ const socket = (http, server) => {
 				}
 				myGame = new Game(gig._id, myUser, randomCode(4), game.toJSON());
 				console.log(`Starting game with join code ${myGame.joinCode}`);
-				while (getGame(myGame.joinCode)) {
+				while (getGame(myGame.joinCode) || badCodes.includes(myGame.joinCode)) {
 					myGame.joinCode = randomCode(4);
 					console.log(`...which is taken. New code is ${myGame.joinCode}`);
 				}
