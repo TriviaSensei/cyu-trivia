@@ -29,6 +29,7 @@ const socketManager = require('./utils/socketManager')(http, server);
 process.on('unhandledRejection', (err) => {
 	console.log(err.name, err.message);
 	console.log('Unhandled rejection. Shutting down.');
+	console.log(err.stack);
 	server.close(() => {
 		process.exit(1);
 	});
